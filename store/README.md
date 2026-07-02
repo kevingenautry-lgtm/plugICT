@@ -70,18 +70,40 @@ Point your processor's webhook at `https://your-host/webhook/<provider>` where
 `<provider>` is `gumroad`, `lemonsqueezy`, or `stripe`. The parser understands
 each payload shape and ignores refunds / non-purchase events.
 
-## Payment processor — recommendation
+## Payment methods (Malaysia-first)
 
-| Option | Why | Note |
-|---|---|---|
-| **Lemon Squeezy** (recommended) | Merchant of Record — handles global sales tax/VAT for you; clean webhooks | Slightly higher fees; worth it solo |
-| **Gumroad** | Simplest to launch; can host the download itself | Fewer controls |
-| **Stripe** | Most control, lowest fees | You handle tax yourself (or add Stripe Tax) |
+Four methods, split by how the license gets issued:
 
-Because your `license.key` is *custom* (envelope-encrypted), don't rely on a
-processor's built-in "license key" generator — let `issue_license.py` /
-`webhook_server.py` mint the real key. Use the processor only for payment +
+| Method | Fee | Best for | License issuance |
+|---|---|---|---|
+| **Billplz** (FPX / DuitNow) | ~1.5% | Malaysia, automatic | **Automated** — webhook `/webhook/billplz` |
+| **Stripe** | ~2.9% | International cards | **Automated** — webhook `/webhook/stripe` |
+| **DuitNow QR** (static/bank) | 0% | Malaysia, manual | **Manual** — confirm, then `issue_license.py ... --method duitnow` |
+| **USDT** (Solana / TRC20) | ~gas | Crypto / international | **Manual** — confirm the tx, then `... --method usdt` |
+
+- **Billplz** is your automation workhorse for Malaysia — it covers FPX online
+  banking *and* DuitNow, and its callback is verified by `verify_billplz`
+  (signs the sorted payload fields, not the raw body). Set your Billplz
+  **X-Signature key** as `WEBHOOK_SECRET`.
+- **DuitNow QR** paid straight to your bank has no callback, so it's a manual
+  step: when the money lands, run
+  `python store/issue_license.py buyer@email ORDER-ID --method duitnow --email`.
+- **USDT** direct-to-wallet is the same manual pattern (verify the on-chain tx,
+  then issue with `--method usdt`). Want it automated later? A crypto processor
+  like NOWPayments/Coinbase Commerce adds a webhook — we can add a parser then.
+
+Because your `license.key` is *custom* (envelope-encrypted), don't use a
+gateway's built-in "license key" generator — let `issue_license.py` /
+`webhook_server.py` mint the real key. Use the gateway only for the payment +
 the purchase event.
+
+### Malaysian seller notes
+- All four methods route through the **same** `issue_license.issue(...)`, so
+  the vault, license format and buyer experience are identical regardless of
+  how they paid. The only difference is automated vs manual triggering.
+- The ledger's `method` column lets you reconcile against each gateway and see
+  the payment mix. DuitNow QR at 0% fee is your best-margin option — worth
+  featuring for local buyers.
 
 ## Security must-dos
 

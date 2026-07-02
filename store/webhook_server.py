@@ -8,9 +8,13 @@ Until you wire this up, `issue_license.py` (run manually per sale) does the same
 job with zero infrastructure — start there, graduate to this when volume grows.
 
 Supported processors (payload shapes differ; parse_event handles each):
-  * Gumroad         (form-encoded 'sale' ping)
+  * Billplz         (form-encoded callback — Malaysia FPX / DuitNow)
+  * Stripe          (JSON checkout.session.completed — international cards)
   * Lemon Squeezy   (JSON 'order_created' webhook)
-  * Stripe          (JSON checkout.session.completed)
+  * Gumroad         (form-encoded 'sale' ping)
+
+DuitNow QR (static/bank) and USDT (direct wallet) have no webhook — confirm the
+payment, then issue manually with issue_license.py --method duitnow|usdt.
 
 Run:
   pip install fastapi uvicorn
@@ -42,6 +46,13 @@ def parse_event(provider, payload):
     """
     provider = (provider or "").lower()
 
+    if provider == "billplz":
+        # Billplz posts form fields; a paid bill has paid=true / state=paid.
+        paid = str(payload.get("paid", "false")).lower() == "true" or payload.get("state") == "paid"
+        if not paid:
+            return None, None
+        return payload.get("email"), payload.get("transaction_id") or payload.get("id")
+
     if provider == "gumroad":
         # Gumroad posts form fields; a refund/dispute ping sets these flags.
         if str(payload.get("refunded", "false")).lower() == "true":
@@ -62,6 +73,22 @@ def parse_event(provider, payload):
         return email, obj.get("id")
 
     return None, None
+
+
+def billplz_source_string(payload):
+    """Billplz signs the sorted 'key+value' pairs (excluding x_signature)."""
+    parts = [f"{k}{v}" for k, v in payload.items() if k != "x_signature"]
+    parts.sort()
+    return "|".join(parts)
+
+
+def verify_billplz(secret, payload):
+    """Verify a Billplz callback's x_signature (HMAC-SHA256 over sorted fields)."""
+    if not secret:
+        return True  # dev mode
+    expected = hmac.new(secret.encode(), billplz_source_string(payload).encode(),
+                        hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, str(payload.get("x_signature", "")))
 
 
 def verify_signature(provider, secret, raw_body, header_sig):
@@ -96,24 +123,28 @@ def _build_app():
     @app.post("/webhook/{provider}")
     async def webhook(provider: str, request: Request):
         raw = await request.body()
-        sig = (request.headers.get("X-Signature")
-               or request.headers.get("Stripe-Signature")
-               or request.headers.get("X-Gumroad-Signature"))
-        if not verify_signature(provider, secret, raw, sig):
-            raise HTTPException(status_code=401, detail="bad signature")
-
         ctype = request.headers.get("content-type", "")
         if "application/json" in ctype:
             payload = json.loads(raw or b"{}")
         else:
-            form = await request.form()
-            payload = dict(form)
+            payload = dict(await request.form())
+
+        # Billplz signs its payload fields; everyone else signs the raw body.
+        if provider.lower() == "billplz":
+            ok = verify_billplz(secret, payload)
+        else:
+            sig = (request.headers.get("X-Signature")
+                   or request.headers.get("Stripe-Signature")
+                   or request.headers.get("X-Gumroad-Signature"))
+            ok = verify_signature(provider, secret, raw, sig)
+        if not ok:
+            raise HTTPException(status_code=401, detail="bad signature")
 
         email, order_id = parse_event(provider, payload)
         if not email:
             return {"status": "ignored"}  # not a fulfilable sale
 
-        issue_license.issue(email, order_id, email_it=True)
+        issue_license.issue(email, order_id, email_it=True, method=provider.lower())
         return {"status": "issued", "email": email}
 
     return app

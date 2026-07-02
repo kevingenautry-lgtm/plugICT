@@ -9,6 +9,28 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "store"))
 import webhook_server as wh  # noqa: E402
 
 
+def test_parse_billplz_paid():
+    email, order = wh.parse_event("billplz", {"email": "my@x.com", "paid": "true",
+                                              "state": "paid", "transaction_id": "TX9"})
+    assert email == "my@x.com" and order == "TX9"
+
+
+def test_parse_billplz_unpaid_ignored():
+    assert wh.parse_event("billplz", {"email": "my@x.com", "paid": "false",
+                                      "state": "due"}) == (None, None)
+
+
+def test_billplz_signature_roundtrip():
+    import hmac as _h, hashlib as _hh
+    secret = "xsig-key"
+    payload = {"id": "abc", "paid": "true", "email": "my@x.com", "amount": "14900"}
+    src = wh.billplz_source_string(payload)
+    payload["x_signature"] = _h.new(secret.encode(), src.encode(), _hh.sha256).hexdigest()
+    assert wh.verify_billplz(secret, payload) is True
+    payload["x_signature"] = "tampered"
+    assert wh.verify_billplz(secret, payload) is False
+
+
 def test_parse_gumroad_sale():
     email, order = wh.parse_event("gumroad", {"email": "a@x.com", "sale_id": "S1"})
     assert email == "a@x.com" and order == "S1"

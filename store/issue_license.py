@@ -46,8 +46,12 @@ LEDGER = STORE_DIR / "issued_licenses.csv"
 VAULT_DOWNLOAD_URL = os.environ.get("ICT_VAULT_DOWNLOAD_URL", "https://YOUR-DOWNLOAD-LINK")
 
 
-def issue(email, order_id, email_it=False):
-    """Generate one license.key for a paid order. Returns the license path."""
+def issue(email, order_id, email_it=False, method="manual"):
+    """Generate one license.key for a paid order. Returns the license path.
+
+    `method` records how they paid (duitnow, usdt, fpx/billplz, stripe, ...) in
+    the ledger, so you can reconcile against each gateway.
+    """
     email = email.strip().lower()
     order_id = (order_id or f"ORDER-{datetime.now(timezone.utc):%Y%m%d%H%M%S}").strip()
     ISSUED_DIR.mkdir(exist_ok=True)
@@ -58,21 +62,21 @@ def issue(email, order_id, email_it=False):
     dest = ISSUED_DIR / out_file.name
     shutil.move(str(out_file), str(dest))
 
-    _log(email, order_id, license_id, dest.name)
-    print(f"  issued  {email}  →  {dest.name}  (license {license_id})")
+    _log(email, order_id, license_id, dest.name, method)
+    print(f"  issued  {email}  →  {dest.name}  (license {license_id}, {method})")
 
     if email_it:
         _email_license(email, dest, license_id)
     return dest
 
 
-def _log(email, order_id, license_id, filename):
+def _log(email, order_id, license_id, filename, method):
     new = not LEDGER.exists()
     with open(LEDGER, "a", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         if new:
-            w.writerow(["issued_at_utc", "email", "order_id", "license_id", "file"])
-        w.writerow([datetime.now(timezone.utc).isoformat(), email, order_id, license_id, filename])
+            w.writerow(["issued_at_utc", "email", "order_id", "license_id", "file", "method"])
+        w.writerow([datetime.now(timezone.utc).isoformat(), email, order_id, license_id, filename, method])
 
 
 def _email_license(email, license_path, license_id):
@@ -112,7 +116,7 @@ def _email_license(email, license_path, license_id):
     print(f"  emailed license to {email}")
 
 
-def _batch(csv_path, email_it):
+def _batch(csv_path, email_it, method="manual"):
     with open(csv_path, newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
     if not rows:
@@ -122,7 +126,7 @@ def _batch(csv_path, email_it):
         addr = r.get("email") or r.get("Email")
         order = r.get("order_id") or r.get("order") or ""
         if addr:
-            issue(addr, order, email_it)
+            issue(addr, order, email_it, r.get("method") or method)
 
 
 def main():
@@ -132,12 +136,14 @@ def main():
     p.add_argument("--batch", help="CSV file with columns: email,order_id")
     p.add_argument("--email", action="store_true", dest="email_it",
                    help="Also email the license (needs SMTP_* env vars)")
+    p.add_argument("--method", default="manual",
+                   help="Payment method for the ledger: duitnow, usdt, fpx, stripe, ... (default manual)")
     args = p.parse_args()
 
     if args.batch:
-        _batch(args.batch, args.email_it)
+        _batch(args.batch, args.email_it, args.method)
     elif args.email:
-        issue(args.email, args.order_id, args.email_it)
+        issue(args.email, args.order_id, args.email_it, args.method)
     else:
         p.error("Provide a buyer email (and optional order_id), or --batch <csv>.")
 
