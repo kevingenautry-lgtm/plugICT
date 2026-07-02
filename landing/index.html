@@ -41,12 +41,40 @@
   .navlinks a:hover{color:var(--text)}
   @media(max-width:720px){ .navlinks a:not(.btn){display:none} }
 
-  /* HERO */
-  header.hero{padding:84px 0 40px; position:relative; overflow:hidden}
+  /* FIXED MOTION BACKGROUND (behind the hero, like a fixed video layer) */
+  #bgfx{position:fixed; inset:0; z-index:0; pointer-events:none}
+  #bgfx canvas{width:100%; height:100%; display:block}
+  #bgfx::after{content:""; position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(11,15,20,.28) 0%, rgba(11,15,20,.55) 55%, var(--bg) 96%)}
+  /* To use your own background video instead of the canvas, place this inside #bgfx:
+     <video autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"
+            src="your-video.mp4"></video>  (host the file yourself) */
+
+  nav, header.hero, section, footer{position:relative; z-index:1}
+  section, footer{background:var(--bg)}
+
+  /* HERO — full viewport, transparent so the motion layer shows through */
+  header.hero{min-height:100vh; display:flex; align-items:center;
+    padding:84px 0 60px; position:relative; overflow:hidden; background:transparent}
   header.hero::before{content:""; position:absolute; inset:-40% 0 auto 0; height:520px;
     background:radial-gradient(60% 100% at 50% 0%, rgba(22,199,132,.16), transparent 70%); pointer-events:none}
+  header.hero .wrap{width:100%}
+
+  /* Staggered word-by-word headline (set in motion by JS) */
+  .hero h1 .w{display:inline-block; opacity:0; transform:translateY(32px);
+    transition:opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1)}
+  .hero.inview h1 .w{opacity:1; transform:none}
+
+  /* Generic scroll fade-up (applied by JS to cards, headings, pricing…) */
+  .fadeup{opacity:0; transform:translateY(24px);
+    transition:opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1)}
+  .fadeup.infade{opacity:1; transform:none}
+
+  @media (prefers-reduced-motion: reduce){
+    .hero h1 .w, .fadeup{opacity:1 !important; transform:none !important; transition:none !important}
+  }
   .hero h1{font-size:clamp(34px,6vw,60px); line-height:1.05; margin:14px 0 18px; letter-spacing:-.02em}
-  .hero h1 span{color:var(--accent)}
+  .hero h1 .accent{color:var(--accent)}
   .hero p.lead{font-size:clamp(17px,2.4vw,21px); color:var(--muted); max-width:640px; margin:0 auto 28px}
   .hero .cta{display:flex; gap:14px; justify-content:center; flex-wrap:wrap}
   .hero .fine{color:var(--faint); font-size:13px; margin-top:14px}
@@ -113,6 +141,8 @@
 </head>
 <body>
 
+<div id="bgfx" aria-hidden="true"><canvas id="fx"></canvas></div>
+
 <nav>
   <div class="wrap">
     <div class="brand"><span class="dot"></span> ICT&nbsp;Vault</div>
@@ -128,18 +158,18 @@
 
 <header class="hero">
   <div class="wrap">
-    <div class="eyebrow">For traders who work alongside an AI</div>
-    <h1>Give your AI agent an <span>ICT brain.</span></h1>
-    <p class="lead">576 Inner Circle Trader videos — transcribed, indexed, and searchable by <em>your own</em> AI.
+    <div class="eyebrow fadeup" data-delay="0">For traders who work alongside an AI</div>
+    <h1>Give your AI agent an <span class="accent">ICT brain.</span></h1>
+    <p class="lead fadeup" data-delay=".9">576 Inner Circle Trader videos — transcribed, indexed, and searchable by <em>your own</em> AI.
       Ask about Fair Value Gaps, Silver Bullet timing, order blocks — and get answers with exact
       video sources and timestamps, right inside the AI you already use.</p>
-    <div class="cta">
+    <div class="cta fadeup" data-delay="1.05">
       <a class="btn" href="#pricing">Get lifetime access</a>
       <a class="btn ghost" href="#how">See how it works</a>
     </div>
-    <div class="fine">One-time payment · Runs on your machine · Yours forever</div>
+    <div class="fine fadeup" data-delay="1.2">One-time payment · Runs on your machine · Yours forever</div>
 
-    <div class="works">
+    <div class="works fadeup" data-delay="1.35">
       <b>Connects to the AI tools you already run locally</b>
       <div class="chips">
         <span class="chip">Claude Desktop</span>
@@ -342,6 +372,112 @@ $ vault <span class="g">"what's the difference between an order block and a brea
 
 <script>
   document.querySelectorAll('[data-year]').forEach(e=>e.textContent=new Date().getFullYear());
+
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ── Word-by-word headline stagger (0.15s base + 0.08s per word) ── */
+  (function(){
+    const h1 = document.querySelector('.hero h1');
+    if(!h1) return;
+    let i = 0;
+    const wrapWords = (node)=>{
+      [...node.childNodes].forEach(child=>{
+        if(child.nodeType === 3){ // text node → one span per word
+          const frag = document.createDocumentFragment();
+          child.textContent.split(/(\s+)/).forEach(part=>{
+            if(!part) return;
+            if(/^\s+$/.test(part)){ frag.appendChild(document.createTextNode(part)); return; }
+            const s = document.createElement('span');
+            s.className = 'w';
+            s.style.transitionDelay = (0.15 + (i++)*0.08) + 's';
+            s.textContent = part;
+            frag.appendChild(s);
+          });
+          node.replaceChild(frag, child);
+        } else if(child.nodeType === 1){ wrapWords(child); } // keep <span> color wrapper
+      });
+    };
+    wrapWords(h1);
+  })();
+
+  /* ── Scroll-triggered fade-ups (whileInView, once) ── */
+  (function(){
+    // Auto-tag cards, section headings and key blocks; grids stagger children.
+    document.querySelectorAll('section h2, section .sub, .price, details, .code').forEach(el=>el.classList.add('fadeup'));
+    document.querySelectorAll('.grid').forEach(grid=>{
+      [...grid.children].forEach((card, idx)=>{
+        card.classList.add('fadeup');
+        card.dataset.delay = (idx * 0.08).toFixed(2);
+      });
+    });
+    document.querySelectorAll('.fadeup').forEach(el=>{
+      if(el.dataset.delay) el.style.transitionDelay = el.dataset.delay + 's';
+    });
+
+    if(REDUCED){ document.querySelectorAll('.fadeup').forEach(el=>el.classList.add('infade'));
+                 document.querySelector('.hero')?.classList.add('inview'); return; }
+
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(en=>{
+        if(en.isIntersecting){ en.target.classList.add('infade'); io.unobserve(en.target); }
+      });
+    }, {threshold: 0.2});
+    document.querySelectorAll('.fadeup').forEach(el=>io.observe(el));
+
+    // Kick off the hero words + fades on load.
+    requestAnimationFrame(()=>document.querySelector('.hero')?.classList.add('inview'));
+  })();
+
+  /* ── Fixed motion background: slow-drifting candlestick chart ── */
+  (function(){
+    const cv = document.getElementById('fx');
+    if(!cv) return;
+    const ctx = cv.getContext('2d');
+    const DPR = Math.min(devicePixelRatio || 1, 2);
+    const SPACE = 26, SPEED = 0.25;             // px between candles, px/frame drift
+    let W, H, candles = [], offset = 0, price = 100;
+
+    function resize(){
+      W = cv.clientWidth; H = cv.clientHeight;
+      cv.width = W * DPR; cv.height = H * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      const need = Math.ceil(W / SPACE) + 2;
+      while(candles.length < need) candles.push(next());
+    }
+    function next(){
+      const o = price, move = (Math.random() - 0.48) * 6;
+      price = Math.max(60, Math.min(140, price + move));
+      const c = price;
+      return {o, c, h: Math.max(o,c) + Math.random()*3, l: Math.min(o,c) - Math.random()*3};
+    }
+    function y(v){ return H * 0.86 - ((v - 60) / 80) * H * 0.62; }
+    function draw(){
+      ctx.clearRect(0, 0, W, H);
+      // faint grid
+      ctx.strokeStyle = 'rgba(255,255,255,0.030)'; ctx.lineWidth = 1;
+      for(let gy = 0; gy < H; gy += 90){ ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+      for(let gx = -offset % 130; gx < W; gx += 130){ ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+      // candles
+      candles.forEach((k, idx)=>{
+        const x = idx * SPACE - offset, up = k.c >= k.o;
+        const col = up ? 'rgba(22,199,132,' : 'rgba(229,72,77,';
+        ctx.strokeStyle = col + '0.16)';
+        ctx.beginPath(); ctx.moveTo(x, y(k.h)); ctx.lineTo(x, y(k.l)); ctx.stroke();
+        ctx.fillStyle = col + '0.13)';
+        const top = y(Math.max(k.o, k.c));
+        ctx.fillRect(x - 5, top, 10, Math.max(2, Math.abs(y(k.o) - y(k.c))));
+      });
+    }
+    function tick(){
+      offset += SPEED;
+      if(offset >= SPACE){ offset -= SPACE; candles.shift(); candles.push(next()); }
+      draw();
+      requestAnimationFrame(tick);
+    }
+    addEventListener('resize', resize);
+    resize();
+    if(REDUCED){ draw(); } else { tick(); }
+  })();
 </script>
 </body>
 </html>
