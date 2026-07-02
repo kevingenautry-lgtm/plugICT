@@ -9,7 +9,7 @@ Single source of truth for everything the buyer-side tools need:
   * ICT shortform glossary (+ categories for real related terms)
   * Session detection, playlist classification, FTS sanitisation
 
-Both query.py and mcp_server.py import from here so the decrypt logic can
+mcp_server.py (and the benchmark harness) import from here so the decrypt logic can
 never drift out of sync again.
 """
 
@@ -439,7 +439,7 @@ def load_license(license_file=LICENSE_FILE):
     if not license_file.exists():
         raise VaultError(
             "license.key not found.\n"
-            "  Place the license.key we sent you next to query.py, then try again."
+            "  Place the license.key we sent you next to mcp_server.py, then try again."
         )
     info = {}
     with open(license_file, encoding="utf-8", errors="replace") as f:
@@ -541,7 +541,7 @@ def open_vault(vault_file=VAULT_FILE, license_file=LICENSE_FILE, on_progress=Non
     """
     if not vault_file.exists():
         raise VaultError(
-            "ict-vault.kevin not found next to query.py.\n"
+            "ict-vault.kevin not found next to mcp_server.py.\n"
             "  Make sure the vault file downloaded fully and sits in this folder."
         )
 
@@ -608,6 +608,146 @@ def open_vault(vault_file=VAULT_FILE, license_file=LICENSE_FILE, on_progress=Non
     db = sqlite3.connect(db_path)
     db.execute("PRAGMA journal_mode=OFF")
     return db, chroma_dir, info.get('LICENSED_TO', 'unknown')
+
+
+# ── Reusable search session (used by mcp path indirectly + benchmark) ────────
+_reranker = None
+
+
+def rerank(query, candidates, top_k):
+    """Cross-encoder rerank; degrades gracefully if the model isn't available."""
+    global _reranker
+    if len(candidates) <= 1:
+        return candidates[:top_k]
+    try:
+        if _reranker is None:
+            from sentence_transformers import CrossEncoder
+            _reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
+        scores = _reranker.predict([(query, c.get('text', '')[:512]) for c in candidates])
+        for c, s in zip(candidates, scores):
+            c['rerank_score'] = float(s)
+        candidates.sort(key=lambda c: c.get('rerank_score', 0.0), reverse=True)
+        return candidates[:top_k]
+    except Exception as e:
+        print(f"(rerank skipped: {e})", file=sys.stderr)
+        return candidates[:top_k]
+
+
+class VaultSession:
+    """Decrypt once, query many. UI-agnostic — no printing, no colour."""
+
+    def __init__(self):
+        self.db = None
+        self.chroma_dir = None
+        self.licensed_to = "unknown"
+        self.demo = None
+        self._collection = None
+
+    def open(self, vault_file=VAULT_FILE, license_file=LICENSE_FILE, on_progress=None):
+        self.db, self.chroma_dir, self.licensed_to = open_vault(
+            vault_file=vault_file, license_file=license_file, on_progress=on_progress)
+        self.demo = demo_info(self.db)
+        return self
+
+    def _get_collection(self):
+        if self._collection is None:
+            import chromadb
+            from chromadb.config import Settings
+            client = chromadb.PersistentClient(
+                path=self.chroma_dir, settings=Settings(anonymized_telemetry=False))
+            self._collection = client.get_collection('ict_vault')
+        return self._collection
+
+    def search(self, query, playlist=None, session=None, top_k=5):
+        """Return (ranked_candidates, expanded_query, expansion_changed)."""
+        expanded, changed = expand_query(query)
+        candidates = []
+
+        fts_query = sanitize_fts(expanded)
+        if fts_query:
+            try:
+                sql = ("SELECT title, video_id, start_ts, playlist, "
+                       "snippet(transcripts_fts, 5, '<b>', '</b>', '...', 60) "
+                       "FROM transcripts_fts WHERE content MATCH ?")
+                params = [fts_query]
+                if playlist:
+                    sql += " AND playlist = ?"
+                    params.append(playlist)
+                sql += " ORDER BY rank LIMIT ?"
+                params.append(top_k + 5)
+                for r in self.db.execute(sql, params).fetchall():
+                    candidates.append({'source': 'keyword', 'title': r[0], 'video_id': r[1],
+                                       'start_ts': r[2], 'playlist': r[3], 'text': r[4]})
+            except sqlite3.Error as e:
+                print(f"(keyword search unavailable: {e})", file=sys.stderr)
+
+        try:
+            where = {'playlist': playlist} if playlist else None
+            out = self._get_collection().query(query_texts=[query], n_results=top_k + 5, where=where)
+            docs = out.get('documents', [[]])[0]
+            metas = out.get('metadatas', [[]])[0]
+            for i, doc in enumerate(docs):
+                m = metas[i] if i < len(metas) else {}
+                candidates.append({'source': 'semantic', 'title': m.get('title', ''),
+                                   'video_id': m.get('video_id', ''), 'start_ts': m.get('start_ts', ''),
+                                   'playlist': m.get('playlist', ''), 'text': doc[:500]})
+        except ImportError:
+            print("(semantic search unavailable — chromadb not installed)", file=sys.stderr)
+        except Exception as e:
+            print(f"(semantic search unavailable: {e})", file=sys.stderr)
+
+        ranked = rerank(query, candidates, top_k) if candidates else []
+        return ranked, expanded, changed
+
+    def close(self):
+        if self.db:
+            self.db.close()
+            self.db = None
+
+
+def run_doctor(vault_file=VAULT_FILE, license_file=LICENSE_FILE):
+    """Preflight health check for buyers. Prints one actionable line per issue.
+
+    Returns 0 if everything is ready, 1 otherwise. Used by
+    `python mcp_server.py --doctor`.
+    """
+    ok = True
+
+    def check(label, cond, hint=""):
+        nonlocal ok
+        print(f"  {'✓' if cond else '✖'} {label}")
+        if not cond and hint:
+            print(f"      → {hint}")
+        ok = ok and cond
+
+    print("ICT Vault — environment check\n")
+    check(f"Python {sys.version_info.major}.{sys.version_info.minor} (need 3.10+)",
+          sys.version_info >= (3, 10), "Install Python 3.10 or newer from python.org")
+    for mod, hint in [("cryptography", "pip install cryptography"),
+                      ("chromadb", "pip install chromadb"),
+                      ("sentence_transformers", "pip install sentence-transformers"),
+                      ("mcp", "pip install mcp"),
+                      ("zstandard", "pip install zstandard")]:
+        try:
+            __import__(mod)
+            check(f"{mod} installed", True)
+        except Exception:
+            check(f"{mod} installed", False, hint)
+    check("license.key present", license_file.exists(),
+          "Place the license.key from your purchase next to mcp_server.py")
+    check("ict-vault.kevin present", vault_file.exists(),
+          "Place ict-vault.kevin next to mcp_server.py")
+    if license_file.exists() and vault_file.exists():
+        try:
+            db, _, who = open_vault(vault_file=vault_file, license_file=license_file)
+            n = db.execute("SELECT COUNT(*) FROM transcript_files").fetchone()[0]
+            db.close()
+            check(f"vault opens & decrypts ({n} videos, licensed to {who})", True)
+        except Exception as e:
+            check("vault opens & decrypts", False, str(e))
+    print("\n" + ("✅ All good — add the MCP config to your AI agent and start asking questions."
+                  if ok else "Some checks failed; fix the items above and re-run."))
+    return 0 if ok else 1
 
 
 def _safe_extractall(tar, path):

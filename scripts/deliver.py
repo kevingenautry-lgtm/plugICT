@@ -17,7 +17,8 @@ from datetime import datetime
 VAULT_DIR = Path(os.environ.get("ICT_SOURCE_DIR", r"C:\Users\kevin\Hermes ICT Selling Idea"))
 # The buyer-facing code ships from this repo's scripts/ dir (next to deliver.py).
 SCRIPT_DIR = Path(__file__).parent.resolve()
-CODE_FILES = ["query.py", "mcp_server.py", "vault_core.py"]
+# Buyers get the AI-agent (MCP) product only — no CLI search tool.
+CODE_FILES = ["mcp_server.py", "vault_core.py"]
 DELIVERY_ROOT = VAULT_DIR / "delivery"
 
 def deliver(buyer_email, purchase_id):
@@ -68,7 +69,7 @@ def deliver(buyer_email, purchase_id):
     shutil.copy2(license_file, delivery_dir / "license.key")
     print("  OK license.key")
     
-    # ── Copy buyer-facing code (query.py, mcp_server.py, vault_core.py) ──
+    # ── Copy buyer-facing code (mcp_server.py, vault_core.py) ──
     print("[3/6] Copying application code...")
     for name in CODE_FILES:
         src = SCRIPT_DIR / name
@@ -90,11 +91,10 @@ def deliver(buyer_email, purchase_id):
         "sentence-transformers~=3.0\n"
         "mcp~=1.2\n"
         "zstandard~=0.22\n"
-        "rich~=13.7\n"
     )
     print("  OK requirements.txt (pinned)")
 
-    # ── setup.bat — isolated venv so we never touch the buyer's global Python ──
+    # ── setup.bat — isolated venv, then verify. Buyers connect an AI agent. ──
     setup_bat = delivery_dir / "setup.bat"
     setup_bat.write_text(
         "@echo off\r\n"
@@ -108,18 +108,18 @@ def deliver(buyer_email, purchase_id):
         ".venv\\Scripts\\python -m pip install --upgrade pip\r\n"
         ".venv\\Scripts\\pip install -r requirements.txt\r\n"
         "echo.\r\n"
-        "echo Checking your setup...\r\n"
-        ".venv\\Scripts\\python query.py --doctor\r\n"
+        "echo Verifying your vault...\r\n"
+        ".venv\\Scripts\\python mcp_server.py --doctor\r\n"
         "echo.\r\n"
         "echo ========================================\r\n"
-        "echo Setup complete!  Search with:\r\n"
-        "echo   vault.bat \"your question\"\r\n"
+        "echo Setup complete!\r\n"
+        "echo Now connect your AI agent:\r\n"
+        "echo   add examples\\claude_desktop_config.json to Claude Desktop\r\n"
+        "echo   (see docs\\AI-AGENT-GUIDE.md)\r\n"
+        "echo Then just ask your AI about any ICT concept.\r\n"
         "echo ========================================\r\n"
         "pause\r\n"
     )
-    # vault.bat / vault.sh wrappers so buyers never touch the venv directly.
-    (delivery_dir / "vault.bat").write_text(
-        "@echo off\r\n.venv\\Scripts\\python query.py %*\r\n")
     (delivery_dir / "setup.sh").write_text(
         "#!/usr/bin/env bash\n"
         "set -e\n"
@@ -128,18 +128,14 @@ def deliver(buyer_email, purchase_id):
         "python3 -m venv .venv\n"
         ".venv/bin/pip install --upgrade pip\n"
         ".venv/bin/pip install -r requirements.txt\n"
-        ".venv/bin/python query.py --doctor\n"
-        "echo 'Setup complete. Search with: ./vault.sh \"your question\"'\n")
-    (delivery_dir / "vault.sh").write_text(
-        "#!/usr/bin/env bash\n"
-        "cd \"$(dirname \"$0\")\"\n"
-        ".venv/bin/python query.py \"$@\"\n")
-    for sh in ("setup.sh", "vault.sh"):
-        try:
-            os.chmod(delivery_dir / sh, 0o755)
-        except OSError:
-            pass
-    print("  OK setup.bat / vault.bat / setup.sh / vault.sh")
+        "echo 'Verifying your vault...'\n"
+        ".venv/bin/python mcp_server.py --doctor\n"
+        "echo 'Setup complete. Connect your AI agent — see docs/AI-AGENT-GUIDE.md'\n")
+    try:
+        os.chmod(delivery_dir / "setup.sh", 0o755)
+    except OSError:
+        pass
+    print("  OK setup.bat / setup.sh")
     
     # ── Create examples folder ──
     print("[5/6] Creating example configs...")
@@ -208,25 +204,34 @@ mcp_servers:
     readme = docs_dir / "README.md"
     readme.write_text(f"""# ICT Knowledge Vault
 
-## Quick Start
+Your AI agent, upgraded with 576 ICT videos. Ask it anything about ICT and it
+answers with exact video sources and timestamps.
+
+## 1. Set up (one time)
 
 ```
-setup.bat                       # One-time: builds an isolated environment
-vault.bat "Fair Value Gap"      # Search the vault
-vault.bat                       # Interactive mode (decrypt once, ask many)
+setup.bat            # Windows  — builds an isolated environment + verifies
+./setup.sh           # macOS / Linux
 ```
 
-macOS / Linux: use `./setup.sh` then `./vault.sh "your question"`.
+Something off? Re-run and read the check, or:
+`.venv\\Scripts\\python mcp_server.py --doctor`
 
-Something not working? Run `vault.bat --doctor` for a health check.
+## 2. Connect your AI agent
 
-## Connect to AI Agent
+Add the config from `examples/` to your agent, then restart it:
+- **Claude Desktop** → `examples/claude_desktop_config.json`
+- **Cursor** → `examples/cursor_mcp.json`
+- **Hermes** → `examples/hermes_config.yaml`
 
-```
-.venv\\Scripts\\python mcp_server.py   # Start MCP server
-```
-Then add `examples/claude_desktop_config.json` to your Claude Desktop config.
-See `AI-AGENT-GUIDE.md` for the full setup guide.
+Your agent now has ICT tools (search_ict, explore_concept, glossary_lookup…).
+Full walkthrough: `docs/AI-AGENT-GUIDE.md`.
+
+## 3. Ask
+
+> "How does ICT teach the Silver Bullet entry?"
+
+Your AI searches all 576 videos and answers with cited timestamps.
 
 ## License
 

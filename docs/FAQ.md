@@ -12,7 +12,7 @@ A: We've transcribed 576 videos across 10 playlists from 2016-2026. This covers 
 A: No. The vault is encrypted — you search and get results. Raw files are not extractable. This protects the content from unauthorized sharing.
 
 **Q: Do I need an AI agent to use this?**
-A: No. `python query.py "your question"` works standalone. AI agent integration is optional for advanced use.
+A: Yes — ICT Vault works by connecting to your own AI agent (Claude Desktop, Cursor, Hermes or any MCP-compatible agent). You ask your AI questions in natural conversation, and it searches the vault to answer with cited timestamps.
 
 **Q: What AI agents can I connect?**
 A: Claude Desktop, Cursor IDE, Hermes Agent, ChatGPT (via API), Codex CLI, or any MCP-compatible agent. See `AI-AGENT-GUIDE.md`.
@@ -37,7 +37,7 @@ A: The cross-encoder model loads on first use (~30 seconds). Subsequent searches
 A: Multi-signal fusion — keyword (FTS5) + semantic (ChromaDB vectors) + knowledge graph. Results are ranked by relevance, not just keyword match count.
 
 **Q: Can I search by playlist?**
-A: Yes. `python query.py "FVG" --playlist "2022 ICT Mentorship"`. Or filter in the MCP server.
+A: Yes. Ask your AI to focus on one, e.g. *"What does the 2022 Mentorship say about FVG?"* — the `search_ict` tool accepts a playlist filter.
 
 ---
 
@@ -77,7 +77,7 @@ A: We've extracted ICT concepts (FVG, Order Block, Silver Bullet, etc.) and thei
 
 **Q: Something's not working.**
 A: Check:
-1. `license.key` is in the same folder as `query.py`
+1. `license.key` is in the same folder as `mcp_server.py`
 2. Python 3.10+ is installed (`python --version`)
 3. Run `pip install -r requirements.txt` again
 4. Try deleting `_vectors` folder and re-extract the vault

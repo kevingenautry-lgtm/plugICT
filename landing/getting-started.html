@@ -69,17 +69,16 @@
       <button class="tab" data-os="mac">macOS / Linux</button>
     </div>
     <div class="os win show">
-      <p>Double-click <code>setup.bat</code>. It builds an isolated environment and checks everything.
-        Then search with:</p>
-      <pre>vault.bat "what is a fair value gap?"</pre>
+      <p>Double-click <code>setup.bat</code>. It builds an isolated environment, installs everything,
+        and verifies your vault.</p>
     </div>
     <div class="os mac">
       <p>In Terminal, from the unzipped folder:</p>
-      <pre>./setup.sh
-./vault.sh "what is a fair value gap?"</pre>
+      <pre>./setup.sh</pre>
     </div>
-    <div class="note">Something not working? Run <code>vault.bat --doctor</code> (or
-      <code>./vault.sh --doctor</code>). It tells you exactly what to fix.</div>
+    <div class="note">Something not working? Run a health check:
+      <code>.venv\Scripts\python mcp_server.py --doctor</code> (Windows) or
+      <code>.venv/bin/python mcp_server.py --doctor</code> (macOS/Linux). It tells you exactly what to fix.</div>
   </div>
 
   <div class="step">

@@ -46,29 +46,18 @@ You DON'T need ChatGPT Pro or Claude Pro. Here are free and cheap options:
 4. Add ICT vault MCP config
 5. Total cost: **$0**
 
-**Manual copy-paste method (works with ANY free AI):**
-1. Run: `python query.py "Silver Bullet"`
-2. Copy results
-3. Paste into [Google AI Studio chat](https://aistudio.google.com) (free) or [DeepSeek Chat](https://chat.deepseek.com) (free)
-4. Ask: "Explain these ICT transcript excerpts"
+Once the MCP config is added, just talk to your agent normally — ask *"What
+does ICT say about the Silver Bullet?"* and it calls the vault's `search_ict`
+tool and answers with cited timestamps. No copy-pasting.
 
-**Python script with DeepSeek ($1-3/month):**
-```python
-from openai import OpenAI
-client = OpenAI(
-    api_key="sk-your-deepseek-key",
-    base_url="https://api.deepseek.com"
-)
-# Costs ~$0.0003 per query. 100 queries = $0.03
-```
-
-> 💡 **Start free, upgrade later.** Gemini 2.0 Flash = 1,500 free queries/day. Most users won't exceed this.
+> 💡 **Start free, upgrade later.** Gemini 2.0 Flash via Hermes = 1,500 free
+> queries/day. Most users won't exceed this.
 
 ---
 
-## Quick Start (No AI Agent Needed)
+## Quick Start — Verify Before Connecting
 
-Before connecting to any AI agent, verify the vault works:
+Before wiring up your AI agent, confirm the vault is healthy:
 
 ```bash
 # Windows
@@ -77,15 +66,19 @@ setup.bat
 # Or manual
 pip install -r requirements.txt
 
-# Test search
-python query.py "Fair Value Gap definition"
+# Verify vault + environment
+python mcp_server.py --doctor
 ```
 
 Output:
 ```
-📍 2022 Mentorship Ep.12 — 15:23
-"A Fair Value Gap is a 3-candle pattern where the middle candle
-leaves a gap in price delivery, indicating an imbalance..."
+ICT Vault — environment check
+
+  ✓ Python 3.11 (need 3.10+)
+  ✓ chromadb installed
+  ✓ vault opens & decrypts (576 videos, licensed to you@email)
+
+✅ All good — add the MCP config to your AI agent and start asking questions.
 
 📍 2024 Mentorship Lecture #7 — 22:10
 "FVG occurs when price moves too quickly in one direction..."
@@ -220,11 +213,13 @@ vault = ICTVault()
 
 ChatGPT cannot run MCP servers directly. Use these methods:
 
-### Method A: Manual Copy-Paste (Simplest)
+### Method A: Use an MCP-native desktop agent (Recommended)
 
-1. Run `python query.py "your question"` 
-2. Copy the output
-3. Paste into ChatGPT: "Based on these ICT transcript excerpts, answer: [your question]"
+ChatGPT on the web can't reach a local vault. The smoothest path today is a
+desktop agent that speaks MCP — Claude Desktop, Cursor or Hermes — which
+connects to the vault directly (see sections above). A hosted connector for
+ChatGPT and Claude.ai on the web is on the roadmap; lifetime buyers get first
+access.
 
 ### Method B: Custom GPT with Knowledge Files
 
@@ -233,9 +228,8 @@ ChatGPT cannot run MCP servers directly. Use these methods:
 3. Configure Custom GPT instructions:
 
 ```
-You are an ICT trading expert. You have access to the ICT Knowledge 
-Vault index. When asked about ICT concepts, reference the vault.
-Instruct the user to run: python query.py "their question"
+You are an ICT trading expert. You have access to the ICT Knowledge
+Vault index. When asked about ICT concepts, reference the vault index.
 ```
 
 ### Method C: API Script (For Developers)

@@ -22,8 +22,8 @@ thing you generate per sale is a tiny text file.
    `.vault_key`, `.vault_sha256`. Keep `.vault_key` secret — it's the master.
 2. **Make the buyer zip** (app + docs + vault, *no* `.vault_key`):
    `python scripts/deliver.py "you@example.com" "TEST"` builds a delivery folder;
-   zip it. (Or assemble `query.py`, `mcp_server.py`, `vault_core.py`,
-   `requirements.txt`, `setup.bat/sh`, `vault.bat/sh`, `docs/`, `examples/`,
+   zip it. (Or assemble `mcp_server.py`, `vault_core.py`,
+   `requirements.txt`, `setup.bat/sh`, `docs/`, `examples/`,
    and `ict-vault.kevin` yourself.)
 3. **Host the zip** somewhere with a stable URL (Cloudflare R2, Backblaze B2,
    S3, Bunny, even a GitHub Release asset). Put that URL in:

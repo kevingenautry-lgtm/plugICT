@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 import vault_core as vc  # noqa: E402
-from query import VaultSession  # noqa: E402
+from vault_core import VaultSession  # noqa: E402
 
 BENCH = Path(__file__).resolve().parent / "benchmark_queries.json"
 

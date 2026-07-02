@@ -91,19 +91,33 @@ def build_demo(source_dir, count=5, videos=None, cta="https://YOUR-SITE/#pricing
     print("[4/4] Assembling demo package...")
     shutil.move(str(stage / "ict-vault.kevin"), out_dir / "ict-vault.kevin")
     shutil.move(str(lic_file), out_dir / "license.key")
-    for name in ("query.py", "mcp_server.py", "vault_core.py"):
+    for name in ("mcp_server.py", "vault_core.py"):
         shutil.copy2(SCRIPTS / name, out_dir / name)
     (out_dir / "requirements.txt").write_text(
         "cryptography~=42.0\nchromadb~=0.5.0\nsentence-transformers~=3.0\n"
-        "mcp~=1.2\nzstandard~=0.22\nrich~=13.7\n")
+        "mcp~=1.2\nzstandard~=0.22\n")
+
+    # Bundle a ready-to-paste Claude Desktop config pointing at this demo folder.
+    examples = out_dir / "examples"
+    examples.mkdir(exist_ok=True)
+    (examples / "claude_desktop_config.json").write_text(
+        '{\n  "mcpServers": {\n    "ict-vault-demo": {\n'
+        f'      "command": "{(out_dir / ".venv/Scripts/python.exe").as_posix()}",\n'
+        f'      "args": ["{(out_dir / "mcp_server.py").as_posix()}"]\n'
+        "    }\n  }\n}\n")
+
     (out_dir / "README.txt").write_text(
         f"ICT VAULT — FREE DEMO ({len(picks)}/{FULL_TOTAL} videos)\n"
         "=================================================\n\n"
-        "1. pip install -r requirements.txt\n"
-        "2. python query.py \"Fair Value Gap\"\n"
-        "3. Optional: python mcp_server.py  (connect Claude Desktop / Cursor / Hermes)\n\n"
-        f"This demo searches {len(picks)} videos. The full vault has {FULL_TOTAL}\n"
-        f"across 10 playlists, with the same search engine.\n\n"
+        "This demo upgrades your AI agent with a few ICT videos so you can try\n"
+        "the real experience before buying.\n\n"
+        "1. python -m venv .venv && .venv/Scripts/pip install -r requirements.txt\n"
+        "   (macOS/Linux: .venv/bin/pip install -r requirements.txt)\n"
+        "2. Verify:  .venv/Scripts/python mcp_server.py --doctor\n"
+        "3. Add examples/claude_desktop_config.json to Claude Desktop, restart it,\n"
+        "   then ask: \"What is a Fair Value Gap according to ICT?\"\n\n"
+        f"This demo covers {len(picks)} videos. The full vault has {FULL_TOTAL} across\n"
+        "10 playlists, with the same engine and every answer cited to a timestamp.\n\n"
         f"Unlock everything: {cta}\n")
 
     # Never ship seller secrets: wipe the staging dir (holds .vault_key).
