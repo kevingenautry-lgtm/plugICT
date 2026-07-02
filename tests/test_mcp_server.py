@@ -45,7 +45,9 @@ async def _drive():
 
             tools = await session.list_tools()
             names = {t.name for t in tools.tools}
-            assert {"search_ict", "list_playlists", "explore_concept", "vault_stats"} <= names
+            assert {"search_ict", "list_playlists", "explore_concept",
+                    "vault_stats", "glossary_lookup"} <= names
+            assert len(tools.tools) == 5
 
             stats = await session.call_tool("vault_stats", {})
             text = stats.content[0].text
@@ -53,6 +55,9 @@ async def _drive():
 
             res = await session.call_tool("search_ict", {"query": "fair value gap"})
             assert "Fair Value Gap Explained" in res.content[0].text
+
+            gl = await session.call_tool("glossary_lookup", {"term": "FVG"})
+            assert "Fair Value Gap" in gl.content[0].text
 
 
 def test_mcp_handshake_and_tools():

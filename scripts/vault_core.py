@@ -312,6 +312,49 @@ _FTS_STOP = {
 }
 
 
+def demo_info(db):
+    """Return {'count', 'total', 'cta'} if this is a demo vault, else None.
+
+    Demo vaults are built by store/build_demo.py, which stamps vault_metadata.
+    """
+    try:
+        rows = dict(db.execute(
+            "SELECT key, value FROM vault_metadata WHERE key IN "
+            "('demo','demo_count','demo_total','demo_cta')").fetchall())
+    except sqlite3.Error:
+        return None
+    if rows.get('demo') != '1':
+        return None
+    return {
+        'count': rows.get('demo_count', '?'),
+        'total': rows.get('demo_total', '576'),
+        'cta': rows.get('demo_cta', 'https://YOUR-SITE/#pricing'),
+    }
+
+
+def youtube_link(video_id, start_ts=None):
+    """Deep link to the exact moment: https://youtu.be/ID?t=SECONDS.
+
+    start_ts is the transcript timestamp like '12:34' or '1:02:07'. Falls back
+    to a plain video link when the timestamp is missing/zero/unparsable.
+    """
+    if not video_id:
+        return ""
+    base = f"https://youtu.be/{video_id}"
+    if not start_ts:
+        return base
+    try:
+        parts = [int(p) for p in str(start_ts).strip().split(":")]
+    except ValueError:
+        return base
+    if not 1 < len(parts) <= 3:
+        return base
+    secs = 0
+    for p in parts:
+        secs = secs * 60 + p
+    return f"{base}?t={secs}" if secs > 0 else base
+
+
 def sanitize_fts(query, mode="or"):
     """Make arbitrary user input safe for an FTS5 MATCH.
 
@@ -568,15 +611,25 @@ def open_vault(vault_file=VAULT_FILE, license_file=LICENSE_FILE, on_progress=Non
 
 
 def _safe_extractall(tar, path):
-    """extractall with path-traversal protection (Py<3.12 has no data filter)."""
-    try:
-        tar.extractall(path=path, filter='data')  # Python 3.12+
-        return
-    except TypeError:
-        pass
+    """Extract a tar safely on ANY Python version.
+
+    Validation always runs first (version-independent): reject path traversal,
+    reject symlink/hardlink entries, and only keep regular files/dirs. Then
+    extract just the vetted members, using the 3.12+ data filter as extra
+    defense when the runtime supports it.
+    """
     dest = os.path.abspath(path)
-    for member in tar.getmembers():
-        target = os.path.abspath(os.path.join(path, member.name))
-        if not (target == dest or target.startswith(dest + os.sep)):
+    safe = []
+    for m in tar.getmembers():
+        target = os.path.abspath(os.path.join(path, m.name))
+        if target != dest and not target.startswith(dest + os.sep):
             raise VaultError("Vault archive contains an unsafe path; refusing to extract.")
-    tar.extractall(path=path)
+        if m.issym() or m.islnk():
+            raise VaultError("Vault archive contains a link entry; refusing to extract.")
+        if m.isfile() or m.isdir():
+            safe.append(m)
+        # else: silently skip devices/fifos/etc. — never present in our vaults
+    try:
+        tar.extractall(path=path, members=safe, filter='data')  # Python 3.12+ / backports
+    except TypeError:
+        tar.extractall(path=path, members=safe)  # older Python — already vetted above

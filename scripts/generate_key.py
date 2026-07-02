@@ -18,19 +18,25 @@ from cryptography.fernet import Fernet
 VAULT_DIR = Path(r"C:\Users\kevin\Hermes ICT Selling Idea")
 VAULT_KEY_FILE = VAULT_DIR / ".vault_key"
 
-def generate_license(buyer_email, purchase_id):
-    """Generate a unique license key for a buyer using envelope encryption."""
-    
+def generate_license(buyer_email, purchase_id, vault_dir=None):
+    """Generate a unique license key for a buyer using envelope encryption.
+
+    vault_dir overrides where .vault_key / .vault_sha256 are read and where the
+    license file is written (defaults to the module VAULT_DIR). Returns
+    (output_file, license_id).
+    """
+    vault_dir = Path(vault_dir) if vault_dir else VAULT_DIR
+    vault_key_file = vault_dir / ".vault_key"
+
     # Load vault key (the actual decryption key for ict-vault.kevin)
-    if not VAULT_KEY_FILE.exists():
-        print("ERROR: .vault_key not found. Run build.py first.")
-        sys.exit(1)
-    
-    with open(VAULT_KEY_FILE, 'rb') as f:
+    if not vault_key_file.exists():
+        raise FileNotFoundError(f".vault_key not found in {vault_dir}. Run build.py first.")
+
+    with open(vault_key_file, 'rb') as f:
         vault_key = f.read()
-    
+
     # Load vault hash for integrity check
-    hash_file = VAULT_DIR / ".vault_sha256"
+    hash_file = vault_dir / ".vault_sha256"
     vault_hash = ""
     if hash_file.exists():
         with open(hash_file) as f:
@@ -61,8 +67,8 @@ VAULT_HASH={vault_hash}
 """
     
     safe_email = buyer_email.replace('@', '_at_').replace('.', '_')
-    output_file = VAULT_DIR / f"license_{safe_email}.key"
-    
+    output_file = vault_dir / f"license_{safe_email}.key"
+
     with open(output_file, 'w') as f:
         f.write(license_content)
     

@@ -164,6 +164,58 @@ def test_classify_playlist():
     assert vc.classify_playlist("random file.md") == "Other / Misc"
 
 
+def test_safe_extractall_rejects_traversal(tmp_path):
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w") as tar:
+        data = b"evil"
+        ti = tarfile.TarInfo(name="../escape.txt"); ti.size = len(data)
+        tar.addfile(ti, io.BytesIO(data))
+    buf.seek(0)
+    with tarfile.open(fileobj=buf) as tar:
+        try:
+            vc._safe_extractall(tar, str(tmp_path / "out"))
+            assert False, "traversal member should be rejected"
+        except vc.VaultError as e:
+            assert "unsafe path" in str(e)
+    assert not (tmp_path / "escape.txt").exists()
+
+
+def test_safe_extractall_rejects_symlink(tmp_path):
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w") as tar:
+        ti = tarfile.TarInfo(name="link"); ti.type = tarfile.SYMTYPE; ti.linkname = "/etc/passwd"
+        tar.addfile(ti)
+    buf.seek(0)
+    with tarfile.open(fileobj=buf) as tar:
+        try:
+            vc._safe_extractall(tar, str(tmp_path / "out"))
+            assert False, "symlink member should be rejected"
+        except vc.VaultError as e:
+            assert "link entry" in str(e)
+
+
+def test_safe_extractall_allows_normal_files(tmp_path):
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w") as tar:
+        data = b"chroma data"
+        ti = tarfile.TarInfo(name="sub/chroma.sqlite3"); ti.size = len(data)
+        tar.addfile(ti, io.BytesIO(data))
+    buf.seek(0)
+    out = tmp_path / "out"
+    with tarfile.open(fileobj=buf) as tar:
+        vc._safe_extractall(tar, str(out))
+    assert (out / "sub" / "chroma.sqlite3").read_bytes() == b"chroma data"
+
+
+def test_youtube_deep_links():
+    assert vc.youtube_link("abc", "12:34") == "https://youtu.be/abc?t=754"
+    assert vc.youtube_link("abc", "1:02:07") == "https://youtu.be/abc?t=3727"
+    assert vc.youtube_link("abc", "0:00") == "https://youtu.be/abc"   # start → plain
+    assert vc.youtube_link("abc", None) == "https://youtu.be/abc"
+    assert vc.youtube_link("abc", "junk") == "https://youtu.be/abc"
+    assert vc.youtube_link("", "12:34") == ""
+
+
 def test_glossary_flat_matches_grouped():
     total = sum(len(v) for v in vc.ICT_GLOSSARY.values())
     assert len(vc.ICT_SHORTFORMS) == total

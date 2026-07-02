@@ -30,18 +30,14 @@ Something not working? Run `vault.bat --doctor` for a one-line-per-check report.
 
 ---
 
-## Two Ways to Use
+## How To Use It
 
-### A. Command Line Search
-```bash
-vault.bat "Silver Bullet London session"
-vault.bat "Order Block vs Breaker"
-vault.bat "how to trade FOMC"
-vault.bat                       # interactive mode: unlock once, ask many
-vault.bat --explain "FVG"       # show why each result matched
-```
+### A. Connect Your AI Agent (the main event)
 
-### B. Connect Your AI Agent
+This vault is built to power **your own AI agent**. Plug it in once and your
+agent gains ICT knowledge tools — it can search all 576 videos, explore
+concepts, and cite exact video timestamps in its answers.
+
 ```bash
 .venv\Scripts\python mcp_server.py
 ```
@@ -51,7 +47,17 @@ Then add the config from `examples/` to your AI agent:
 - **Cursor** → `examples/cursor_mcp.json`
 - **Hermes Agent** → `examples/hermes_config.yaml`
 
-Your AI agent can now query all 576 videos directly. See `docs/AI-AGENT-GUIDE.md`.
+Now just ask your agent things like *"How does ICT teach the Silver Bullet
+entry?"* — it searches the vault and answers with sources. Full walkthrough:
+`docs/AI-AGENT-GUIDE.md`.
+
+### B. Direct Command-Line Search (works without any AI agent)
+```bash
+vault.bat "Silver Bullet London session"
+vault.bat "Order Block vs Breaker"
+vault.bat                       # interactive mode: unlock once, ask many
+vault.bat --explain "FVG"       # show why each result matched
+```
 
 ---
 

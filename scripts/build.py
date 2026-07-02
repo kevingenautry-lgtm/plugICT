@@ -87,6 +87,16 @@ dst.execute("INSERT OR REPLACE INTO vault_metadata VALUES ('version', '1.0.0')")
 dst.execute("INSERT OR REPLACE INTO vault_metadata VALUES ('build_date', ?)", (datetime.now().isoformat(),))
 dst.execute("INSERT OR REPLACE INTO vault_metadata VALUES ('total_transcripts', ?)", (str(len(transcripts)),))
 
+# Demo builds (store/build_demo.py) stamp a watermark into the vault itself.
+if os.environ.get("ICT_DEMO") == "1":
+    dst.execute("INSERT OR REPLACE INTO vault_metadata VALUES ('demo', '1')")
+    dst.execute("INSERT OR REPLACE INTO vault_metadata VALUES ('demo_count', ?)", (str(len(transcripts)),))
+    dst.execute("INSERT OR REPLACE INTO vault_metadata VALUES ('demo_total', ?)",
+                (os.environ.get("ICT_DEMO_TOTAL", "576"),))
+    dst.execute("INSERT OR REPLACE INTO vault_metadata VALUES ('demo_cta', ?)",
+                (os.environ.get("ICT_DEMO_CTA", "https://YOUR-SITE/#pricing"),))
+    print(f"  DEMO BUILD — watermarked {len(transcripts)} videos")
+
 dst.commit()
 src.close()
 dst.close()

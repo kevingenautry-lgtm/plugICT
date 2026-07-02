@@ -33,7 +33,19 @@ _licensed_to = "unknown"
 def ensure_vault():
     global _db, _chroma_dir, _licensed_to
     if _db is None:
-        _db, _chroma_dir, _licensed_to = vc.open_vault()
+        # One-time decrypt (~10–30s). Report progress to stderr so the wait is
+        # never mistaken for a hang. stdout stays the JSON-RPC channel.
+        log("⏳ Warming up vault — unlocking 576 videos (one-time, ~10–30s)...")
+        milestone = [0]
+
+        def progress(done, total):
+            pct = done * 100 // max(total, 1)
+            if pct >= milestone[0] + 25:
+                milestone[0] = pct - (pct % 25)
+                log(f"   unlocking… {min(pct, 100)}%")
+
+        _db, _chroma_dir, _licensed_to = vc.open_vault(on_progress=progress)
+        log(f"✅ Vault ready — licensed to {_licensed_to}. Answering queries now.")
     return _db
 
 
@@ -181,12 +193,34 @@ async def list_tools():
         Tool(name="vault_stats",
              description="Get statistics about the ICT Knowledge Vault.",
              inputSchema={"type": "object", "properties": {}}),
+        Tool(name="glossary_lookup",
+             description=("Look up an ICT shortform/acronym (FVG, BISI, CISD, OB, NWOG, ...) and get its "
+                          "definition plus related terms. Instant — use this for 'what does X mean' before searching."),
+             inputSchema={
+                 "type": "object",
+                 "properties": {"term": {"type": "string",
+                                "description": "ICT shortform or acronym, e.g. FVG, OB, CISD, BISI"}},
+                 "required": ["term"],
+             }),
     ]
 
 
 @server.call_tool()
 async def call_tool(name, arguments):
     try:
+        # glossary_lookup needs no vault — answer instantly, even if unlock fails.
+        if name == "glossary_lookup":
+            term = (arguments.get('term') or '').strip()
+            key = term if term in vc.ICT_SHORTFORMS else term.upper()
+            if key in vc.ICT_SHORTFORMS:
+                out = [f"{key}: {vc.ICT_SHORTFORMS[key]}"]
+                rel = vc.related_terms(key)
+                if rel:
+                    out.append("Related terms: " + ", ".join(rel))
+                return [TextContent(type="text", text="\n".join(out))]
+            return [TextContent(type="text",
+                    text=f"'{term}' is not in the ICT glossary. Try list_playlists or search_ict.")]
+
         try:
             ensure_vault()
         except VaultError as e:
@@ -200,12 +234,16 @@ async def call_tool(name, arguments):
                 return [TextContent(type="text",
                         text="No results found. Try different keywords or list_playlists.")]
             out = [f"Search results for: \"{arguments['query']}\"", f"Licensed to: {_licensed_to}", ""]
+            demo = vc.demo_info(_db)
+            if demo:
+                out.insert(1, f"★ DEMO VERSION — searching {demo['count']}/{demo['total']} videos. "
+                              f"Unlock all {demo['total']}: {demo['cta']}")
             for i, r in enumerate(results, 1):
                 out.append(f"{i}. {r['title']}")
                 out.append(f"   Method: {r['method']} | Timestamp: {r['timestamp']} | Playlist: {r['playlist']}")
                 out.append(f"   \"{r['snippet'][:300]}...\"")
                 if r.get('video_id'):
-                    out.append(f"   Video: https://youtu.be/{r['video_id']}")
+                    out.append(f"   Video: {vc.youtube_link(r['video_id'], r.get('timestamp'))}")
                 out.append("")
             return [TextContent(type="text", text="\n".join(out))]
 
@@ -254,12 +292,11 @@ async def main():
     log("ICT Knowledge Vault — MCP Server v" + SERVER_VERSION)
     log("=" * 50)
     try:
-        ensure_vault()
-        log(f"Vault loaded. Licensed to: {_licensed_to}")
+        ensure_vault()  # logs its own warm-up + ready messages
     except VaultError as e:
         log(f"WARNING: vault not loaded yet: {e}")
         log("Server will start; tools will report the problem until it's fixed.")
-    log("Waiting for AI agent connection (stdio)...")
+    log("Listening for your AI agent (stdio)...")
 
     async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
         await server.run(

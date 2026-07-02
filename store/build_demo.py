@@ -85,7 +85,7 @@ def build_demo(source_dir, count=5, videos=None, cta="https://YOUR-SITE/#pricing
         sys.exit("ERROR: build.py failed")
 
     # ── 3) Bundled demo license (same crypto path; not tied to a buyer) ──
-    lic_file, lic_id = generate_license("demo@ict-vault.free", "DEMO")
+    lic_file, lic_id = generate_license("demo@ict-vault.free", "DEMO", vault_dir=stage)
 
     # ── 4) Assemble the ready-to-zip folder ──
     print("[4/4] Assembling demo package...")
