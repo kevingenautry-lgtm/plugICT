@@ -28,37 +28,138 @@ def _cleanup_temp():
 
 atexit.register(_cleanup_temp)
 
-# ── ICT Shortform Glossary ──
+# ── ICT Shortform Glossary (comprehensive) ──
 ICT_SHORTFORMS = {
+    # Market Structure
+    'MS': 'Market Structure — The overall trend and key swing points on a chart',
+    'MSS': 'Market Structure Shift — Change from bullish to bearish (or vice versa)',
+    'BMS': 'Break in Market Structure — Price breaks a key structural level',
+    'BOS': 'Break of Structure — Price breaking a key swing high/low (SMC term)',
+    'CHoCH': 'Change of Character — Confirmed shift in market structure',
+    'HH': 'Higher High — Each successive peak is higher than the last (uptrend)',
+    'HL': 'Higher Low — Each successive trough is higher than the last (uptrend)',
+    'LH': 'Lower High — Each successive peak is lower than the last (downtrend)',
+    'LL': 'Lower Low — Each successive trough is lower than the last (downtrend)',
+    
+    # Liquidity
+    'BSL': 'Buy Side Liquidity — Stops above highs, targeted by sell programs',
+    'SSL': 'Sell Side Liquidity — Stops below lows, targeted by buy programs',
+    'ERL': 'External Range Liquidity — Stops outside established range extremes',
+    'IRL': 'Internal Range Liquidity — Liquidity within the current dealing range',
+    'EQH': 'Equal Highs — Two or more swing highs at the same level, liquidity target',
+    'EQL': 'Equal Lows — Two or more swing lows at the same level, liquidity target',
+    'PDH': 'Previous Day High — Yesterday\'s highest price, often a liquidity level',
+    'PDL': 'Previous Day Low — Yesterday\'s lowest price, often a liquidity level',
+    'PWH': 'Previous Week High — Last week\'s highest price',
+    'PWL': 'Previous Week Low — Last week\'s lowest price',
+    'PMH': 'Previous Month High — Last month\'s highest price',
+    'PML': 'Previous Month Low — Last month\'s lowest price',
+    'BS': 'Buy Stops — Buy orders triggered above current price (stop losses)',
+    'SS': 'Sell Stops — Sell orders triggered below current price (stop losses)',
+    'LS': 'Liquidity Sweep — Price briefly moves into liquidity before reversing',
+    'DOL': 'Draw on Liquidity — Price probing toward a liquidity pool before reacting',
+    
+    # Fair Value Concepts
     'FVG': 'Fair Value Gap — 3-candle imbalance pattern created by aggressive price movement',
     'IFVG': 'Inverse Fair Value Gap — FVG in the opposite direction, used for reversal entries',
-    'OB': 'Order Block — A consolidation zone where institutional orders sit (5,283x mentions)',
-    'OTE': 'Optimal Trade Entry — Entry zone at 61.8-79% retracement of a move',
+    'BISI': 'Buy Side Imbalance Sell Side Inefficiency — FVG where buying inefficiency remains',
+    'SIBI': 'Sell Side Imbalance Buy Side Inefficiency — FVG where selling inefficiency remains',
+    'VI': 'Volume Imbalance — Abnormal volume indicating aggressive buying/selling',
     'CE': 'Consequent Encroachment — 50% retracement level of an FVG or imbalance',
-    'EQ': 'Equilibrium — Midpoint of a range, often used as target or entry',
-    'SMT': 'Smart Money Technique / Synchronicity — Divergence between correlated assets',
-    'MSS': 'Market Structure Shift — Change from bullish to bearish (or vice versa)',
-    'BOS': 'Break of Structure — Price breaking a key swing high/low',
-    'CHoCH': 'Change of Character — Confirmed shift in market structure',
+    
+    # Order Blocks
+    'OB': 'Order Block — A consolidation zone where institutional orders sit (5,283x mentions)',
+    'BB': 'Breaker Block — An order block that has been broken and is now acting as support/resistance flipped',
+    'MB': 'Mitigation Block — An order block that has been partly mitigated by price returning to it',
+    'RB': 'Rejection Block — An order block where price strongly rejected on first touch',
+    'PB': 'Propulsion Block — A strong order block that propelled price through multiple levels',
+    
+    # Premium & Discount
     'PD Array': 'Price Delivery Array — Set of levels where price is expected to react',
-    'FTA': 'Fair Value Gap + Time Alignment — FVG aligned with specific session time',
-    'NDOG': 'New Day Opening Gap — Gap between previous day close and current day open',
-    'NWOG': 'New Week Opening Gap — Gap between previous week close and current week open',
-    'PO3': 'Power of 3 — Accumulation, Manipulation, Distribution cycle',
+    'OTE': 'Optimal Trade Entry — Entry zone at 61.8-79% retracement of a move',
+    'EQ': 'Equilibrium — Midpoint of a range (50% level), acts as magnet for price',
+    'OTE Zone': 'Optimal Trade Entry Zone — 62%-79% retracement region for entries',
+    'M50': 'Mean Threshold 50% — The 50% retracement level, midpoint of a range',
+    'PD': 'Premium / Discount — Above equilibrium (premium/sell) vs below (discount/buy)',
+    
+    # Price Delivery
+    'IPDA': 'Interbank Price Delivery Algorithm — ICT\'s model of how institutional price moves',
     'AMD': 'Accumulation, Manipulation, Distribution — The three-phase market cycle',
-    'CISD': 'Change In State of Delivery — Shift in how price is being delivered',
-    'IPDA': 'Interbank Price Delivery Algorithm — ICT\'s model of how price moves',
+    'MMSM': 'Market Maker Sell Model — Institutional sell-side liquidity algorithm',
+    'MMBM': 'Market Maker Buy Model — Institutional buy-side liquidity algorithm',
+    'MM': 'Market Maker — Major institutions moving price to access liquidity',
+    
+    # Time Concepts
+    'HTF': 'Higher Time Frame — Chart timeframes above your trading timeframe (e.g. daily for intraday)',
+    'LTF': 'Lower Time Frame — Chart timeframes below your trading timeframe (e.g. 15m for 1h)',
+    'MTF': 'Multiple Time Frame — Analyzing across multiple chart timeframes for confluences',
+    
+    # Kill Zones / Sessions
+    'AZ': 'Asian Range — Price range during the Asian trading session',
+    'KZ': 'Kill Zone — Specific time window when ICT expects institutional moves',
+    'LO': 'London Open — The opening of the London session (key ICT timing)',
+    'NYO': 'New York Open — The opening of the NY session, often after London',
+    'LC': 'London Close — The close of the London session, often overlapping with NY',
+    'ADR': 'Average Daily Range — The average daily price movement range from recent days',
+    'ODR': 'Opening Range — Price range established at the beginning of a session',
+    
+    # Dealing Range
+    'DR': 'Dealing Range — Price range where institutional orders are being built',
     'BPR': 'Balanced Price Range — Range where buy/sell orders are balanced',
-    'MMSM': 'Market Maker Sell Model — Sell-side liquidity model',
-    'MMBM': 'Market Maker Buy Model — Buy-side liquidity model',
-    'SMC': 'Smart Money Concepts — Trading framework taught by ICT',
-    'RTH': 'Regular Trading Hours — Standard market trading session (e.g. 9:30am-4pm)',
-    'ETH': 'Electronic Trading Hours — Extended hours session (e.g. futures overnight)',
-    'H4': '4-hour timeframe',
-    'H1': '1-hour timeframe',
-    'M15': '15-minute timeframe',
-    'M5': '5-minute timeframe',
-    'YY': 'Yearly (usually referring to ICT Mentorship year, e.g. YY 2022)',
+    
+    # Fibonacci
+    '0.50': 'Equilibrium (50%) — The midpoint retracement level, often acted on',
+    '0.62': 'OTE Beginning (62%) — Start of the Optimal Trade Entry zone',
+    '0.705': 'Optimal Entry (70.5%) — ICT\'s preferred specific entry level in OTE zone',
+    '0.79': 'Deep Discount/Premium (79%) — The deepest retracement before a reversal',
+    
+    # ICT Models
+    'SB': 'Silver Bullet — Specific hour window (10am-11am or 2pm-3pm NY) for entries',
+    'FTA': 'Fair Value Gap + Time Alignment — FVG aligned with specific session timing',
+    'CRT': 'Candle Range Theory — Using candle bodies and wicks to determine next move',
+    'CRDB': 'Consolidation, Raid, Displacement, Balance — Four-phase market cycle model',
+    'NWOG': 'New Week Opening Gap — Gap between previous week close and this week open',
+    'NDOG': 'New Day Opening Gap — Gap between previous day close and today open',
+    'NWOB': 'New Week Opening Balance — Opening range of the new week',
+    'NQOB': 'New Quarter Opening Balance — Opening range of the new quarter',
+    'DOP': 'Daily Open Price — The opening price of the current daily candle',
+    'PO3': 'Power of 3 — Accumulation, Manipulation, Distribution market cycle',
+    'CISD': 'Change In State of Delivery — Shift in how price is being delivered (fast vs slow)',
+    
+    # Candlestick & Price Action
+    'Displacement': 'Displacement — Strong impulsive candle beyond the recent range',
+    'Retracement': 'Retracement — A pullback against the current trend direction',
+    'Expansion': 'Expansion — Strong directional move after consolidation',
+    'Raid': 'Raid — A liquidity sweep into a pool of stops before reversing',
+    'Repricing': 'Repricing — Fast displacement into a new price discovery area',
+    'Rebalancing': 'Rebalancing — Price returning to fill inefficiencies (FVGs, OBs)',
+    
+    # Economic/News
+    'CPI': 'Consumer Price Index — Key inflation report affecting all markets',
+    'PPI': 'Producer Price Index — Wholesale inflation gauge',
+    'NFP': 'Non-Farm Payrolls — Monthly US employment report (high impact)',
+    'FOMC': 'Federal Open Market Committee — US Fed rate decision (high impact)',
+    
+    # Misc
+    'SMT': 'Smart Money Technique / Synchronicity — Divergence between correlated assets',
+    'SMT Div': 'SMT Divergence — Price difference between two correlated instruments',
+    'SMC': 'Smart Money Concepts — The broader trading community term for ICT-style trading',
+    'Judas Swing': 'Judas Swing — A brief false move in one direction to trap traders before the real move',
+    'IB': 'Initial Balance — The first hour(s) range, used to project the day',
+    'LVN': 'Low Volume Node — Price level with minimal historical trading activity',
+    'HVN': 'High Volume Node — Price level with heavy historical trading activity',
+    
+    # Timeframes
+    'H4': '4-hour chart timeframe',
+    'H1': '1-hour chart timeframe',
+    'M15': '15-minute chart timeframe',
+    'M5': '5-minute chart timeframe',
+    'M1': '1-minute chart timeframe',
+    
+    # General
+    'RTH': 'Regular Trading Hours — Standard market session (9:30am-4pm ET)',
+    'ETH': 'Electronic Trading Hours — Extended hours, includes overnight trading',
+    'YY': 'Year — Usually refers to ICT Mentorship year (e.g. YY 2022, YY 2023)',
 }
 
 def show_glossary(term=None):
