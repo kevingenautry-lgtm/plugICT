@@ -241,7 +241,8 @@ async def call_tool(name, arguments):
             for i, r in enumerate(results, 1):
                 out.append(f"{i}. {r['title']}")
                 out.append(f"   Method: {r['method']} | Timestamp: {r['timestamp']} | Playlist: {r['playlist']}")
-                out.append(f"   \"{r['snippet'][:300]}...\"")
+                clean = r['snippet'][:300].replace("<b>", "").replace("</b>", "")
+                out.append(f"   \"{clean}...\"")
                 if r.get('video_id'):
                     out.append(f"   Video: {vc.youtube_link(r['video_id'], r.get('timestamp'))}")
                 out.append("")

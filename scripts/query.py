@@ -226,6 +226,14 @@ class VaultSession:
 
 
 # ── Rendering ────────────────────────────────────────────────────────────────
+def _fmt_snippet(text):
+    """Render FTS highlight tags nicely: real bold in rich, plain text otherwise."""
+    t = text[:300]
+    if _USE_RICH:
+        return t.replace("<b>", "[bold green]").replace("</b>", "[/bold green]")
+    return t.replace("<b>", "").replace("</b>", "")
+
+
 def render_results(ranked, query, licensed_to, session=None, explain=False):
     lines = []
     shown = 0
@@ -238,7 +246,7 @@ def render_results(ranked, query, licensed_to, session=None, explain=False):
         session_tag = f" [{', '.join(sessions)}]" if sessions else ""
         block = [f"{tag} {shown}. {r['title']}",
                  f"   📍 {r['start_ts']} | {r['playlist']}{session_tag}",
-                 f"   {r['text'][:300]}..."]
+                 f"   {_fmt_snippet(r['text'])}…"]
         if r.get('video_id'):
             block.append(f"   🔗 {vc.youtube_link(r['video_id'], r.get('start_ts'))}")
         if explain:
