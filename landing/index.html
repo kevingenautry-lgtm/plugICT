@@ -73,6 +73,8 @@
   @media (prefers-reduced-motion: reduce){
     .hero h1 .w, .fadeup{opacity:1 !important; transform:none !important; transition:none !important}
   }
+  /* No-JS fallback: .fadeup starts hidden only when JS is running (html.js). */
+  html:not(.js) .fadeup{opacity:1; transform:none}
   .hero h1{font-size:clamp(34px,6vw,60px); line-height:1.05; margin:14px 0 18px; letter-spacing:-.02em}
   .hero h1 .accent{color:var(--accent)}
   .hero p.lead{font-size:clamp(17px,2.4vw,21px); color:var(--muted); max-width:640px; margin:0 auto 28px}
@@ -371,6 +373,7 @@ $ vault <span class="g">"what's the difference between an order block and a brea
 </footer>
 
 <script>
+  document.documentElement.classList.add('js');  // enables animation-hidden states
   document.querySelectorAll('[data-year]').forEach(e=>e.textContent=new Date().getFullYear());
 
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
