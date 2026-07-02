@@ -312,6 +312,29 @@ _FTS_STOP = {
 }
 
 
+def youtube_link(video_id, start_ts=None):
+    """Deep link to the exact moment: https://youtu.be/ID?t=SECONDS.
+
+    start_ts is the transcript timestamp like '12:34' or '1:02:07'. Falls back
+    to a plain video link when the timestamp is missing/zero/unparsable.
+    """
+    if not video_id:
+        return ""
+    base = f"https://youtu.be/{video_id}"
+    if not start_ts:
+        return base
+    try:
+        parts = [int(p) for p in str(start_ts).strip().split(":")]
+    except ValueError:
+        return base
+    if not 1 < len(parts) <= 3:
+        return base
+    secs = 0
+    for p in parts:
+        secs = secs * 60 + p
+    return f"{base}?t={secs}" if secs > 0 else base
+
+
 def sanitize_fts(query, mode="or"):
     """Make arbitrary user input safe for an FTS5 MATCH.
 

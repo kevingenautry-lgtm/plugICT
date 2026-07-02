@@ -205,7 +205,7 @@ async def call_tool(name, arguments):
                 out.append(f"   Method: {r['method']} | Timestamp: {r['timestamp']} | Playlist: {r['playlist']}")
                 out.append(f"   \"{r['snippet'][:300]}...\"")
                 if r.get('video_id'):
-                    out.append(f"   Video: https://youtu.be/{r['video_id']}")
+                    out.append(f"   Video: {vc.youtube_link(r['video_id'], r.get('timestamp'))}")
                 out.append("")
             return [TextContent(type="text", text="\n".join(out))]
 

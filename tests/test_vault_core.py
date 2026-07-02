@@ -164,6 +164,15 @@ def test_classify_playlist():
     assert vc.classify_playlist("random file.md") == "Other / Misc"
 
 
+def test_youtube_deep_links():
+    assert vc.youtube_link("abc", "12:34") == "https://youtu.be/abc?t=754"
+    assert vc.youtube_link("abc", "1:02:07") == "https://youtu.be/abc?t=3727"
+    assert vc.youtube_link("abc", "0:00") == "https://youtu.be/abc"   # start → plain
+    assert vc.youtube_link("abc", None) == "https://youtu.be/abc"
+    assert vc.youtube_link("abc", "junk") == "https://youtu.be/abc"
+    assert vc.youtube_link("", "12:34") == ""
+
+
 def test_glossary_flat_matches_grouped():
     total = sum(len(v) for v in vc.ICT_GLOSSARY.values())
     assert len(vc.ICT_SHORTFORMS) == total

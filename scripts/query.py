@@ -235,7 +235,7 @@ def render_results(ranked, query, licensed_to, session=None, explain=False):
                  f"   📍 {r['start_ts']} | {r['playlist']}{session_tag}",
                  f"   {r['text'][:300]}..."]
         if r.get('video_id'):
-            block.append(f"   🔗 https://youtu.be/{r['video_id']}")
+            block.append(f"   🔗 {vc.youtube_link(r['video_id'], r.get('start_ts'))}")
         if explain:
             why = f"matched via {r['source']}"
             if r.get('rerank_score') is not None:
