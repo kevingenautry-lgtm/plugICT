@@ -10,6 +10,7 @@ from pathlib import Path
 from cryptography.fernet import Fernet
 import chromadb
 from chromadb.config import Settings
+import vault_core as vc  # Shared vault core (zstd, sanitize, related_terms)
 
 VAULT_DIR = Path(__file__).parent.resolve()
 VAULT_FILE = VAULT_DIR / "ict-vault.kevin"
@@ -173,20 +174,20 @@ ICT_SHORTFORMS = {
 }
 
 def show_glossary(term=None):
-    """Display ICT shortform glossary."""
+    """Display ICT shortform glossary using vault_core."""
     if term:
         term = term.upper().strip()
-        if term in ICT_SHORTFORMS:
+        if term in vc.ICT_SHORTFORMS:
             print(f"{'=' * 60}")
             print(f"📘 {term}")
             print(f"{'=' * 60}")
-            print(f"  {ICT_SHORTFORMS[term]}")
-            # Find related terms
-            related = [k for k in ICT_SHORTFORMS if k != term and k not in ('H1','H4','M5','M15','RTH','ETH')][:5]
-            print()
-            print("  Related terms:")
-            for r in related[:5]:
-                print(f"    {r} — {ICT_SHORTFORMS[r][:60]}...")
+            print(f"  {vc.ICT_SHORTFORMS[term]}")
+            related = vc.related_terms(term, limit=5)
+            if related:
+                print()
+                print("  Related terms:")
+                for r in related:
+                    print(f"    {r} — {vc.ICT_SHORTFORMS.get(r, '')[:60]}...")
             print()
         else:
             print(f"'{term}' not found in glossary. Try: python query.py --glossary")
@@ -194,8 +195,8 @@ def show_glossary(term=None):
         print(f"{'=' * 60}")
         print("ICT SHORTFORM GLOSSARY")
         print(f"{'=' * 60}")
-        for key in sorted(ICT_SHORTFORMS.keys()):
-            val = ICT_SHORTFORMS[key]
+        for key in sorted(vc.ICT_SHORTFORMS.keys()):
+            val = vc.ICT_SHORTFORMS[key]
             print(f"  {key:<8} = {val}")
         print()
 SESSION_KEYWORDS = {
@@ -282,12 +283,12 @@ def rerank(query, candidates, top_k=5):
 
 # ── Query Expansion (shortform → full term) ──
 def expand_query(query):
-    """Expand ICT shortforms to full terms before search."""
-    words = query.upper().split()
+    """Expand ICT shortforms to full terms. Only expands ALL-CAPS tokens."""
+    words = query.split()
     expanded = []
     for w in words:
-        if w in ICT_SHORTFORMS:
-            full = ICT_SHORTFORMS[w].split(' — ')[0]
+        if w.isupper() and w in vc.ICT_SHORTFORMS:
+            full = vc.ICT_SHORTFORMS[w].split(' — ')[0]
             expanded.append(full)
         else:
             expanded.append(w)
@@ -525,10 +526,11 @@ def search(args):
     top_k = args.top or 5
     candidates = []
     
-    # ── FTS5 ──
+    # ── FTS5 (sanitized) ──
     try:
+        safe_query = vc.sanitize_fts(search_query)
         sql = "SELECT title, video_id, start_ts, playlist, snippet(transcripts_fts, 5, '<b>', '</b>', '...', 60) FROM transcripts_fts WHERE content MATCH ?"
-        params = [search_query]
+        params = [safe_query]
         if args.playlist:
             sql += " AND playlist = ?"
             params.append(args.playlist)
