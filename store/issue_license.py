@@ -34,16 +34,15 @@ from email.message import EmailMessage
 
 # Reuse the vetted envelope-encryption logic.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from generate_key import generate_license  # noqa: E402
+import emails  # noqa: E402
 
 STORE_DIR = Path(__file__).resolve().parent
 # Where .vault_key / .vault_sha256 live (seller secrets). Override with env.
 SOURCE_DIR = Path(os.environ.get("ICT_SOURCE_DIR", STORE_DIR.parent / "scripts"))
 ISSUED_DIR = STORE_DIR / "issued"
 LEDGER = STORE_DIR / "issued_licenses.csv"
-
-# Where the buyer downloads the big files (set once you've hosted them).
-VAULT_DOWNLOAD_URL = os.environ.get("ICT_VAULT_DOWNLOAD_URL", "https://YOUR-DOWNLOAD-LINK")
 
 
 def issue(email, order_id, email_it=False, method="manual"):
@@ -90,19 +89,13 @@ def _email_license(email, license_path, license_id):
     pw = os.environ.get("SMTP_PASS", "")
     sender = os.environ.get("SMTP_FROM", user)
 
+    subject, text, html = emails.license_email(email, license_id)
     msg = EmailMessage()
-    msg["Subject"] = "Your ICT Vault license"
+    msg["Subject"] = subject
     msg["From"] = sender
     msg["To"] = email
-    msg.set_content(
-        "Thanks for your purchase!\n\n"
-        f"1. Download the vault + app:  {VAULT_DOWNLOAD_URL}\n"
-        "2. Unzip it, then drop the attached license.key into the same folder.\n"
-        "3. Run setup (setup.bat on Windows, ./setup.sh on macOS/Linux).\n"
-        "4. Follow the Getting Started page to connect your AI agent.\n\n"
-        f"License ID: {license_id}\n"
-        "This license is tied to you and is traceable — please don't share it.\n"
-    )
+    msg.set_content(text)
+    msg.add_alternative(html, subtype="html")
     with open(license_path, "rb") as f:
         msg.add_attachment(f.read(), maintype="application", subtype="octet-stream",
                            filename="license.key")
