@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ICT Vault — Give your AI agent an ICT brain</title>
+<meta name="description" content="576 Inner Circle Trader videos, transcribed and searchable by your own AI agent. Runs on your machine. Pay once, keep it forever.">
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#111820; --panel-2:#0e141b; --line:#1e2a36;
+    --text:#e7eef6; --muted:#93a4b5; --faint:#5f7183;
+    --accent:#16c784; --accent-2:#0fae6f; --accent-ink:#04150d;
+    --radius:16px; --maxw:1080px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 24px}
+  .btn{
+    display:inline-block; background:var(--accent); color:var(--accent-ink);
+    font-weight:700; text-decoration:none; padding:14px 26px; border-radius:12px;
+    border:1px solid var(--accent-2); transition:transform .08s ease, filter .15s ease;
+  }
+  .btn:hover{filter:brightness(1.07); transform:translateY(-1px)}
+  .btn.ghost{background:transparent; color:var(--text); border-color:var(--line)}
+  .eyebrow{color:var(--accent); font-weight:700; letter-spacing:.08em; text-transform:uppercase; font-size:12px}
+
+  /* NAV */
+  nav{position:sticky; top:0; z-index:10; backdrop-filter:blur(8px);
+      background:rgba(11,15,20,.72); border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex; align-items:center; justify-content:space-between; height:64px}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.02em}
+  .brand .dot{width:12px;height:12px;border-radius:3px;background:var(--accent);box-shadow:0 0 14px var(--accent)}
+  .navlinks{display:flex; gap:26px; align-items:center}
+  .navlinks a{color:var(--muted); text-decoration:none; font-size:14px}
+  .navlinks a:hover{color:var(--text)}
+  @media(max-width:720px){ .navlinks a:not(.btn){display:none} }
+
+  /* HERO */
+  header.hero{padding:84px 0 40px; position:relative; overflow:hidden}
+  header.hero::before{content:""; position:absolute; inset:-40% 0 auto 0; height:520px;
+    background:radial-gradient(60% 100% at 50% 0%, rgba(22,199,132,.16), transparent 70%); pointer-events:none}
+  .hero h1{font-size:clamp(34px,6vw,60px); line-height:1.05; margin:14px 0 18px; letter-spacing:-.02em}
+  .hero h1 span{color:var(--accent)}
+  .hero p.lead{font-size:clamp(17px,2.4vw,21px); color:var(--muted); max-width:640px; margin:0 auto 28px}
+  .hero .cta{display:flex; gap:14px; justify-content:center; flex-wrap:wrap}
+  .hero .fine{color:var(--faint); font-size:13px; margin-top:14px}
+  .hero, .hero .wrap{text-align:center}
+  .works{margin-top:46px; color:var(--faint); font-size:13px}
+  .works b{color:var(--muted); font-weight:600}
+  .chips{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:12px}
+  .chip{border:1px solid var(--line); background:var(--panel); color:var(--muted);
+        padding:7px 14px; border-radius:999px; font-size:13px}
+
+  /* SECTION */
+  section{padding:64px 0; border-top:1px solid var(--line)}
+  section h2{font-size:clamp(24px,3.4vw,34px); letter-spacing:-.01em; margin:8px 0 10px}
+  section .sub{color:var(--muted); max-width:620px; margin-bottom:34px}
+  .center{text-align:center}
+  .center .sub{margin-left:auto;margin-right:auto}
+
+  .grid{display:grid; gap:18px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:820px){ .g3,.g2{grid-template-columns:1fr} }
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:24px}
+  .card h3{margin:0 0 8px; font-size:18px}
+  .card p{margin:0; color:var(--muted); font-size:15px}
+  .num{width:34px;height:34px;border-radius:9px;background:var(--accent-ink);color:var(--accent);
+       display:flex;align-items:center;justify-content:center;font-weight:800;border:1px solid var(--accent-2);margin-bottom:14px}
+  .ico{font-size:22px; margin-bottom:12px}
+
+  /* CODE */
+  .code{background:#070b10; border:1px solid var(--line); border-radius:12px; padding:16px 18px;
+        font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:#cfe6dc; overflow:auto}
+  .code .c{color:var(--faint)}
+  .code .g{color:var(--accent)}
+
+  /* PRICING */
+  .price{max-width:460px; margin:0 auto; background:linear-gradient(180deg,var(--panel),var(--panel-2));
+         border:1px solid var(--accent-2); border-radius:20px; padding:34px; text-align:center;
+         box-shadow:0 20px 60px -30px rgba(22,199,132,.5)}
+  .price .tag{color:var(--accent); font-weight:700; font-size:13px; letter-spacing:.06em; text-transform:uppercase}
+  .price .amt{font-size:52px; font-weight:800; margin:8px 0 2px; letter-spacing:-.02em}
+  .price .amt small{font-size:16px; color:var(--muted); font-weight:600}
+  .price ul{list-style:none; padding:0; margin:22px 0 26px; text-align:left}
+  .price li{padding:8px 0 8px 30px; position:relative; color:var(--muted)}
+  .price li::before{content:"✓"; position:absolute; left:0; color:var(--accent); font-weight:800}
+  .price .btn{width:100%}
+
+  /* FAQ */
+  details{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:4px 20px; margin-bottom:12px}
+  details summary{cursor:pointer; padding:16px 0; font-weight:600; list-style:none}
+  details summary::-webkit-details-marker{display:none}
+  details summary::after{content:"+"; float:right; color:var(--accent); font-weight:800}
+  details[open] summary::after{content:"–"}
+  details p{color:var(--muted); margin:0 0 16px}
+
+  footer{border-top:1px solid var(--line); padding:40px 0; color:var(--faint); font-size:13px}
+  footer .wrap{display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap}
+  .disc{max-width:620px}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand"><span class="dot"></span> ICT&nbsp;Vault</div>
+    <div class="navlinks">
+      <a href="#how">How it works</a>
+      <a href="#inside">What's inside</a>
+      <a href="#connect">Connect</a>
+      <a href="#pricing">Pricing</a>
+      <a class="btn" href="#pricing">Get access</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">For traders who work alongside an AI</div>
+    <h1>Give your AI agent an <span>ICT brain.</span></h1>
+    <p class="lead">576 Inner Circle Trader videos — transcribed, indexed, and searchable by <em>your own</em> AI.
+      Ask about Fair Value Gaps, Silver Bullet timing, order blocks — and get answers with exact
+      video sources and timestamps, right inside the AI you already use.</p>
+    <div class="cta">
+      <a class="btn" href="#pricing">Get lifetime access</a>
+      <a class="btn ghost" href="#how">See how it works</a>
+    </div>
+    <div class="fine">One-time payment · Runs on your machine · Yours forever</div>
+
+    <div class="works">
+      <b>Connects to the AI tools you already run locally</b>
+      <div class="chips">
+        <span class="chip">Claude Desktop</span>
+        <span class="chip">Cursor</span>
+        <span class="chip">Hermes Agent</span>
+        <span class="chip">Any MCP-compatible agent</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- PROBLEM / SOLUTION -->
+<section id="why">
+  <div class="wrap">
+    <div class="eyebrow">The problem</div>
+    <h2>Hundreds of hours of ICT — impossible to search.</h2>
+    <p class="sub">The knowledge is buried across years of long videos. When you need the exact way ICT
+      explained a concept, scrubbing through playlists kills your momentum. Generic AI models don't
+      know the specifics and make things up.</p>
+    <div class="grid g3">
+      <div class="card">
+        <div class="ico">🔎</div>
+        <h3>Search by meaning</h3>
+        <p>Ask in plain English. Hybrid keyword + semantic search finds the right moments even when you
+          don't know the exact words.</p>
+      </div>
+      <div class="card">
+        <div class="ico">📍</div>
+        <h3>Real sources, every time</h3>
+        <p>Every answer cites the video and timestamp it came from — so you can verify it and go watch
+          the original.</p>
+      </div>
+      <div class="card">
+        <div class="ico">🔒</div>
+        <h3>Private & offline</h3>
+        <p>The vault is encrypted and runs entirely on your computer. Nothing you ask ever leaves your
+          machine.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="wrap">
+    <div class="eyebrow">How it works</div>
+    <h2>From checkout to answers in about 3 minutes.</h2>
+    <p class="sub">No servers, no accounts to babysit. You download once, unlock with your personal
+      license, and connect the AI you already use.</p>
+    <div class="grid g3">
+      <div class="card">
+        <div class="num">1</div>
+        <h3>Buy &amp; download</h3>
+        <p>Pay once. You get the encrypted vault, the app, and your personal <code>license.key</code>
+          by email.</p>
+      </div>
+      <div class="card">
+        <div class="num">2</div>
+        <h3>Run setup</h3>
+        <p>Double-click <code>setup.bat</code> (or <code>setup.sh</code>). It builds an isolated
+          environment and checks everything for you.</p>
+      </div>
+      <div class="card">
+        <div class="num">3</div>
+        <h3>Connect your AI</h3>
+        <p>Paste one small config into your agent. Now it can search all 576 videos on demand while you
+          work.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:22px" class="code">
+<span class="c"># Search from the command line…</span>
+$ vault <span class="g">"what's the difference between an order block and a breaker?"</span>
+
+<span class="c"># …or just ask your AI agent, which now has a search_ict tool:</span>
+<span class="g">You:</span> How does ICT teach the Silver Bullet entry in the NY session?
+<span class="g">AI :</span> Here's how ICT describes it, with the exact clips… <span class="c">[cites videos + timestamps]</span>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT'S INSIDE -->
+<section id="inside">
+  <div class="wrap">
+    <div class="eyebrow">What's inside</div>
+    <h2>A real search engine, not a folder of files.</h2>
+    <p class="sub">Purpose-built to answer trading questions accurately — with the plumbing that makes AI
+      answers trustworthy instead of hand-wavy.</p>
+    <div class="grid g2">
+      <div class="card"><h3>576 videos, 10 playlists</h3><p>Mentorship, lecture series, charter and forex
+        content spanning 2016–2026, fully transcribed with timestamps.</p></div>
+      <div class="card"><h3>Hybrid search + reranking</h3><p>Keyword precision and semantic recall,
+        re-ranked by a cross-encoder so the best answer rises to the top.</p></div>
+      <div class="card"><h3>Knowledge graph</h3><p>Concepts like FVG, Order Block and Liquidity are
+        linked, so your AI can explore how ideas relate.</p></div>
+      <div class="card"><h3>100-term ICT glossary</h3><p>Shortforms expanded automatically — ask about
+        "BSL" or "CISD" and it knows what you mean.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CONNECT -->
+<section id="connect">
+  <div class="wrap center">
+    <div class="eyebrow">Works with your workflow</div>
+    <h2>Plug it into the AI you already use.</h2>
+    <p class="sub">ICT Vault speaks MCP — the open standard for connecting tools to AI agents. If your
+      agent runs on your computer, it connects.</p>
+    <div class="grid g3" style="text-align:left">
+      <div class="card"><h3>Claude Desktop</h3><p>Add one entry to your config file. Claude gains a
+        <code>search_ict</code> tool it can call anytime.</p></div>
+      <div class="card"><h3>Cursor</h3><p>Drop the vault into your MCP settings and query ICT knowledge
+        without leaving your editor.</p></div>
+      <div class="card"><h3>Hermes &amp; others</h3><p>Any MCP-compatible local agent works — we ship
+        ready-made config examples for each.</p></div>
+    </div>
+    <p class="fine" style="margin-top:22px">Prefer to use a web AI like ChatGPT or Claude.ai? A hosted
+      cloud connector is on the roadmap — <a href="#pricing" style="color:var(--accent)">lifetime buyers
+      get first access.</a></p>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="wrap center">
+    <div class="eyebrow">Pricing</div>
+    <h2>Pay once. Keep it forever.</h2>
+    <p class="sub">No subscription. No per-query fees. One license, tied to you, that unlocks the vault on
+      your machine for life.</p>
+    <div class="price">
+      <div class="tag">Lifetime license</div>
+      <div class="amt">$<span data-price>149</span> <small>one-time</small></div>
+      <ul>
+        <li>All 576 transcribed videos, fully searchable</li>
+        <li>Command-line search + AI-agent (MCP) integration</li>
+        <li>Runs offline &amp; private on your computer</li>
+        <li>Free content &amp; app updates</li>
+        <li>First access to the hosted cloud connector</li>
+      </ul>
+      <!-- TODO: replace href with your Gumroad / Lemon Squeezy product link -->
+      <a class="btn" href="#" data-buy-link>Get lifetime access</a>
+      <p class="fine" style="margin-top:14px">Secure checkout · Instant license by email</p>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="wrap">
+    <div class="eyebrow">FAQ</div>
+    <h2>Questions, answered.</h2>
+    <div style="margin-top:26px">
+      <details><summary>Do I need to be technical to set this up?</summary>
+        <p>No. You run one setup file that does everything, then paste a small config into your AI agent.
+          If anything's off, a built-in <code>--doctor</code> command tells you exactly what to fix in
+          plain English.</p></details>
+      <details><summary>Does it work without internet?</summary>
+        <p>Yes. After the initial download, the vault runs entirely on your machine. Your questions never
+          leave your computer.</p></details>
+      <details><summary>Can I use it with ChatGPT or Claude on the web?</summary>
+        <p>Today it connects to <em>local</em> AI apps (Claude Desktop, Cursor, Hermes and other
+          MCP-compatible agents). A hosted connector for web AIs like ChatGPT and Claude.ai is on the
+          roadmap, and lifetime buyers get first access.</p></details>
+      <details><summary>What exactly do I download?</summary>
+        <p>An encrypted knowledge vault plus a lightweight app. Your personal <code>license.key</code>
+          (emailed to you) unlocks it. The license is tied to you and traceable, so please don't
+          share it.</p></details>
+      <details><summary>What are the system requirements?</summary>
+        <p>Windows, macOS or Linux with Python 3.9+. The setup script handles the rest in an isolated
+          environment, so it won't interfere with anything else on your computer.</p></details>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="brand"><span class="dot"></span> ICT&nbsp;Vault</div>
+    <div class="disc">
+      Educational research tool. ICT Vault is an independent product and is <b>not affiliated with,
+      endorsed by, or sponsored by</b> The Inner Circle Trader or Michael J. Huddleston. All trademarks
+      belong to their respective owners. Nothing here is financial advice.
+      <div style="margin-top:10px">© <span data-year></span> ICT Vault. All rights reserved.</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('[data-year]').forEach(e=>e.textContent=new Date().getFullYear());
+</script>
+</body>
+</html>

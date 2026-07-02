@@ -9,3 +9,9 @@ __pycache__/
 *.pyc
 .venv/
 .pytest_cache/
+
+# Seller secrets & issued licenses — NEVER commit
+store/issued/
+store/issued_licenses.csv
+.vault_key
+.vault_sha256
