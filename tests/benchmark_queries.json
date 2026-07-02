@@ -1,0 +1,26 @@
+{
+  "description": "Regression benchmark for ICT Vault search quality. Each query should return at least one relevant result; `expect_terms` are lowercase substrings we expect to see in the top results' text/title. Run against the real vault before shipping any search change.",
+  "min_results": 1,
+  "queries": [
+    {"q": "what is a fair value gap", "expect_terms": ["fair value", "gap", "imbalance"]},
+    {"q": "order block vs breaker block", "expect_terms": ["order block", "breaker"]},
+    {"q": "silver bullet timing new york", "expect_terms": ["silver bullet", "new york"]},
+    {"q": "change in state of delivery CISD", "expect_terms": ["cisd", "delivery"]},
+    {"q": "SMT divergence correlated pairs", "expect_terms": ["smt", "divergence"]},
+    {"q": "how to trade FOMC news", "expect_terms": ["fomc"]},
+    {"q": "how to trade NFP", "expect_terms": ["nfp", "payroll"]},
+    {"q": "asian range killzone", "expect_terms": ["asian", "range"]},
+    {"q": "judas swing explanation", "expect_terms": ["judas"]},
+    {"q": "optimal trade entry fibonacci levels", "expect_terms": ["optimal trade entry", "ote"]},
+    {"q": "power of three accumulation manipulation distribution", "expect_terms": ["power of", "distribution"]},
+    {"q": "new week opening gap NWOG", "expect_terms": ["opening gap", "nwog"]},
+    {"q": "turtle soup liquidity grab", "expect_terms": ["turtle soup", "liquidity"]},
+    {"q": "liquidity sweep vs raid", "expect_terms": ["liquidity", "sweep"]},
+    {"q": "premium and discount equilibrium", "expect_terms": ["premium", "discount", "equilibrium"]},
+    {"q": "london killzone open", "expect_terms": ["london"]},
+    {"q": "market maker sell model", "expect_terms": ["market maker", "sell"]},
+    {"q": "consequent encroachment midpoint", "expect_terms": ["consequent encroachment", "midpoint"]},
+    {"q": "displacement candle institutional", "expect_terms": ["displacement"]},
+    {"q": "IPDA interbank price delivery algorithm", "expect_terms": ["ipda", "price delivery"]}
+  ]
+}

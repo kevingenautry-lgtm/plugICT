@@ -2,8 +2,8 @@
 build.py — Build encrypted ICT Knowledge Vault
 ================================================
 Envelope encryption:
-  vault_key (random) → encrypts vault
-  master_key → saved for generate_key.py to wrap per-buyer
+  vault_key (random) → encrypts the vault (zstd-compressed, AES-256-CTR)
+  .vault_key → saved for generate_key.py to wrap per-buyer
 
 Output: ict-vault.kevin + .vault_key (keep both secret)
 """
@@ -12,10 +12,12 @@ import os, sys, sqlite3, shutil, io, tarfile, struct
 from pathlib import Path
 from datetime import datetime
 
-VAULT_DIR = Path(r"C:\Users\kevin\Hermes ICT Selling Idea")
+import vault_core as vc
+
+# Source content lives on the seller machine; override with ICT_SOURCE_DIR.
+VAULT_DIR = Path(os.environ.get("ICT_SOURCE_DIR", r"C:\Users\kevin\Hermes ICT Selling Idea"))
 OUTPUT_FILE = VAULT_DIR / "ict-vault.kevin"
 VAULT_KEY_FILE = VAULT_DIR / ".vault_key"  # Keep secret! Used by generate_key.py
-MASTER_KEY_FILE = VAULT_DIR / ".master_key"  # Keep secret! Fallback only
 
 print("=" * 60)
 print("ICT Knowledge Vault — Encrypted Build")
@@ -73,18 +75,8 @@ for fp in transcripts:
                     elif k == 'video_id': video_id = v
                     elif k == 'duration': duration = v
     
-    name = fp.name
-    if '2023 ICT Mentorship' in name: playlist = '2023 ICT Mentorship'
-    elif '2025 Lecture Series' in name: playlist = '2025 Lecture Series'
-    elif 'ICT 2024 Mentorship' in name: playlist = 'ICT 2024 Mentorship'
-    elif '2026' in name and 'SMC' in name: playlist = '2026 SMC Lecture'
-    elif '2022 ICT Mentorship' in name: playlist = '2022 ICT Mentorship'
-    elif '2016' in name or '2017' in name: playlist = '2016/2017 Mentorship'
-    elif 'Forex' in name: playlist = 'Forex Series'
-    elif 'Storytellers' in name: playlist = '2025 Storytellers'
-    elif 'Charter' in name: playlist = 'ICT Charter Content'
-    else: playlist = 'Other / Misc'
-    
+    playlist = vc.classify_playlist(fp.name)
+
     dst.execute(
         "INSERT INTO transcript_files VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)",
         (fp.name, title, video_id, duration, playlist, content, datetime.now().isoformat())
@@ -120,60 +112,34 @@ chroma_bytes = chroma_tar_io.getvalue()
 chroma_size = len(chroma_bytes) / 1024 / 1024
 print(f"  OK ChromaDB tar: {chroma_size:.0f} MB")
 
-# ── Step 4: Encrypt with vault key ──
-print("\n[4/5] Encrypting vault...")
+# ── Step 4: Compress (zstd) + encrypt with vault key ──
+print("\n[4/5] Compressing + encrypting vault...")
 
-from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
-import secrets
-
-# Generate unique vault key (32 bytes for AES-256)
-vault_key = secrets.token_bytes(32)
-
-# Encrypt large package with AES-CTR (supports streaming)
-iv = secrets.token_bytes(16)
-
-# Package: [version:4][db_size:8][chroma_size:8][db_bytes][chroma_bytes]
-package = struct.pack('>IQQ', 1, len(db_bytes), len(chroma_bytes)) + db_bytes + chroma_bytes
-
-cipher = Cipher(algorithms.AES(vault_key), modes.CTR(iv), backend=default_backend())
-encryptor = cipher.encryptor()
-encrypted_package = encryptor.update(package) + encryptor.finalize()
-
-# Prepend IV to encrypted data
-final_encrypted = iv + encrypted_package
+raw_size = (len(db_bytes) + len(chroma_bytes)) / 1024 / 1024
+final_encrypted, vault_key, vault_hash = vc.pack_and_encrypt(
+    db_bytes, chroma_bytes, compress=True, level=19)
 
 with open(OUTPUT_FILE, 'wb') as f:
     f.write(final_encrypted)
 
-# Compute SHA-256 for integrity verification
-import hashlib
-vault_hash = hashlib.sha256(final_encrypted).hexdigest()
-hash_file = VAULT_DIR / ".vault_sha256"
-with open(hash_file, 'w') as f:
+# SHA-256 for integrity verification (matches what the license embeds).
+with open(VAULT_DIR / ".vault_sha256", 'w') as f:
     f.write(vault_hash)
 
-# Save vault key (raw 32 bytes, for generate_key.py to wrap per-buyer)
+# Save vault key (raw 32 bytes, for generate_key.py to wrap per-buyer).
 with open(VAULT_KEY_FILE, 'wb') as f:
     f.write(vault_key)
 os.chmod(VAULT_KEY_FILE, 0o600)
-
-# Also save master key as backup
-master_key = Fernet.generate_key()
-with open(MASTER_KEY_FILE, 'wb') as f:
-    f.write(master_key)
-os.chmod(MASTER_KEY_FILE, 0o600)
 
 # Cleanup
 master_db.unlink()
 
 vault_size = OUTPUT_FILE.stat().st_size / 1024 / 1024
-print(f"  OK Vault: {vault_size:.0f} MB")
+ratio = (1 - vault_size / raw_size) * 100 if raw_size else 0
+print(f"  OK Vault: {vault_size:.0f} MB (was {raw_size:.0f} MB raw — {ratio:.0f}% smaller, zstd v2)")
 print()
 print("=" * 60)
 print("BUILD COMPLETE")
 print(f"   {OUTPUT_FILE.name}: {vault_size:.0f} MB")
 print(f"   .vault_key: KEEP SECRET (used by generate_key.py)")
-print(f"   .master_key: KEEP SECRET (backup)")
 print("=" * 60)

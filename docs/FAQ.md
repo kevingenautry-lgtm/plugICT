@@ -3,10 +3,10 @@
 ## General
 
 **Q: What exactly is this?**
-A: A searchable library of 365 Inner Circle Trader YouTube videos — fully transcribed, indexed, and optimized for AI agent queries. Not raw files. Not PDFs. You can search by concept, keyword, or meaning.
+A: A searchable library of 576 Inner Circle Trader YouTube videos — fully transcribed, indexed, and optimized for AI agent queries. Not raw files. Not PDFs. You can search by concept, keyword, or meaning.
 
 **Q: Is this all of ICT's content?**
-A: We've transcribed 365 videos across 10 playlists from 2016-2026. This covers the major mentorship series (2022, 2023, 2024), lecture series (2025, 2026 SMC), charter content, forex series, and more.
+A: We've transcribed 576 videos across 10 playlists from 2016-2026. This covers the major mentorship series (2022, 2023, 2024), lecture series (2025, 2026 SMC), charter content, forex series, and more.
 
 **Q: Can I browse the raw transcript files?**
 A: No. The vault is encrypted — you search and get results. Raw files are not extractable. This protects the content from unauthorized sharing.
