@@ -15,7 +15,7 @@ from pathlib import Path
 from datetime import datetime
 from cryptography.fernet import Fernet
 
-VAULT_DIR = Path(r"C:\Users\kevin\Hermes ICT Selling Idea")
+VAULT_DIR = Path(os.environ.get("ICT_SOURCE_DIR", r"C:\Users\kevin\Hermes ICT Selling Idea"))
 VAULT_KEY_FILE = VAULT_DIR / ".vault_key"
 
 def generate_license(buyer_email, purchase_id):
@@ -72,9 +72,11 @@ VAULT_HASH={vault_hash}
     print(f"   License:  {license_id}")
     print(f"   File:     {output_file.name}")
     print()
-    print(f"   Each buyer has a UNIQUE key.")
-    print(f"   Leaking one license = only that buyer affected.")
-    
+    print(f"   Each buyer gets a unique, traceable license ID.")
+    print(f"   NOTE: the vault key is shared across buyers, so a leaked license")
+    print(f"   can expose the vault — but the leak is traceable to this buyer.")
+    print(f"   (For true per-buyer isolation, re-encrypt the vault per buyer.)")
+
     return output_file, license_id
 
 if __name__ == "__main__":

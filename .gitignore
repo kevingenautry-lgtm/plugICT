@@ -1,0 +1,11 @@
+# Buyer-side runtime artifacts (never commit)
+scripts/ict-vault.kevin
+scripts/license.key
+scripts/.query_cache.db
+scripts/.vault_key
+scripts/.vault_sha256
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/

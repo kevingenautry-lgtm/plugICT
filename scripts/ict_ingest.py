@@ -11,8 +11,10 @@ import os, re, sys, json, sqlite3, hashlib
 from pathlib import Path
 from datetime import datetime
 
+import vault_core as vc
+
 # ── Config ──────────────────────────────────────────────────────────────────
-VAULT_DIR = Path(r"C:\Users\kevin\Hermes ICT Selling Idea")
+VAULT_DIR = Path(os.environ.get("ICT_SOURCE_DIR", r"C:\Users\kevin\Hermes ICT Selling Idea"))
 VECTOR_DIR = VAULT_DIR / "_vectors"
 KG_DB_PATH = VAULT_DIR / "kg.db"
 CHUNK_SIZE = 900
@@ -41,28 +43,7 @@ for fp in transcripts:
     with open(fp, encoding='utf-8', errors='replace') as f:
         content = f.read()
         total_lines += content.count('\n')
-        # Extract playlist from filename
-        name = fp.stem
-        if '2023 ICT Mentorship' in name:
-            playlist = '2023 ICT Mentorship'
-        elif '2025 Lecture Series' in name:
-            playlist = '2025 Lecture Series'
-        elif 'ICT 2024 Mentorship' in name:
-            playlist = 'ICT 2024 Mentorship'
-        elif '2026 ICT SMC' in name or '2026 SMC' in name:
-            playlist = '2026 SMC Lecture'
-        elif '2022 ICT Mentorship' in name:
-            playlist = '2022 ICT Mentorship'
-        elif '2016' in name or '2017' in name:
-            playlist = '2016/2017 Mentorship'
-        elif 'Forex' in name:
-            playlist = 'Forex Series'
-        elif 'Storytellers' in name:
-            playlist = '2025 Storytellers'
-        elif 'Charter' in name:
-            playlist = 'ICT Charter Content'
-        else:
-            playlist = 'Other / Misc'
+        playlist = vc.classify_playlist(fp.name)
         playlist_counts[playlist] = playlist_counts.get(playlist, 0) + 1
 
 print(f"  Lines: {total_lines:,}")
@@ -99,27 +80,7 @@ for fp in transcripts:
     title = fm.get('title', fp.stem)
     video_id = fm.get('video_id', '')
     duration = fm.get('duration', '')
-    playlist = 'Unknown'
-    if '2023 ICT Mentorship' in fp.stem:
-        playlist = '2023 ICT Mentorship'
-    elif '2025 Lecture Series' in fp.stem:
-        playlist = '2025 Lecture Series'
-    elif 'ICT 2024 Mentorship' in fp.stem:
-        playlist = 'ICT 2024 Mentorship'
-    elif '2026' in fp.stem and ('SMC' in fp.stem or 'SMC' in fp.name):
-        playlist = '2026 SMC Lecture'
-    elif '2022 ICT Mentorship' in fp.stem:
-        playlist = '2022 ICT Mentorship'
-    elif '2016' in fp.stem or '2017' in fp.stem:
-        playlist = '2016/2017 Mentorship'
-    elif 'Forex' in fp.stem:
-        playlist = 'Forex Series'
-    elif 'Storytellers' in fp.stem:
-        playlist = '2025 Storytellers'
-    elif 'Charter' in fp.stem:
-        playlist = 'ICT Charter Content'
-    else:
-        playlist = 'Other / Misc'
+    playlist = vc.classify_playlist(fp.name)
     
     # Clean body — strip markdown formatting for cleaner chunks
     body = re.sub(r'^#.*$', '', body, flags=re.MULTILINE)
@@ -473,7 +434,7 @@ print(f"  Vector search '{test_query}': {len(results['ids'][0])} results")
 
 # FTS5 test
 fts_results = conn.execute(
-    "SELECT title, snippet(transcripts_fts, 2, '<b>', '</b>', '...', 50) FROM transcripts_fts WHERE content MATCH ? LIMIT 3",
+    "SELECT title, snippet(transcripts_fts, 5, '<b>', '</b>', '...', 50) FROM transcripts_fts WHERE content MATCH ? LIMIT 3",
     (test_query,)
 ).fetchall()
 print(f"  FTS5 search '{test_query}': {len(fts_results)} results")

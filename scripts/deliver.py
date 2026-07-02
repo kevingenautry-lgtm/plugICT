@@ -13,7 +13,11 @@ import sys, os, shutil
 from pathlib import Path
 from datetime import datetime
 
-VAULT_DIR = Path(r"C:\Users\kevin\Hermes ICT Selling Idea")
+# Seller content (vault, licenses, docs) — override with ICT_SOURCE_DIR.
+VAULT_DIR = Path(os.environ.get("ICT_SOURCE_DIR", r"C:\Users\kevin\Hermes ICT Selling Idea"))
+# The buyer-facing code ships from this repo's scripts/ dir (next to deliver.py).
+SCRIPT_DIR = Path(__file__).parent.resolve()
+CODE_FILES = ["query.py", "mcp_server.py", "vault_core.py"]
 DELIVERY_ROOT = VAULT_DIR / "delivery"
 
 def deliver(buyer_email, purchase_id):
@@ -64,94 +68,120 @@ def deliver(buyer_email, purchase_id):
     shutil.copy2(license_file, delivery_dir / "license.key")
     print("  OK license.key")
     
-    # ── Copy query.py ──
-    print("[3/6] Copying query.py...")
-    if (VAULT_DIR / "query.py").exists():
-        shutil.copy2(VAULT_DIR / "query.py", delivery_dir / "query.py")
-        print("  OK query.py")
-    else:
-        print("  WARNING: query.py not found in vault root")
-    
-    # ── Copy mcp_server.py ──
-    print("[4/6] Copying mcp_server.py...")
-    if (VAULT_DIR / "mcp_server.py").exists():
-        shutil.copy2(VAULT_DIR / "mcp_server.py", delivery_dir / "mcp_server.py")
-        print("  OK mcp_server.py")
-    else:
-        print("  WARNING: mcp_server.py not found in vault root")
-    
-    # ── Write requirements.txt ──
+    # ── Copy buyer-facing code (query.py, mcp_server.py, vault_core.py) ──
+    print("[3/6] Copying application code...")
+    for name in CODE_FILES:
+        src = SCRIPT_DIR / name
+        if src.exists():
+            shutil.copy2(src, delivery_dir / name)
+            print(f"  OK {name}")
+        else:
+            print(f"  ERROR: {name} not found next to deliver.py — aborting.")
+            sys.exit(1)
+
+    # ── Write requirements.txt (compatible-release pins, not open >=) ──
+    # NOTE: run one clean `setup.bat` install and lock these to a tested
+    # lockfile before a public launch.
+    print("[4/6] Writing requirements + installers...")
     req_file = delivery_dir / "requirements.txt"
-    req_file.write_text("""cryptography>=41.0.0
-chromadb>=0.4.0
-sentence-transformers>=2.2.0
-mcp>=1.0.0
-""")
-    print("  OK requirements.txt")
-    
-    # ── Write setup.bat ──
+    req_file.write_text(
+        "cryptography~=42.0\n"
+        "chromadb~=0.5.0\n"
+        "sentence-transformers~=3.0\n"
+        "mcp~=1.2\n"
+        "zstandard~=0.22\n"
+        "rich~=13.7\n"
+    )
+    print("  OK requirements.txt (pinned)")
+
+    # ── setup.bat — isolated venv so we never touch the buyer's global Python ──
     setup_bat = delivery_dir / "setup.bat"
-    setup_bat.write_text("""@echo off
-echo ========================================
-echo ICT Knowledge Vault - Setup
-echo ========================================
-echo.
-echo Installing dependencies...
-pip install -r requirements.txt
-echo.
-echo Testing vault...
-python query.py "Fair Value Gap"
-echo.
-echo ========================================
-echo Setup complete!
-echo Run: python query.py "your question"
-echo Or: python mcp_server.py (for AI agent)
-echo ========================================
-pause
-""")
-    print("  OK setup.bat")
+    setup_bat.write_text(
+        "@echo off\r\n"
+        "echo ========================================\r\n"
+        "echo ICT Knowledge Vault - Setup\r\n"
+        "echo ========================================\r\n"
+        "echo.\r\n"
+        "echo Creating isolated environment (.venv)...\r\n"
+        "py -m venv .venv || python -m venv .venv\r\n"
+        "echo Installing dependencies (first run downloads ~1 min)...\r\n"
+        ".venv\\Scripts\\python -m pip install --upgrade pip\r\n"
+        ".venv\\Scripts\\pip install -r requirements.txt\r\n"
+        "echo.\r\n"
+        "echo Checking your setup...\r\n"
+        ".venv\\Scripts\\python query.py --doctor\r\n"
+        "echo.\r\n"
+        "echo ========================================\r\n"
+        "echo Setup complete!  Search with:\r\n"
+        "echo   vault.bat \"your question\"\r\n"
+        "echo ========================================\r\n"
+        "pause\r\n"
+    )
+    # vault.bat / vault.sh wrappers so buyers never touch the venv directly.
+    (delivery_dir / "vault.bat").write_text(
+        "@echo off\r\n.venv\\Scripts\\python query.py %*\r\n")
+    (delivery_dir / "setup.sh").write_text(
+        "#!/usr/bin/env bash\n"
+        "set -e\n"
+        "cd \"$(dirname \"$0\")\"\n"
+        "echo 'Creating isolated environment (.venv)...'\n"
+        "python3 -m venv .venv\n"
+        ".venv/bin/pip install --upgrade pip\n"
+        ".venv/bin/pip install -r requirements.txt\n"
+        ".venv/bin/python query.py --doctor\n"
+        "echo 'Setup complete. Search with: ./vault.sh \"your question\"'\n")
+    (delivery_dir / "vault.sh").write_text(
+        "#!/usr/bin/env bash\n"
+        "cd \"$(dirname \"$0\")\"\n"
+        ".venv/bin/python query.py \"$@\"\n")
+    for sh in ("setup.sh", "vault.sh"):
+        try:
+            os.chmod(delivery_dir / sh, 0o755)
+        except OSError:
+            pass
+    print("  OK setup.bat / vault.bat / setup.sh / vault.sh")
     
     # ── Create examples folder ──
     print("[5/6] Creating example configs...")
     examples_dir = delivery_dir / "examples"
     examples_dir.mkdir(exist_ok=True)
     
+    # Use the venv interpreter created by setup.bat (bare "python" lacks deps).
+    base = delivery_dir.as_posix()
+    venv_py = f"{base}/.venv/Scripts/python.exe"   # Windows; on mac/Linux use .venv/bin/python
+
     # Claude Desktop config
     claude_config = examples_dir / "claude_desktop_config.json"
     claude_config.write_text(f"""{{
   "mcpServers": {{
     "ict-knowledge-vault": {{
-      "command": "python",
-      "args": ["{delivery_dir.as_posix()}/mcp_server.py"],
-      "env": {{
-        "VAULT_PATH": "{delivery_dir.as_posix()}"
-      }}
+      "command": "{venv_py}",
+      "args": ["{base}/mcp_server.py"]
     }}
   }}
 }}
 """)
-    
+
     # Cursor config
     cursor_config = examples_dir / "cursor_mcp.json"
     cursor_config.write_text(f"""{{
   "mcpServers": {{
     "ict-knowledge-vault": {{
-      "command": "python",
-      "args": ["{delivery_dir.as_posix()}/mcp_server.py"]
+      "command": "{venv_py}",
+      "args": ["{base}/mcp_server.py"]
     }}
   }}
 }}
 """)
-    
+
     # Hermes config
     hermes_config = examples_dir / "hermes_config.yaml"
     hermes_config.write_text(f"""# Add to ~/.hermes/profiles/<name>/config.yaml
+# On macOS/Linux change the command to: {base}/.venv/bin/python
 mcp_servers:
   ict-knowledge-vault:
-    command: python
-    args: ["{delivery_dir.as_posix()}/mcp_server.py"]
-    env:
-      VAULT_PATH: "{delivery_dir.as_posix()}"
+    command: "{venv_py}"
+    args: ["{base}/mcp_server.py"]
 """)
     
     print("  OK examples/")
@@ -181,26 +211,30 @@ mcp_servers:
 ## Quick Start
 
 ```
-setup.bat          # Install dependencies
-python query.py "Fair Value Gap"   # Search the vault
+setup.bat                       # One-time: builds an isolated environment
+vault.bat "Fair Value Gap"      # Search the vault
+vault.bat                       # Interactive mode (decrypt once, ask many)
 ```
+
+macOS / Linux: use `./setup.sh` then `./vault.sh "your question"`.
+
+Something not working? Run `vault.bat --doctor` for a health check.
 
 ## Connect to AI Agent
 
 ```
-python mcp_server.py   # Start MCP server
+.venv\\Scripts\\python mcp_server.py   # Start MCP server
 ```
-Then add `examples/claude_desktop_config.json` to Claude Desktop config.
-
-See `AI-AGENT-GUIDE.md` for full setup guide.
+Then add `examples/claude_desktop_config.json` to your Claude Desktop config.
+See `AI-AGENT-GUIDE.md` for the full setup guide.
 
 ## License
 
 Licensed to: **{buyer_email}**
 Purchase ID: {purchase_id}
-License ID: {purchase_id}
+License ID: {lic_id}
 
-Do not share. Your license is traceable.
+Do not share. Your license is traceable to you.
 """)
     
     # ── Summary ──
