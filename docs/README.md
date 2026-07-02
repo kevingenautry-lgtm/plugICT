@@ -12,52 +12,38 @@ Not raw files. Not PDFs. **AI-searchable knowledge vault.**
 
 **Windows** — double-click `setup.bat`. It builds an isolated environment
 (`.venv`) so it never disturbs any other Python on your machine, installs
-everything, and runs a health check.
+everything, and verifies your vault.
 
 **macOS / Linux**
 ```bash
 ./setup.sh
 ```
 
-### Test It
+Something not working? Run a health check:
 ```bash
-vault.bat "Fair Value Gap definition"     # Windows
-./vault.sh "Fair Value Gap definition"    # macOS / Linux
+.venv\Scripts\python mcp_server.py --doctor      # Windows
+.venv/bin/python mcp_server.py --doctor          # macOS / Linux
 ```
-
-You should see results with timestamps, playlists, and sources.
-Something not working? Run `vault.bat --doctor` for a one-line-per-check report.
 
 ---
 
-## How To Use It
+## Connect Your AI Agent
 
-### A. Connect Your AI Agent (the main event)
+ICT Vault upgrades **your own AI agent**. Add the config from `examples/` to
+your agent and restart it — it gains ICT tools (`search_ict`,
+`explore_concept`, `glossary_lookup`, …) and can search all 576 videos,
+answering with exact video timestamps.
 
-This vault is built to power **your own AI agent**. Plug it in once and your
-agent gains ICT knowledge tools — it can search all 576 videos, explore
-concepts, and cite exact video timestamps in its answers.
-
-```bash
-.venv\Scripts\python mcp_server.py
-```
-
-Then add the config from `examples/` to your AI agent:
 - **Claude Desktop** → `examples/claude_desktop_config.json`
 - **Cursor** → `examples/cursor_mcp.json`
 - **Hermes Agent** → `examples/hermes_config.yaml`
 
-Now just ask your agent things like *"How does ICT teach the Silver Bullet
-entry?"* — it searches the vault and answers with sources. Full walkthrough:
-`docs/AI-AGENT-GUIDE.md`.
+Then just ask, in natural conversation:
 
-### B. Direct Command-Line Search (works without any AI agent)
-```bash
-vault.bat "Silver Bullet London session"
-vault.bat "Order Block vs Breaker"
-vault.bat                       # interactive mode: unlock once, ask many
-vault.bat --explain "FVG"       # show why each result matched
-```
+> *"How does ICT teach the Silver Bullet entry in the New York session?"*
+
+Your agent searches the vault and answers with cited sources and timestamps.
+Full walkthrough: `docs/AI-AGENT-GUIDE.md`.
 
 ---
 
@@ -91,8 +77,7 @@ vault.bat --explain "FVG"       # show why each result matched
 |---|---|
 | `ict-vault.kevin` | Encrypted vault (don't share) |
 | `license.key` | Your unique license (don't share) |
-| `query.py` | CLI search tool |
-| `mcp_server.py` | AI agent bridge |
+| `mcp_server.py` | AI agent bridge (the app) |
 | `docs/` | Full documentation |
 
 ---

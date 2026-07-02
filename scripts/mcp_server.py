@@ -6,8 +6,8 @@ Exposes the vault as tools for any MCP-compatible AI agent
 
     python mcp_server.py
 
-Shares vault_core with query.py, so the decrypt path can never drift out of
-sync. IMPORTANT: an MCP stdio server speaks JSON-RPC over stdout — every
+Shares vault_core with the rest of the tools, so the decrypt path can never
+drift out of sync. IMPORTANT: an MCP stdio server speaks JSON-RPC over stdout — every
 diagnostic here goes to stderr, never stdout.
 """
 
@@ -241,7 +241,8 @@ async def call_tool(name, arguments):
             for i, r in enumerate(results, 1):
                 out.append(f"{i}. {r['title']}")
                 out.append(f"   Method: {r['method']} | Timestamp: {r['timestamp']} | Playlist: {r['playlist']}")
-                out.append(f"   \"{r['snippet'][:300]}...\"")
+                clean = r['snippet'][:300].replace("<b>", "").replace("</b>", "")
+                out.append(f"   \"{clean}...\"")
                 if r.get('video_id'):
                     out.append(f"   Video: {vc.youtube_link(r['video_id'], r.get('timestamp'))}")
                 out.append("")
@@ -314,6 +315,9 @@ async def main():
 
 if __name__ == "__main__":
     import asyncio
+    # Buyers verify their install with:  python mcp_server.py --doctor
+    if "--doctor" in sys.argv:
+        sys.exit(vc.run_doctor())
     vc.sweep_stale_temp()
     try:
         asyncio.run(main())

@@ -1,6 +1,6 @@
 # ICT Knowledge Vault — Query Examples
 
-50 queries organized by topic. Copy-paste into `query.py` or ask your AI agent.
+50 example questions organized by topic. Ask your AI agent any of these in natural conversation — it searches the vault and answers with cited timestamps.
 
 ---
 
@@ -8,27 +8,27 @@
 
 ### Fair Value Gap (FVG)
 ```
-python query.py "Fair Value Gap definition"
-python query.py "How does ICT define FVG"
-python query.py "FVG vs imbalance ICT"
-python query.py "When does FVG invert"
-python query.py "How to trade FVG ICT"
+- "Fair Value Gap definition"
+- "How does ICT define FVG"
+- "FVG vs imbalance ICT"
+- "When does FVG invert"
+- "How to trade FVG ICT"
 ```
 
 ### Order Block
 ```
-python query.py "Order Block definition ICT"
-python query.py "Order Block vs Breaker"
-python query.py "How to identify Order Block"
-python query.py "Mitigation Block explained"
+- "Order Block definition ICT"
+- "Order Block vs Breaker"
+- "How to identify Order Block"
+- "Mitigation Block explained"
 ```
 
 ### Liquidity
 ```
-python query.py "Liquidity sweep ICT"
-python query.py "Buyside vs sellside liquidity"
-python query.py "How ICT uses liquidity concepts"
-python query.py "Internal vs external liquidity"
+- "Liquidity sweep ICT"
+- "Buyside vs sellside liquidity"
+- "How ICT uses liquidity concepts"
+- "Internal vs external liquidity"
 ```
 
 ---
@@ -37,19 +37,19 @@ python query.py "Internal vs external liquidity"
 
 ### Silver Bullet
 ```
-python query.py "ICT Silver Bullet model"
-python query.py "Silver Bullet London session"
-python query.py "Silver Bullet entry rules"
-python query.py "Silver Bullet time windows"
+- "ICT Silver Bullet model"
+- "Silver Bullet London session"
+- "Silver Bullet entry rules"
+- "Silver Bullet time windows"
 ```
 
 ### Other Models
 ```
-python query.py "ICT Venom model tutorial"
-python query.py "ICT Reaper model"
-python query.py "Turtle Soup pattern ICT"
-python query.py "Judas Swing explained"
-python query.py "MMSM vs MMBM ICT"
+- "ICT Venom model tutorial"
+- "ICT Reaper model"
+- "Turtle Soup pattern ICT"
+- "Judas Swing explained"
+- "MMSM vs MMBM ICT"
 ```
 
 ---
@@ -57,12 +57,12 @@ python query.py "MMSM vs MMBM ICT"
 ## Sessions & Killzones
 
 ```
-python query.py "London Killzone ICT strategy"
-python query.py "New York Killzone trading"
-python query.py "Asian session ICT tips"
-python query.py "London Open Killzone time"
-python query.py "PM Session reversal model"
-python query.py "Lunch Macro ICT"
+- "London Killzone ICT strategy"
+- "New York Killzone trading"
+- "Asian session ICT tips"
+- "London Open Killzone time"
+- "PM Session reversal model"
+- "Lunch Macro ICT"
 ```
 
 ---
@@ -70,11 +70,11 @@ python query.py "Lunch Macro ICT"
 ## Market Structure
 
 ```
-python query.py "Market structure shift ICT"
-python query.py "Change of Character vs Break of Structure"
-python query.py "CISD explained ICT"
-python query.py "MSS definition ICT"
-python query.py "How to draw market structure correctly"
+- "Market structure shift ICT"
+- "Change of Character vs Break of Structure"
+- "CISD explained ICT"
+- "MSS definition ICT"
+- "How to draw market structure correctly"
 ```
 
 ---
@@ -82,11 +82,11 @@ python query.py "How to draw market structure correctly"
 ## Price Action & Order Flow
 
 ```
-python query.py "How does ICT read tape"
-python query.py "Order flow ICT explained"
-python query.py "Institutional order flow identification"
-python query.py "Algorithmic Price Delivery ICT"
-python query.py "Market Maker models ICT"
+- "How does ICT read tape"
+- "Order flow ICT explained"
+- "Institutional order flow identification"
+- "Algorithmic Price Delivery ICT"
+- "Market Maker models ICT"
 ```
 
 ---
@@ -94,11 +94,11 @@ python query.py "Market Maker models ICT"
 ## Practical Trading
 
 ```
-python query.py "ICT risk management strategy"
-python query.py "ICT position sizing rules"
-python query.py "How to journal trades ICT method"
-python query.py "ICT backtesting approach"
-python query.py "ICT funded account strategy"
+- "ICT risk management strategy"
+- "ICT position sizing rules"
+- "How to journal trades ICT method"
+- "ICT backtesting approach"
+- "ICT funded account strategy"
 ```
 
 ---
@@ -106,10 +106,10 @@ python query.py "ICT funded account strategy"
 ## Gaps & Opening Ranges
 
 ```
-python query.py "NDOG new day opening gap"
-python query.py "NWOG new week opening gap"
-python query.py "Opening range gap strategy ICT"
-python query.py "SMT divergence ICT"
+- "NDOG new day opening gap"
+- "NWOG new week opening gap"
+- "Opening range gap strategy ICT"
+- "SMT divergence ICT"
 ```
 
 ---
@@ -117,10 +117,10 @@ python query.py "SMT divergence ICT"
 ## Advanced Concepts
 
 ```
-python query.py "Intermarket analysis ICT"
-python query.py "CFDs vs Futures ICT opinion"
-python query.py "Premium vs Discount ICT"
-python query.py "Equilibrium ICT concept"
+- "Intermarket analysis ICT"
+- "CFDs vs Futures ICT opinion"
+- "Premium vs Discount ICT"
+- "Equilibrium ICT concept"
 ```
 
 ---

@@ -58,16 +58,16 @@ def test_demo_info_none_for_full_vault(tmp_path):
         db.close()
 
 
-def test_query_output_shows_watermark(tmp_path):
+def test_demo_session_search_and_stamp(tmp_path):
+    """The demo vault opens, is flagged as demo, and FTS search still returns
+    results (chromadb absent → semantic leg degrades, keyword leg carries it)."""
     vault, lic = _demo_fixture(str(tmp_path))
-    env = dict(os.environ, ICT_VAULT_FILE=str(vault), ICT_VAULT_LICENSE=str(lic),
-               NO_COLOR="1")
-    r = subprocess.run([sys.executable, str(ROOT / "scripts" / "query.py"),
-                        "fair value gap"],
-                       env=env, capture_output=True, text=True, timeout=120,
-                       cwd=str(tmp_path))  # cwd isolated so no cache file lands in repo
-    out = r.stdout
-    assert r.returncode == 0, r.stderr
-    assert "DEMO" in out and "5/576" in out, out
-    assert "https://example.com/#pricing" in out
-    assert "Fair Value Gap Explained" in out  # search still works
+    session = vc.VaultSession().open(vault_file=vault, license_file=lic)
+    try:
+        assert session.demo == {"count": "5", "total": "576",
+                                "cta": "https://example.com/#pricing"}
+        ranked, _, _ = session.search("fair value gap", top_k=5)
+        titles = " ".join(r.get("title", "") for r in ranked)
+        assert "Fair Value Gap Explained" in titles
+    finally:
+        session.close()
