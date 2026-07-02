@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICT Vault — Institutional Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;550;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+/* ═══ design-taste-frontend: Design Read ═══
+   Reading this as: B2B SaaS landing for institutional traders,
+   with a dark-luxury + gold language, leaning toward premium dark UI
+   with restrained motion and editorial typography.
+   Dials: DESIGN_VARIANCE=6 | MOTION_INTENSITY=5 | VISUAL_DENSITY=5
+   Anti-slop: No purple gradients, no generic glass, no three-card defaults,
+   no infinite loops, no centered-over-mesh hero. */
+/* ═══ claude-design: Combined Revolut + Linear design systems ═══
+   - Revolut: pill buttons (9999px), flat depth via opacity/color (no shadows),
+     generous button padding (14px 32px), fintech trust feel
+   - Linear: surface luminance stacking (3 levels), semi-transparent border tiers,
+     Inter cv01/ss03, aggressive display letter-spacing, weight 510 emphasis,
+     80px+ section rhythm, ghost buttons with subtle borders */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  /* Surface stacking — Linear 3-level luminance system with gold-warm undertone */
+  --bg:#050505;--bg-panel:#0f1011;--bg-surface:#191a1b;--bg-elevated:#1f2024;
+  /* Gold accent system */
+  --gold:#d4af37;--gold2:#f5e6a3;--gold3:rgba(212,175,55,.08);--gold4:rgba(212,175,55,.04);
+  --gold-emissive:rgba(212,175,55,.02);
+  /* Text — Linear f7f8f8 style with warm tint */
+  --text:#ecece8;--text2:rgba(236,236,232,.62);--text3:rgba(236,236,232,.32);
+  /* Border system — Linear semi-transparent white tiers */
+  --border-subtle:rgba(255,255,255,.04);--border:rgba(255,255,255,.06);
+  --border-stand:rgba(255,255,255,.08);--border-hover:rgba(212,175,55,.25);
+  /* Border radius — Revolut pill (9999px) for CTAs, Linear 6/8/12 for containers */
+  --radius-sm:6px;--radius:8px;--radius-lg:12px;--radius-xl:20px;
+  --pill:9999px;
+  /* Easing */
+  --ease:cubic-bezier(.22,1,.36,1);--spring:cubic-bezier(.34,1.56,.64,1);
+  /* Spacing — 8px grid with Revolut's generous optical adjustments */
+  --space-xxs:2px;--space-xs:4px;--space-sm:8px;--space-md:16px;--space-lg:24px;
+  --space-xl:32px;--space-2xl:48px;--space-3xl:64px;--space-4xl:80px;
+  /* platform-design: WCAG AA: Gold #d4af37 on #050505 = 8.1:1 ✓ */
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text2);
+  font-family:'Inter','Inter Variable',system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  font-weight:400;line-height:1.6;font-feature-settings:"cv01","ss03"}
+::selection{background:var(--gold3);color:#fff}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+.container{max-width:1200px;margin:0 auto;padding:0 28px}
+img,svg{display:block}
+a{color:inherit;text-decoration:none}
+/* ── Nav (Linear inspired) ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:var(--space-sm) 28px;max-width:1200px;margin:0 auto;left:0;right:0;
+  transition:all .4s var(--ease);
+  background:rgba(5,5,5,.72);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border-subtle)}
+nav.scrolled{background:rgba(5,5,5,.92);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  padding:var(--space-xs) 28px;border-bottom:1px solid var(--border)}
+.logo{font-size:1.25rem;font-weight:600;letter-spacing:-.04em;color:var(--text);
+  display:flex;align-items:center;gap:var(--space-sm);font-feature-settings:"cv01","ss03"}
+.logo-mark{width:28px;height:28px;border:1.5px solid var(--gold);
+  border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;
+  font-size:.8rem;color:var(--gold);font-weight:500}
+.logo span{color:var(--gold)}
+.nav-links{display:flex;gap:32px;list-style:none;font-size:.82rem;font-weight:500}
+.nav-links a{color:var(--text2);transition:color .2s;position:relative;
+  padding:var(--space-xs) 0;min-height:44px;display:inline-flex;align-items:center}
+.nav-links a::after{content:'';position:absolute;bottom:var(--space-xs);left:0;
+  width:0;height:1px;background:var(--gold);transition:width .3s var(--ease)}
+.nav-links a:hover{color:#fff}
+.nav-links a:hover::after{width:100%}
+/* platform-design: min 44px touch target */
+/* ── Pill Buttons (Revolut) ── */
+.nav-cta{background:var(--gold);color:var(--bg);border:none;
+  padding:10px 28px;border-radius:var(--pill);font-weight:600;font-size:.8rem;
+  cursor:pointer;transition:opacity .2s,transform .2s var(--spring);
+  min-height:42px;letter-spacing:.01em}
+.nav-cta:hover{opacity:.88;transform:scale(1.03)}
+.nav-cta:active{transform:scale(.97)}
+/* ── Hero ── */
+.hero{min-height:100vh;display:flex;align-items:center;position:relative;overflow:hidden;padding:100px 0 60px}
+/* frame-liquid-bg-hero: CSS multi-layer radial-gradient breathing blobs */
+.hero-bg{position:absolute;inset:0;z-index:0;background:var(--bg);overflow:hidden;pointer-events:none}
+.hero-bg .blob{position:absolute;border-radius:50%;filter:blur(100px);-webkit-filter:blur(100px);
+  mix-blend-mode:screen;opacity:.45;will-change:transform}
+.hero-bg .blob:nth-child(1){width:700px;height:700px;
+  background:radial-gradient(circle,rgba(212,175,55,.2),transparent);
+  top:-15%;left:-10%;animation:blobFloat1 14s ease-in-out infinite}
+.hero-bg .blob:nth-child(2){width:550px;height:550px;
+  background:radial-gradient(circle,rgba(212,175,55,.13),transparent);
+  bottom:-20%;right:-10%;animation:blobFloat2 16s ease-in-out infinite}
+.hero-bg .blob:nth-child(3){width:400px;height:400px;
+  background:radial-gradient(circle,rgba(180,140,60,.1),transparent);
+  top:40%;left:40%;animation:blobFloat3 12s ease-in-out infinite}
+.hero-bg .blob:nth-child(4){width:350px;height:350px;
+  background:radial-gradient(circle,rgba(200,170,80,.08),transparent);
+  top:60%;left:15%;animation:blobFloat4 18s ease-in-out infinite}
+.hero-bg .blob:nth-child(5){width:250px;height:250px;
+  background:radial-gradient(circle,rgba(212,175,55,.06),transparent);
+  bottom:30%;right:25%;animation:blobFloat1 10s ease-in-out infinite;animation-delay:-5s}
+.hero-bg .blur-top{position:absolute;inset:0;backdrop-filter:blur(120px);-webkit-backdrop-filter:blur(120px)}
+@keyframes blobFloat1{0%,100%{transform:translate(0,0)scale(1)}33%{transform:translate(60px,50px)scale(1.12)}66%{transform:translate(-30px,80px)scale(.95)}}
+@keyframes blobFloat2{0%,100%{transform:translate(0,0)scale(1)}33%{transform:translate(-50px,-40px)scale(1.08)}66%{transform:translate(40px,-60px)scale(.92)}}
+@keyframes blobFloat3{0%,100%{transform:translate(-50%,-50%)scale(1)}50%{transform:translate(-40%,-45%)scale(1.18)}}
+@keyframes blobFloat4{0%,100%{transform:translate(0,0)scale(1)}50%{transform:translate(40px,-30px)scale(1.1)}}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,var(--bg) 92%);z-index:1;pointer-events:none}
+.hero-inner{position:relative;z-index:2;width:100%}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;
+  border:1px solid var(--gold3);color:var(--gold);
+  font-size:.68rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  padding:6px 16px;border-radius:var(--pill);margin-bottom:var(--space-lg);
+  background:var(--gold4)}
+.hero-tag .dot{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* Linear-style display typography: weight 510-ish, tight ls */
+.hero h1{font-size:clamp(2.5rem,5.5vw,4.5rem);font-weight:550;line-height:1.06;
+  color:var(--text);margin-bottom:var(--space-md);
+  letter-spacing:clamp(-.03em,-.02em,-.02em);min-height:1.2em}
+.hero h1 em{font-style:normal;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:1.05rem;color:var(--text2);max-width:500px;line-height:1.7;margin-bottom:0}
+#cursor-bar{display:inline-block;width:3px;height:1em;background:var(--gold);
+  margin-left:2px;vertical-align:text-bottom;animation:cursorBlink .8s step-end infinite}
+@keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
+.hero-sub{font-size:1.05rem;color:var(--text2);max-width:500px;line-height:1.7;
+  margin:var(--space-lg) 0 var(--space-xl);opacity:0}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;opacity:0}
+/* Pill buttons (Revolut) */
+.btn-primary{background:var(--gold);color:var(--bg);border:none;
+  padding:14px 36px;border-radius:var(--pill);font-weight:600;font-size:.95rem;
+  cursor:pointer;transition:opacity .25s,transform .2s var(--spring);
+  min-height:48px;letter-spacing:.01em}
+.btn-primary:hover{opacity:.85;transform:scale(1.03)}
+.btn-primary:active{transform:scale(.97)}
+/* Ghost button (Linear) */
+.btn-outline{background:rgba(255,255,255,.02);color:var(--text);
+  border:1px solid rgba(255,255,255,.08);padding:14px 36px;
+  border-radius:var(--pill);font-weight:500;font-size:.95rem;
+  cursor:pointer;transition:all .25s;min-height:48px}
+.btn-outline:hover{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.14)}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+/* Chart container — Linear surface + border */
+.chart-container{width:100%;height:400px;background:var(--bg-panel);
+  border:1px solid var(--border);border-radius:var(--radius);padding:var(--space-md);position:relative}
+.chart-container svg{width:100%;height:100%}
+/* ── Stats ── */
+.stats-wrap{padding:var(--space-4xl) 0;position:relative}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+/* Stat cards — flat, luminance-only (Revolut + Linear) */
+.stat-card{text-align:center;padding:var(--space-xl) 20px;
+  background:var(--bg-panel);border:1px solid var(--border-subtle);
+  border-radius:var(--radius-lg);transition:all .3s}
+.stat-card:hover{background:var(--bg-surface);border-color:var(--gold3)}
+.stat-card .num{font-size:2rem;font-weight:600;color:var(--gold);display:block;
+  margin-bottom:var(--space-xs);font-feature-settings:"tnum","cv01","ss03"}
+.stat-card .label{font-size:.7rem;color:var(--text3);text-transform:uppercase;
+  letter-spacing:.08em;font-weight:500}
+/* ── Sections — Linear 80px+ vertical rhythm ── */
+.section{padding:var(--space-4xl) 0;position:relative}
+.section-header{text-align:center;margin-bottom:var(--space-2xl);max-width:600px;
+  margin-left:auto;margin-right:auto}
+.section-label{font-size:.65rem;font-weight:600;text-transform:uppercase;
+  letter-spacing:.14em;color:var(--gold);margin-bottom:var(--space-sm)}
+.section-title{font-size:clamp(1.8rem,3.5vw,2.6rem);font-weight:550;color:var(--text);
+  margin-bottom:var(--space-sm);letter-spacing:clamp(-.02em,-.015em,-.01em);line-height:1.12}
+.section-sub{color:var(--text2);max-width:480px;margin:0 auto;line-height:1.7;font-size:.95rem}
+.glow-line{width:48px;height:2px;background:linear-gradient(90deg,var(--gold),transparent);
+  margin:0 auto 14px;border-radius:1px}
+/* ── Features ── */
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+/* Feature cards — Linear surface + border, flat hover */
+.feature-card{background:var(--bg-panel);border:1px solid var(--border-subtle);
+  border-radius:var(--radius-lg);padding:var(--space-xl) 28px;
+  transition:all .35s var(--ease);cursor:default;position:relative;overflow:hidden}
+.feature-card::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--gold-emissive),transparent 60%);
+  opacity:0;transition:opacity .35s;border-radius:inherit}
+.feature-card:hover{background:var(--bg-surface);border-color:var(--border-stand)}
+.feature-card:hover::before{opacity:1}
+/* Feature icon — clean, border-only */
+.feature-icon{width:40px;height:40px;border-radius:var(--radius-sm);
+  background:var(--gold4);border:1px solid var(--gold3);
+  display:flex;align-items:center;justify-content:center;margin-bottom:18px;
+  font-size:1.2rem;position:relative;z-index:1;transition:all .3s}
+.feature-card:hover .feature-icon{background:var(--gold3);border-color:rgba(212,175,55,.2)}
+.feature-card h3{color:var(--text);font-size:1rem;font-weight:550;margin-bottom:var(--space-sm);
+  position:relative;z-index:1}
+.feature-card p{color:var(--text2);font-size:.85rem;line-height:1.65;position:relative;z-index:1}
+/* ── 3D Section ── */
+.three-section{height:100vh;display:flex;align-items:center;position:relative;overflow:hidden}
+.three-section .container{position:relative;z-index:3;width:100%}
+#threeCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+.three-overlay{position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,transparent 30%,rgba(5,5,5,.7) 80%);
+  z-index:2;pointer-events:none}
+.three-text{position:relative;z-index:3;text-align:center;max-width:500px;margin:0 auto}
+/* ── Pricing ── */
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.pricing-card{background:var(--bg-panel);border:1px solid var(--border-subtle);
+  border-radius:var(--radius-xl);padding:36px 28px;position:relative;
+  transition:all .35s var(--ease);text-align:center}
+.pricing-card:hover{background:var(--bg-surface);border-color:var(--border-stand)}
+.pricing-card.featured{background:var(--bg-surface);
+  border:1px solid var(--border);position:relative}
+.pricing-card.featured .badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  background:var(--gold);color:var(--bg);
+  font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;
+  padding:4px 16px;border-radius:var(--pill)}
+.pricing-card .plan{font-size:.7rem;font-weight:600;text-transform:uppercase;
+  letter-spacing:.12em;color:var(--gold);margin-bottom:6px}
+.pricing-card .price{font-size:2.6rem;font-weight:550;color:var(--text);
+  margin-bottom:var(--space-xs);font-feature-settings:"tnum","cv01","ss03"}
+.pricing-card .price span{font-size:.9rem;font-weight:400;color:var(--text2)}
+.pricing-card .desc{color:var(--text2);font-size:.85rem;margin:var(--space-sm) 0 var(--space-lg)}
+.pricing-card ul{list-style:none;margin-bottom:28px;text-align:left}
+.pricing-card ul li{padding:7px 0;font-size:.82rem;color:var(--text2);
+  display:flex;align-items:center;gap:var(--space-sm);font-weight:450}
+.pricing-card ul li::before{content:'\u2713';color:var(--gold);font-weight:600;font-size:.85rem}
+.pricing-card .btn-primary,.pricing-card .btn-outline{width:100%;text-align:center;display:block;padding:12px 0;font-size:.88rem}
+/* ── Footer ── */
+footer{border-top:1px solid var(--border-subtle);padding:var(--space-xl) 0;
+  text-align:center;font-size:.75rem;color:var(--text3)}
+/* ── Responsive ── */
+/* Desktop Site mode on mobile: cap max-width & scale content naturally */
+@media(min-width:1025px){
+  .container{max-width:1200px;margin:0 auto;padding:0 28px}
+}
+/* Tablet & small desktop */
+@media(max-width:1024px){
+  .hero-grid{grid-template-columns:1fr;gap:32px}
+  .chart-container{height:280px}
+  .features-grid,.pricing-grid{grid-template-columns:repeat(2,1fr);gap:16px}
+  .three-section{height:70vh}
+  .section{padding:var(--space-3xl) 0}
+}
+/* Mobile */
+@media(max-width:768px){
+  .container{padding:0 18px}
+  .nav-links{display:none}
+  .hero{padding:110px 0 40px;min-height:auto}
+  .hero h1{font-size:clamp(1.8rem,7vw,2.6rem)}
+  .hero .hero-grid{gap:24px}
+  .hero-tag{margin-bottom:14px}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .stats-wrap{padding:var(--space-2xl) 0}
+  .stat-card{padding:20px 14px}
+  .stat-card .num{font-size:1.5rem}
+  .section{padding:var(--space-2xl) 0}
+  .section-header{margin-bottom:var(--space-xl)}
+  .section-title{font-size:clamp(1.4rem,5vw,1.8rem)}
+  .features-grid{grid-template-columns:1fr;gap:12px}
+  .feature-card{padding:var(--space-lg) 20px}
+  .pricing-grid{grid-template-columns:1fr;gap:16px}
+  .pricing-card{padding:28px 20px}
+  .three-section{height:50vh}
+  .btn-primary,.btn-outline{padding:12px 28px;font-size:.88rem;min-height:44px}
+}
+/* Small mobile */
+@media(max-width:480px){
+  .hero{padding:100px 0 30px}
+  .hero h1{font-size:1.6rem}
+  .hero p,.hero-sub{font-size:.92rem}
+  .stats-grid{gap:8px}
+  .stat-card .num{font-size:1.2rem}
+  .stat-card .label{font-size:.6rem}
+  .section{padding:var(--space-xl) 0}
+  .section-title{font-size:1.3rem}
+  .three-section{height:40vh}
+  footer{padding:var(--space-lg) 0}
+  body{font-size:14px}
+}
+/* Support "Desktop Site" on mobile — ensure layout doesn't collapse */
+@media(max-width:768px)and(min-aspect-ratio:13/9){
+  .hero-grid{grid-template-columns:1fr 1fr}
+  .hero h1{font-size:clamp(1.4rem,2.5vw,2.2rem)}
+  .three-section{height:60vh}
+}
+/* platform-design: prefers-reduced-motion */
+@media(prefers-reduced-motion:reduce){
+  .hero-bg .blob{animation:none!important}
+  #cursor-bar{animation:none;opacity:0}
+  .feature-card:hover,.pricing-card:hover{background:var(--bg-panel);border-color:var(--border-subtle)}
+}
+</style>
+</head>
+<body>
+
+<nav id="navbar">
+  <div class="logo"><div class="logo-mark">⌘</div> ICT<span>Vault</span></div>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#threeD">Platform</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+  </ul>
+  <button class="nav-cta">Get Started</button>
+</nav>
+
+<section class="hero" id="hero">
+  <div class="hero-bg">
+    <div class="blob"></div><div class="blob"></div><div class="blob"></div>
+    <div class="blob"></div><div class="blob"></div>
+    <div class="blur-top"></div>
+  </div>
+  <div class="hero-overlay"></div>
+  <div class="container" style="position:relative;z-index:2">
+    <div class="hero-inner">
+      <div class="hero-tag"><span class="dot"></span> Institutional-grade infrastructure</div>
+      <div class="hero-grid">
+        <div>
+          <h1 id="typewriterTitle"></h1><span id="cursor-bar"></span>
+          <p class="hero-sub" id="heroSub">Low-latency execution, real-time analytics, and AI-powered signals — built for traders who demand more.</p>
+          <div class="hero-btns" id="heroBtns">
+            <button class="btn-primary" aria-label="Launch trading terminal">Launch Terminal</button>
+            <button class="btn-outline" aria-label="View demo">View Demo</button>
+          </div>
+        </div>
+        <div class="chart-container" id="d3Chart" role="img" aria-label="Live candlestick chart">
+          <svg></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section stats-wrap" id="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-card"><span class="num" data-target="2.4">0</span><span class="label">Volume Traded (B)</span></div>
+      <div class="stat-card"><span class="num" data-target="0.4">0</span><span class="label">Avg. Latency (ms)</span></div>
+      <div class="stat-card"><span class="num" data-target="99.97">0</span><span class="label">Uptime (%)</span></div>
+      <div class="stat-card"><span class="num" data-target="25000">0</span><span class="label">Active Traders</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Platform</div>
+      <div class="glow-line"></div>
+      <h2 class="section-title">Built for speed.</h2>
+      <p class="section-sub">Every millisecond counts. Our stack is optimized from kernel to terminal.</p>
+    </div>
+    <div class="features-grid" id="featureGrid">
+      <div class="feature-card"><div class="feature-icon">⚡</div><h3>Low-Latency Engine</h3><p>Sub-millisecond order routing with co-located infrastructure across NY4, LD4, and TY3.</p></div>
+      <div class="feature-card"><div class="feature-icon">📊</div><h3>Real-Time Analytics</h3><p>Live P&amp;L, risk exposure, Greeks, and volatility surface — updated at every tick.</p></div>
+      <div class="feature-card"><div class="feature-icon">🤖</div><h3>AI Signals</h3><p>Proprietary ML models scanning order flow, sentiment, and on-chain data 24/7.</p></div>
+      <div class="feature-card"><div class="feature-icon">🔐</div><h3>Multi-Sig Vaults</h3><p>Custodial-grade security with multi-sig approvals, hardware HSM, and audit trails.</p></div>
+      <div class="feature-card"><div class="feature-icon">🌐</div><h3>Cross-Exchange</h3><p>Unified depth of book across 25+ exchanges and dark pools in a single interface.</p></div>
+      <div class="feature-card"><div class="feature-icon">📱</div><h3>Terminal Anywhere</h3><p>Desktop-grade terminal on web, iOS, and Android with full feature parity.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="three-section" id="threeD">
+  <canvas id="threeCanvas"></canvas>
+  <div class="three-overlay"></div>
+  <div class="container" style="position:relative;z-index:3">
+    <div class="three-text">
+      <div class="section-label" style="color:var(--gold)">Global Infrastructure</div>
+      <div class="glow-line" style="margin:0 auto 14px"></div>
+      <h2 class="section-title" style="color:var(--text)">Connected to every major exchange.</h2>
+      <p class="section-sub" style="margin:12px auto 0">25+ exchanges. 3 continents. One terminal.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="pricing">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Pricing</div>
+      <div class="glow-line"></div>
+      <h2 class="section-title">Plans for every trader.</h2>
+      <p class="section-sub">From retail to prop firms — transparent pricing with no hidden fees.</p>
+    </div>
+    <div class="pricing-grid" id="pricingGrid">
+      <div class="pricing-card">
+        <div class="plan">Starter</div>
+        <div class="price">$29<span>/mo</span></div>
+        <div class="desc">Essential tools for the independent trader.</div>
+        <ul><li>Real-time data &amp; charts</li><li>5 active watchlists</li><li>Basic analytics</li><li>Email support</li></ul>
+        <button class="btn-outline">Start Free Trial</button>
+      </div>
+      <div class="pricing-card featured">
+        <div class="badge">Most Popular</div>
+        <div class="plan">Professional</div>
+        <div class="price">$99<span>/mo</span></div>
+        <div class="desc">Advanced tools for active professionals.</div>
+        <ul><li>Everything in Starter</li><li>AI-powered signals</li><li>Multi-exchange depth</li><li>Priority support</li><li>API access</li></ul>
+        <button class="btn-primary">Start Free Trial</button>
+      </div>
+      <div class="pricing-card">
+        <div class="plan">Enterprise</div>
+        <div class="price">Custom</div>
+        <div class="desc">Dedicated infrastructure for institutions.</div>
+        <ul><li>Everything in Professional</li><li>Co-location hosting</li><li>Dedicated account manager</li><li>Custom integrations</li><li>SLA guarantee</li></ul>
+        <button class="btn-outline">Contact Sales</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="container">&copy; 2026 ICT Vault. Institutional-grade infrastructure for serious traders.</div></footer>
+
+<script>
+// ── TYPEWRITER ──
+(function(){
+  const el = document.getElementById('typewriterTitle');
+  const cursor = document.getElementById('cursor-bar');
+  const text = 'Trade smarter.<br>With <em>institutional edge</em>.';
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced){ el.innerHTML = text; cursor.style.display='none'; return; }
+  const segments = [];
+  let i = 0;
+  while(i < text.length){
+    if(text[i] === '<'){
+      const end = text.indexOf('>', i);
+      const tag = text.slice(i, end+1);
+      const contentEnd = text.indexOf('</', end);
+      const content = text.slice(end+1, contentEnd);
+      const closeTag = text.slice(contentEnd, text.indexOf('>', contentEnd)+1);
+      segments.push({type:'tag', open:tag, content, close:closeTag, start:true});
+      segments.push({type:'tag', open:'', content, close:'', start:false});
+      i = contentEnd + closeTag.length;
+    } else if(text.slice(i,i+4) === '<br>'){
+      segments.push({type:'br'}); i += 4;
+    } else {
+      let end = i;
+      while(end < text.length && text[end] !== '<' && text.slice(end,end+4) !== '<br>') end++;
+      segments.push({type:'text', chars:text.slice(i,end).split('')}); i = end;
+    }
+  }
+  let charIdx = 0, curSegment = 0;
+  function writeNext(){
+    if(curSegment >= segments.length){ cursor.style.display='none'; document.getElementById('heroSub').style.opacity='1'; document.getElementById('heroSub').style.transition='opacity .6s ease'; document.getElementById('heroBtns').style.opacity='1'; document.getElementById('heroBtns').style.transition='opacity .6s ease'; return; }
+    const seg = segments[curSegment];
+    if(seg.type === 'tag'){ if(seg.start) el.innerHTML += seg.open; else { el.innerHTML += seg.content + seg.close; curSegment++; writeNext(); return; } curSegment++; writeNext(); }
+    else if(seg.type === 'br'){ el.innerHTML += '<br>'; curSegment++; writeNext(); }
+    else if(seg.type === 'text'){ if(charIdx < seg.chars.length){ el.innerHTML += seg.chars[charIdx]; charIdx++; setTimeout(writeNext, 60); } else { charIdx = 0; curSegment++; setTimeout(writeNext, 80); } }
+  }
+  setTimeout(writeNext, 300);
+})();
+
+// ── D3 LIVE CHART ──
+(function(){
+  const container = document.querySelector('#d3Chart svg'); if(!container) return;
+  const margin = {top:20,right:20,bottom:35,left:50};
+  const width = container.parentElement.clientWidth - 32, height = container.parentElement.clientHeight - 32;
+  container.innerHTML = '';
+  const svg = d3.select(container).attr('width',width).attr('height',height).append('g').attr('transform',`translate(${margin.left},${margin.top})`);
+  const innerW = width - margin.left - margin.right, innerH = height - margin.top - margin.bottom;
+  let data = [], price = 2000;
+  for(let i=0;i<80;i++){ const o=price,c=o+(Math.random()-.48)*20,h=Math.max(o,c)+Math.random()*8,l=Math.min(o,c)-Math.random()*8; data.push({i,open:o,close:c,high:h,low:l}); price=c; }
+  const xS = d3.scaleLinear().domain([0,data.length-1]).range([0,innerW]);
+  let yS = d3.scaleLinear().domain([d3.min(data,d=>d.low)-5,d3.max(data,d=>d.high)+5]).range([innerH,0]);
+  function draw(){
+    svg.selectAll('.g-line').remove(); svg.selectAll('.wick').remove(); svg.selectAll('.candle').remove(); svg.selectAll('.ma-line').remove(); svg.selectAll('.x-l').remove(); svg.selectAll('.y-l').remove();
+    yS.ticks(5).forEach(d=>{svg.append('line').attr('class','g-line').attr('x1',0).attr('x2',innerW).attr('y1',yS(d)).attr('y2',yS(d)).attr('stroke','rgba(255,255,255,.04)').attr('stroke-dasharray','3,3')});
+    data.forEach(d=>{const x=xS(d.i),w=Math.max(2,innerW/data.length*.6),up=d.close>=d.open,c=up?'#2ec4b6':'#e63946';svg.append('line').attr('class','wick').attr('x1',x).attr('x2',x).attr('y1',yS(d.high)).attr('y2',yS(d.low)).attr('stroke',c).attr('stroke-width',1).attr('opacity',.6);svg.append('rect').attr('class','candle').attr('x',x-w/2).attr('y',yS(Math.max(d.open,d.close))).attr('width',w).attr('height',Math.max(1,Math.abs(yS(d.open)-yS(d.close)))).attr('fill',c).attr('rx',1)});
+    const ma = data.map((d,i)=>{if(i<4)return null;let s=0;for(let j=i-4;j<=i;j++)s+=data[j].close;return{i,ma:s/5}}).filter(Boolean);
+    svg.append('path').attr('class','ma-line').attr('d',d3.line().x(d=>xS(d.i)).y(d=>yS(d.ma))(ma)).attr('fill','none').attr('stroke','var(--gold)').attr('stroke-width',1.5).attr('opacity',.5);
+    [0,Math.floor(data.length/2),data.length-1].forEach(d=>{svg.append('text').attr('class','x-l').attr('x',xS(d)).attr('y',innerH+20).attr('text-anchor','middle').attr('fill','rgba(255,255,255,.2)').attr('font-size','9').text(d+1)});
+    yS.ticks(5).forEach(d=>{svg.append('text').attr('class','y-l').attr('x',-8).attr('y',yS(d)).attr('text-anchor','end').attr('dominant-baseline','middle').attr('fill','rgba(255,255,255,.2)').attr('font-size','9').text(d.toFixed(0))});
+  }
+  draw();
+  setInterval(()=>{const l=data[data.length-1],o=l.close,c=o+(Math.random()-.48)*12;data.push({i:data.length,open:o,close:c,high:Math.max(o,c)+Math.random()*6,low:Math.min(o,c)-Math.random()*6});data.shift();data.forEach((d,i)=>d.i=i);yS.domain([d3.min(data,d=>d.low)-5,d3.max(data,d=>d.high)+5]);draw()},1500);
+})();
+
+// ── THREE.JS 3D EARTH GLOBE ──
+(function(){
+  const canvas = document.getElementById('threeCanvas'); if(!canvas) return;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(45,canvas.parentElement.clientWidth/canvas.parentElement.clientHeight,.1,1000);
+  camera.position.z = 5;
+  const renderer = new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setSize(canvas.parentElement.clientWidth,canvas.parentElement.clientHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  const loader = new THREE.TextureLoader();
+  loader.crossOrigin = 'anonymous';
+  const earthTex = loader.load('https://unpkg.com/three-globe@2.24.8/example/img/earth-blue-marble.jpg');
+  const earthMat = new THREE.MeshPhongMaterial({map:earthTex,transparent:true,opacity:.95});
+  const globe = new THREE.Mesh(new THREE.SphereGeometry(1.8,64,64),earthMat);
+  scene.add(globe);
+  const glowMat = new THREE.MeshPhongMaterial({color:0xd4af37,emissive:0xd4af37,emissiveIntensity:.08,transparent:true,opacity:.06,side:THREE.BackSide});
+  const glow = new THREE.Mesh(new THREE.SphereGeometry(1.95,48,48),glowMat);
+  scene.add(glow);
+  const wireRing = new THREE.Mesh(new THREE.SphereGeometry(1.88,24,24),new THREE.MeshBasicMaterial({color:0xd4af37,wireframe:true,transparent:true,opacity:.04}));
+  scene.add(wireRing);
+  const pts=[{lat:40.7,lon:-74},{lat:51.5,lon:-.1},{lat:25.2,lon:55.3},{lat:1.3,lon:103.8},{lat:35.7,lon:139.7},{lat:37.6,lon:-122.4}];
+  const lm=new THREE.LineBasicMaterial({color:0xd4af37,transparent:true,opacity:.12});
+  function l2v(lat,lon,r){const p=(90-lat)*Math.PI/180,t=(lon+180)*Math.PI/180;return new THREE.Vector3(-r*Math.sin(p)*Math.cos(t),r*Math.cos(p),r*Math.sin(p)*Math.sin(t))}
+  for(let i=0;i<pts.length;i++) for(let j=i+1;j<pts.length;j+=2){const c=new THREE.QuadraticBezierCurve3(l2v(pts[i].lat,pts[i].lon,1.82),l2v((pts[i].lat+pts[j].lat)/2,(pts[i].lon+pts[j].lon)/2,2.4),l2v(pts[j].lat,pts[j].lon,1.82));scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(c.getPoints(30)),lm))}
+  const mkGeo=new THREE.BufferGeometry(),mkPos=new Float32Array(pts.length*3);
+  pts.forEach((p,i)=>{const v=l2v(p.lat,p.lon,1.82);mkPos[i*3]=v.x;mkPos[i*3+1]=v.y;mkPos[i*3+2]=v.z});
+  mkGeo.setAttribute('position',new THREE.BufferAttribute(mkPos,3));
+  scene.add(new THREE.Points(mkGeo,new THREE.PointsMaterial({color:0xd4af37,size:.06,transparent:true,opacity:.8})));
+  const sg=new THREE.BufferGeometry(),sp=new Float32Array(900);for(let i=0;i<900;i++)sp[i]=(Math.random()-.5)*20;
+  sg.setAttribute('position',new THREE.BufferAttribute(sp,3));scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xd4af37,size:.015,transparent:true,opacity:.4})));
+  scene.add(new THREE.AmbientLight(0x222244,.6));
+  const dl=new THREE.DirectionalLight(0xffeebb,1.2);dl.position.set(5,5,5);scene.add(dl);
+  const dl2=new THREE.DirectionalLight(0x4466aa,.5);dl2.position.set(-5,-3,-5);scene.add(dl2);
+  if(!reduced){(function a(){globe.rotation.y+=.002;glow.rotation.y+=.002;wireRing.rotation.y+=.002;renderer.render(scene,camera);requestAnimationFrame(a)})()}
+  window.addEventListener('resize',()=>{const w=canvas.parentElement.clientWidth,h=canvas.parentElement.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)});
+})();
+
+// ── GSAP SCROLL ──
+(function(){
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  gsap.registerPlugin(ScrollTrigger);
+  ScrollTrigger.create({start:'top -80',onUpdate:self=>document.getElementById('navbar').classList.toggle('scrolled',self.progress>0)});
+  gsap.utils.toArray('.stat-card .num').forEach(el=>{const t=parseFloat(el.dataset.target),f=t%1!==0;ScrollTrigger.create({trigger:el.closest('.stats-grid'),start:'top 80%',onEnter:()=>{gsap.to(el,{duration:2,ease:'power3.out',onUpdate:function(){const v=t*this.progress();el.textContent=f?v.toFixed(f&&t<100?1:0):Math.floor(v)},onComplete:()=>el.textContent=t.toLocaleString()})},once:true})});
+  gsap.from('.feature-card',{scrollTrigger:{trigger:'#featureGrid',start:'top 80%',toggleActions:'play none none none'},y:40,opacity:0,duration:.6,stagger:.1,ease:'power2.out'});
+  gsap.from('.pricing-card',{scrollTrigger:{trigger:'#pricingGrid',start:'top 80%',toggleActions:'play none none none'},y:40,opacity:0,duration:.6,stagger:.12,ease:'power2.out'});
+  gsap.to('.three-overlay',{scrollTrigger:{trigger:'#threeD',start:'top bottom',end:'bottom top',scrub:1.5},opacity:.3});
+  gsap.from('.stats-wrap .stat-card',{scrollTrigger:{trigger:'.stats-wrap',start:'top 85%',toggleActions:'play none none none'},y:30,opacity:0,duration:.5,stagger:.08,ease:'power2.out'});
+  gsap.utils.toArray('.section-header').forEach(h=>{gsap.from(h,{scrollTrigger:{trigger:h,start:'top 85%',toggleActions:'play none none none'},y:30,opacity:0,duration:.6,ease:'power2.out'})});
+})();
+</script>
+</body>
+</html>
