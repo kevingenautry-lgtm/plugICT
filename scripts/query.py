@@ -271,6 +271,23 @@ def rerank(query, candidates, top_k=5):
         return candidates[:top_k]
 
 
+# ── Query Expansion (shortform → full term) ──
+def expand_query(query):
+    """Expand ICT shortforms to full terms before search."""
+    words = query.upper().split()
+    expanded = []
+    for w in words:
+        if w in ICT_SHORTFORMS:
+            full = ICT_SHORTFORMS[w].split(' — ')[0]
+            expanded.append(full)
+        else:
+            expanded.append(w)
+    result = ' '.join(expanded)
+    if result != query:
+        print(f"   Expanded: {query} → {result}")
+    return result
+
+
 # ── Vault Loading ──
 def load_license():
     if not LICENSE_FILE.exists():
@@ -474,8 +491,15 @@ def search(args):
     if not args.query:
         db.close(); return
     
+    query = ' '.join(args.query)
+    expanded = expand_query(query)
+    search_query = expanded
+    
     print(f"🔍 Searching: {query}")
-    if args.playlist: print(f"   Playlist: {args.playlist}")
+    if expanded != query:
+        print(f"   → Also searching: {expanded}")
+    if args.playlist:
+        print(f"   Playlist: {args.playlist}")
     if args.session: print(f"   Session: {args.session}")
     print(f"   Licensed to: {licensed_to}")
     print("=" * 60)
@@ -487,7 +511,7 @@ def search(args):
     # ── FTS5 ──
     try:
         sql = "SELECT title, video_id, start_ts, playlist, snippet(transcripts_fts, 5, '<b>', '</b>', '...', 60) FROM transcripts_fts WHERE content MATCH ?"
-        params = [query]
+        params = [search_query]
         if args.playlist:
             sql += " AND playlist = ?"
             params.append(args.playlist)
@@ -507,7 +531,7 @@ def search(args):
         client = chromadb.PersistentClient(path=chroma_dir, settings=Settings(anonymized_telemetry=False))
         collection = client.get_collection('ict_vault')
         where_filter = {'playlist': args.playlist} if args.playlist else None
-        vec_out = collection.query(query_texts=[query], n_results=top_k + 5, where=where_filter)
+        vec_out = collection.query(query_texts=[search_query], n_results=top_k + 5, where=where_filter)
         docs = vec_out.get('documents', [[]])[0]
         metas = vec_out.get('metadatas', [[]])[0]
         
