@@ -34,8 +34,8 @@ ICT_SHORTFORMS = {
     'MS': 'Market Structure — The overall trend and key swing points on a chart',
     'MSS': 'Market Structure Shift — Change from bullish to bearish (or vice versa)',
     'BMS': 'Break in Market Structure — Price breaks a key structural level',
-    'BOS': 'Break of Structure — Price breaking a key swing high/low (SMC term)',
-    'CHoCH': 'Change of Character — Confirmed shift in market structure',
+    'BOS': 'Break of Structure — Price breaking a key swing high/low (SMC term, not original ICT)',
+    'CHoCH': 'Change of Character — Confirmed shift in market structure (SMC term, not original ICT)',
     'HH': 'Higher High — Each successive peak is higher than the last (uptrend)',
     'HL': 'Higher Low — Each successive trough is higher than the last (uptrend)',
     'LH': 'Lower High — Each successive peak is lower than the last (downtrend)',
@@ -139,6 +139,7 @@ ICT_SHORTFORMS = {
     'PPI': 'Producer Price Index — Wholesale inflation gauge',
     'NFP': 'Non-Farm Payrolls — Monthly US employment report (high impact)',
     'FOMC': 'Federal Open Market Committee — US Fed rate decision (high impact)',
+    'COT': 'Commitment of Traders — Weekly report showing positions of commercial & retail traders',
     
     # Misc
     'SMT': 'Smart Money Technique / Synchronicity — Divergence between correlated assets',
