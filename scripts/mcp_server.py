@@ -33,7 +33,19 @@ _licensed_to = "unknown"
 def ensure_vault():
     global _db, _chroma_dir, _licensed_to
     if _db is None:
-        _db, _chroma_dir, _licensed_to = vc.open_vault()
+        # One-time decrypt (~10–30s). Report progress to stderr so the wait is
+        # never mistaken for a hang. stdout stays the JSON-RPC channel.
+        log("⏳ Warming up vault — unlocking 576 videos (one-time, ~10–30s)...")
+        milestone = [0]
+
+        def progress(done, total):
+            pct = done * 100 // max(total, 1)
+            if pct >= milestone[0] + 25:
+                milestone[0] = pct - (pct % 25)
+                log(f"   unlocking… {min(pct, 100)}%")
+
+        _db, _chroma_dir, _licensed_to = vc.open_vault(on_progress=progress)
+        log(f"✅ Vault ready — licensed to {_licensed_to}. Answering queries now.")
     return _db
 
 
@@ -258,12 +270,11 @@ async def main():
     log("ICT Knowledge Vault — MCP Server v" + SERVER_VERSION)
     log("=" * 50)
     try:
-        ensure_vault()
-        log(f"Vault loaded. Licensed to: {_licensed_to}")
+        ensure_vault()  # logs its own warm-up + ready messages
     except VaultError as e:
         log(f"WARNING: vault not loaded yet: {e}")
         log("Server will start; tools will report the problem until it's fixed.")
-    log("Waiting for AI agent connection (stdio)...")
+    log("Listening for your AI agent (stdio)...")
 
     async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
         await server.run(
