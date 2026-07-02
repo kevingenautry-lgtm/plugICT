@@ -86,7 +86,12 @@
          border:1px solid var(--accent-2); border-radius:20px; padding:34px; text-align:center;
          box-shadow:0 20px 60px -30px rgba(22,199,132,.5)}
   .price .tag{color:var(--accent); font-weight:700; font-size:13px; letter-spacing:.06em; text-transform:uppercase}
-  .price .amt{font-size:52px; font-weight:800; margin:8px 0 2px; letter-spacing:-.02em}
+  .price .was{display:flex; align-items:center; justify-content:center; gap:10px; margin-top:6px}
+  .price .strike{color:var(--faint); font-size:22px; font-weight:700; text-decoration:line-through;
+                 text-decoration-color:#e5484d; text-decoration-thickness:2px}
+  .price .save{background:#e5484d; color:#fff; font-weight:800; font-size:12px; letter-spacing:.03em;
+               padding:4px 10px; border-radius:999px}
+  .price .amt{font-size:56px; font-weight:800; margin:2px 0 2px; letter-spacing:-.02em}
   .price .amt small{font-size:16px; color:var(--muted); font-weight:600}
   .price ul{list-style:none; padding:0; margin:22px 0 26px; text-align:left}
   .price li{padding:8px 0 8px 30px; position:relative; color:var(--muted)}
@@ -266,7 +271,11 @@ $ vault <span class="g">"what's the difference between an order block and a brea
       your machine for life.</p>
     <div class="price">
       <div class="tag">Lifetime license</div>
-      <div class="amt">$<span data-price>149</span> <small>one-time</small></div>
+      <div class="was">
+        <span class="strike">$100</span>
+        <span class="save">76% OFF</span>
+      </div>
+      <div class="amt">$<span data-price>23.99</span> <small>one-time</small></div>
       <ul>
         <li>All 576 transcribed videos, fully searchable</li>
         <li>Command-line search + AI-agent (MCP) integration</li>
@@ -275,8 +284,8 @@ $ vault <span class="g">"what's the difference between an order block and a brea
         <li>First access to the hosted cloud connector</li>
       </ul>
       <!-- TODO: replace href with your Billplz / Stripe checkout link -->
-      <a class="btn" href="#" data-buy-link>Get lifetime access</a>
-      <p class="fine" style="margin-top:14px">Secure checkout · License emailed to you</p>
+      <a class="btn" href="#" data-buy-link>Get it for $23.99</a>
+      <p class="fine" style="margin-top:14px">🔥 Launch price · Pay once, no subscription · License emailed to you</p>
       <div class="chips" style="margin-top:14px">
         <span class="chip">DuitNow QR</span>
         <span class="chip">FPX</span>
