@@ -28,7 +28,65 @@ def _cleanup_temp():
 
 atexit.register(_cleanup_temp)
 
-# ── Session keywords ──
+# ── ICT Shortform Glossary ──
+ICT_SHORTFORMS = {
+    'FVG': 'Fair Value Gap — 3-candle imbalance pattern created by aggressive price movement',
+    'IFVG': 'Inverse Fair Value Gap — FVG in the opposite direction, used for reversal entries',
+    'OB': 'Order Block — A consolidation zone where institutional orders sit (5,283x mentions)',
+    'OTE': 'Optimal Trade Entry — Entry zone at 61.8-79% retracement of a move',
+    'CE': 'Consequent Encroachment — 50% retracement level of an FVG or imbalance',
+    'EQ': 'Equilibrium — Midpoint of a range, often used as target or entry',
+    'SMT': 'Smart Money Technique / Synchronicity — Divergence between correlated assets',
+    'MSS': 'Market Structure Shift — Change from bullish to bearish (or vice versa)',
+    'BOS': 'Break of Structure — Price breaking a key swing high/low',
+    'CHoCH': 'Change of Character — Confirmed shift in market structure',
+    'PD Array': 'Price Delivery Array — Set of levels where price is expected to react',
+    'FTA': 'Fair Value Gap + Time Alignment — FVG aligned with specific session time',
+    'NDOG': 'New Day Opening Gap — Gap between previous day close and current day open',
+    'NWOG': 'New Week Opening Gap — Gap between previous week close and current week open',
+    'PO3': 'Power of 3 — Accumulation, Manipulation, Distribution cycle',
+    'AMD': 'Accumulation, Manipulation, Distribution — The three-phase market cycle',
+    'CISD': 'Change In State of Delivery — Shift in how price is being delivered',
+    'IPDA': 'Interbank Price Delivery Algorithm — ICT\'s model of how price moves',
+    'BPR': 'Balanced Price Range — Range where buy/sell orders are balanced',
+    'MMSM': 'Market Maker Sell Model — Sell-side liquidity model',
+    'MMBM': 'Market Maker Buy Model — Buy-side liquidity model',
+    'SMC': 'Smart Money Concepts — Trading framework taught by ICT',
+    'RTH': 'Regular Trading Hours — Standard market trading session (e.g. 9:30am-4pm)',
+    'ETH': 'Electronic Trading Hours — Extended hours session (e.g. futures overnight)',
+    'H4': '4-hour timeframe',
+    'H1': '1-hour timeframe',
+    'M15': '15-minute timeframe',
+    'M5': '5-minute timeframe',
+    'YY': 'Yearly (usually referring to ICT Mentorship year, e.g. YY 2022)',
+}
+
+def show_glossary(term=None):
+    """Display ICT shortform glossary."""
+    if term:
+        term = term.upper().strip()
+        if term in ICT_SHORTFORMS:
+            print(f"{'=' * 60}")
+            print(f"📘 {term}")
+            print(f"{'=' * 60}")
+            print(f"  {ICT_SHORTFORMS[term]}")
+            # Find related terms
+            related = [k for k in ICT_SHORTFORMS if k != term and k not in ('H1','H4','M5','M15','RTH','ETH')][:5]
+            print()
+            print("  Related terms:")
+            for r in related[:5]:
+                print(f"    {r} — {ICT_SHORTFORMS[r][:60]}...")
+            print()
+        else:
+            print(f"'{term}' not found in glossary. Try: python query.py --glossary")
+    else:
+        print(f"{'=' * 60}")
+        print("ICT SHORTFORM GLOSSARY")
+        print(f"{'=' * 60}")
+        for key in sorted(ICT_SHORTFORMS.keys()):
+            val = ICT_SHORTFORMS[key]
+            print(f"  {key:<8} = {val}")
+        print()
 SESSION_KEYWORDS = {
     'london': ['london', 'london open', 'london session', 'london killzone'],
     'ny': ['new york', 'ny session', 'ny open', 'ny killzone', 'am session'],
@@ -418,7 +476,12 @@ if __name__ == '__main__':
     parser.add_argument('--keyword-only', '-k', action='store_true', help='Keyword only')
     parser.add_argument('--stats', action='store_true', help='Show stats')
     parser.add_argument('--playlists', action='store_true', help='List playlists')
-    parser.add_argument('--sessions', action='store_true', help='List sessions')
+    parser.add_argument('--sessions', action='store_true', help='List all sessions')
+    parser.add_argument('--glossary', '-g', nargs='?', const='all', default=None, help='Show ICT shortform glossary')
     
     args = parser.parse_args()
+    
+    if args.glossary:
+        term = None if args.glossary == 'all' else args.glossary
+        show_glossary(term)
     search(args)
