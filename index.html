@@ -35,7 +35,7 @@ window.PLUGICT = {
   stripeUrl: '',           // Stripe Payment Link — international cards
 
   /* Manual methods (you confirm payment, then run store/issue_license.py) */
-  duitnowQrImg: '',        // path to your DuitNow QR image, e.g. 'landing/assets/duitnow-qr.png'
+  duitnowQrImg: '',        // path to your DuitNow QR image, e.g. 'assets/duitnow-qr.png'
   usdtSol: '',             // your USDT address (Solana)
   usdtTrc20: '',           // your USDT address (TRC20)
 
@@ -79,7 +79,7 @@ window.PLUGICT = {
       background:rgba(244,239,228,.85); border-bottom:1px solid var(--line)}
   nav .wrap{display:flex; align-items:center; justify-content:space-between; height:76px}
   .brand{display:flex; align-items:center; gap:10px; font:500 20px var(--serif); font-style:italic; letter-spacing:-.01em}
-  .brand .mark{width:13px;height:13px;background:var(--terracotta);border-radius:3px;flex-shrink:0}
+  .brand .mark{width:21px;height:21px;flex-shrink:0;color:var(--terracotta)}
   .navlinks{display:flex; gap:28px; align-items:center; font-size:14px}
   .navlinks a{color:var(--ink-soft); text-decoration:none; transition:color .2s}
   .navlinks a:hover{color:var(--ink)}
@@ -318,7 +318,7 @@ window.PLUGICT = {
 
 <nav aria-label="Main">
   <div class="wrap">
-    <div class="brand"><span class="mark"></span> PlugICT</div>
+    <div class="brand"><svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2v5"/><path d="M15 2v5"/><path d="M7 7h10v4a5 5 0 0 1-10 0V7z"/><path d="M12 16v3a3 3 0 0 1-3 3"/></svg> PlugICT</div>
     <div class="navlinks">
       <a href="#capabilities">What it does</a>
       <a href="#setup">Setup</a>
@@ -362,7 +362,7 @@ window.PLUGICT = {
 
 <!-- ═══ STATS ═══ -->
 <div class="stats fadeup">
-  <span><b><span data-count="576">0</span>+</b> VIDEOS</span>
+  <span><b><span data-count="576">0</span></b> VIDEOS</span>
   <span><b><span data-count="100">0</span>+</b> CONCEPTS</span>
   <span><b>~3s</b> TO AN ANSWER</span>
   <span><b>100%</b> LOCAL</span>
@@ -374,7 +374,7 @@ window.PLUGICT = {
   <div class="inner">
     <div class="eyebrow fadeup">The problem</div>
     <h2 class="fadeup" data-delay=".05">Hundreds of hours of knowledge. <em>Zero ways to search it.</em></h2>
-    <p class="sub fadeup" data-delay=".1">The exact lesson you need is buried in years of long videos. Scrubbing timelines kills momentum — and generic AI models guess, because they never watched them.</p>
+    <p class="sub fadeup" data-delay=".1">The exact lesson you need is buried in nearly a decade of long videos. Scrubbing timelines kills momentum — and generic AI models guess, because they never watched them.</p>
 
     <div class="story">
       <div class="panel chaos fadeup">
@@ -431,11 +431,11 @@ window.PLUGICT = {
 
       <div class="cap-row fadeup">
         <div class="cap-num">3.</div>
-        <div class="cap-text"><h3>Connect in one line.</h3><p>Paste one config line into Claude Desktop, Cursor or Hermes — your agent discovers the vault's tools.</p></div>
-        <div class="cap-visual cv-code">
-          <div>{ <span class="k">"ict-vault"</span>: {</div>
-          <div style="padding-left:16px"><span class="v">"command"</span>: <span class="v">"ict-vault-mcp"</span></div>
-          <div>}}</div>
+        <div class="cap-text"><h3>Plug in your AI agent.</h3><p>Download, add one config to Claude Desktop, Cursor or Hermes — done. No code needed.</p></div>
+        <div class="cap-visual cv-badges">
+          <span>1 · open settings</span>
+          <span>2 · paste config</span>
+          <span class="on">✓ connected</span>
         </div>
       </div>
 
@@ -459,22 +459,22 @@ window.PLUGICT = {
 
       <div class="cap-row fadeup">
         <div class="cap-num">5.</div>
-        <div class="cap-text"><h3>Keep it private.</h3><p>The encrypted vault runs on your machine. No cloud, no API key, no per-query fees. Ever.</p></div>
+        <div class="cap-text"><h3>Keep it private.</h3><p>The encrypted vault runs on your machine. No cloud, no per-query fees from us — you just use your own AI agent's key (free options exist).</p></div>
         <div class="cap-visual cv-badges">
           <span>runs on your machine</span>
           <span>no cloud</span>
           <span class="on">encrypted</span>
-          <span>no API key</span>
+          <span>zero vault fees</span>
         </div>
       </div>
 
       <div class="cap-row fadeup">
         <div class="cap-num">6.</div>
-        <div class="cap-text"><h3>Own it outright.</h3><p>Lifetime access — one payment.</p></div>
+        <div class="cap-text"><h3>Own it outright.</h3><p>One payment, a license tied to you. Lifetime access — it always works.</p></div>
         <div class="cap-visual cv-license">
           <div class="lbl">LICENSE.KEY</div>
           <div class="price">$23.99 · one-time</div>
-          <div class="note">one-time payment</div>
+          <div class="note">lifetime access · always works</div>
         </div>
       </div>
 
@@ -490,16 +490,17 @@ window.PLUGICT = {
       <div class="move-card fadeup">
         <div class="num">01</div>
         <h3>Unlock the vault</h3>
-        <p>Download, drop in your license key, run one setup file.</p>
-        <div class="move-cmd">
-          <span>$ python setup.py</span>
-          <button class="copy-btn" type="button" data-cmd="python setup.py">copy</button>
+        <p>Download the vault, drop in your license key, double-click the setup file. That's it.</p>
+        <div class="move-chips">
+          <span>⬇ download</span>
+          <span>🔑 license.key</span>
+          <span>▶ double-click setup</span>
         </div>
       </div>
       <div class="move-card fadeup" data-delay=".08">
         <div class="num">02</div>
         <h3>Connect your agent</h3>
-        <p>Paste the config into Claude Desktop, Cursor or Hermes.</p>
+        <p>Open your AI agent's settings and paste the PlugICT config — copy-paste, no code.</p>
         <div class="move-cmd">
           <span>"ict-vault": { "command": … }</span>
           <button class="copy-btn" type="button" data-cmd='"ict-vault": { "command": "ict-vault-mcp" }'>copy</button>
@@ -526,7 +527,7 @@ window.PLUGICT = {
     <div class="fadeup">
       <div class="eyebrow">Pricing</div>
       <h2 style="margin-top:20px">Own it <em>forever.</em></h2>
-      <p class="sub" style="margin-left:0">No subscription. One license tied to you, that unlocks the vault on your machine for life.</p>
+      <p class="sub" style="margin-left:0">No subscription. One license, tied to you, that unlocks the vault on your machine for life.</p>
       <div class="price-feats">
         <div><span class="tick">✓</span>&nbsp; 576 videos, fully searchable</div>
         <div><span class="tick">✓</span>&nbsp; Knowledge graph + reranker</div>
@@ -534,6 +535,7 @@ window.PLUGICT = {
         <div><span class="tick">✓</span>&nbsp; Runs locally — private by design</div>
         <div><span class="tick">✓</span>&nbsp; Lifetime access — one payment</div>
       </div>
+      <p style="margin-top:18px;font-size:13px;line-height:1.6;color:var(--ink-mut);max-width:400px">The vault has zero ongoing fees. Your AI agent brings its own key — free Google Gemini (1,500 queries/day) or ~$2/month DeepSeek both work.</p>
     </div>
     <div class="price-card fadeup" data-delay=".1">
       <div class="tag">LIFETIME LICENSE · LAUNCH PRICING</div>
@@ -560,13 +562,15 @@ window.PLUGICT = {
     <h2 class="fadeup">Questions, <em>answered.</em></h2>
     <div class="faq">
       <details class="fadeup"><summary>Do I need to be technical to set this up? <span class="chev">+</span></summary>
-        <div class="faq-body"><div><p>No. One setup file does everything, then you paste a small config into your AI agent. A built-in <code>--doctor</code> command tells you exactly what to fix, in plain English.</p></div></div></details>
+        <div class="faq-body"><div><p>No. You download, drop in your license key, and double-click the setup file — it handles everything. Then you paste one small config into your AI agent (copy-paste, no code). If anything's off, a built-in doctor check tells you exactly what to fix, in plain English.</p></div></div></details>
       <details class="fadeup"><summary>Does it work without internet? <span class="chev">+</span></summary>
-        <div class="faq-body"><div><p>Searching never calls a cloud API. Your first search downloads two small models once; after that the vault is fully offline. (Your AI agent, like Claude Desktop, uses its own internet connection as normal.)</p></div></div></details>
+        <div class="faq-body"><div><p>The vault's search runs locally on your machine — it never sends your queries to a cloud. But your AI agent and the YouTube links do need internet. Think of it like this: the library is on your shelf, but you need wifi to ask the librarian.</p></div></div></details>
       <details class="fadeup"><summary>Can I use it with ChatGPT or Claude on the web? <span class="chev">+</span></summary>
-        <div class="faq-body"><div><p>Today it connects to local MCP agents — Claude Desktop, Cursor, Hermes. A hosted connector for web AIs is on the roadmap; lifetime buyers get first access.</p></div></div></details>
+        <div class="faq-body"><div><p>It works today with Claude Desktop (free download), Cursor (free) and Hermes Agent (free) — any local MCP agent. Web-based ChatGPT and Claude don't support MCP yet; a hosted connector for web AIs is on the roadmap.</p></div></div></details>
       <details class="fadeup"><summary>What exactly do I download? <span class="chev">+</span></summary>
-        <div class="faq-body"><div><p>An encrypted knowledge vault, a setup file, and your license key — no app, no installer. Your personal <code>license.key</code> (emailed to you) unlocks it. The license is tied to you and traceable, so please don't share it.</p></div></div></details>
+        <div class="faq-body"><div><p>Three things: an encrypted knowledge vault file, a setup file that handles everything automatically, and your personal <code>license.key</code> (emailed to you). No app, no installer, no bloat. The license is tied to you and traceable, so please don't share it.</p></div></div></details>
+      <details class="fadeup"><summary>Do I need to pay for anything else? <span class="chev">+</span></summary>
+        <div class="faq-body"><div><p>The vault is one-time $23.99 with zero ongoing fees. Your AI agent needs its own API key — free options include Google Gemini (1,500 queries/day free), and DeepSeek runs about $2/month. Claude Desktop's free plan works too.</p></div></div></details>
       <details class="fadeup"><summary>How can I pay? <span class="chev">+</span></summary>
         <div class="faq-body"><div><p>DuitNow QR and FPX online banking for Malaysia, international cards via Stripe, or USDT (Solana / TRC20) for crypto. However you pay, your license is emailed to you and the product works exactly the same.</p></div></div></details>
       <details class="fadeup"><summary>What are the system requirements? <span class="chev">+</span></summary>
@@ -583,7 +587,7 @@ window.PLUGICT = {
     <div class="fadeup" data-delay=".16" style="margin-top:34px">
       <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access — $23.99</a>
     </div>
-    <div class="fine fadeup" data-delay=".22">ONE-TIME · NO SUBSCRIPTION · NO API FEES</div>
+    <div class="fine fadeup" data-delay=".22">ONE-TIME · NO SUBSCRIPTION · NO ONGOING FEES</div>
 
     <div class="capture fadeup" data-delay=".28">
       <div class="cap-lbl">NOT READY YET? GET LAUNCH UPDATES</div>
@@ -600,7 +604,7 @@ window.PLUGICT = {
 
 <footer>
   <div class="wrap">
-    <div class="brand"><span class="mark"></span> PlugICT</div>
+    <div class="brand"><svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2v5"/><path d="M15 2v5"/><path d="M7 7h10v4a5 5 0 0 1-10 0V7z"/><path d="M12 16v3a3 3 0 0 1-3 3"/></svg> PlugICT</div>
     <div class="disc">
       Educational research tool. PlugICT is an independent product and is <b>not affiliated with, endorsed by, or
       sponsored by</b> The Inner Circle Trader or Michael J. Huddleston. All trademarks belong to their respective owners.

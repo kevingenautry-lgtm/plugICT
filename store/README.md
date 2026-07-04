@@ -29,9 +29,8 @@ thing you generate per sale is a tiny text file.
    S3, Bunny, even a GitHub Release asset). Put that URL in:
    - `landing/getting-started.html` (the `data-download` link)
    - `store/issue_license.py` via `ICT_VAULT_DOWNLOAD_URL`
-4. **Pick a payment processor** (see below) and point its buy button /
-   product at your Gumroad/Lemon Squeezy/Stripe checkout. Update
-   `landing/index.html` `data-buy-link`.
+4. **Pick a payment processor** (see below) and paste its checkout URL into
+   the `window.PLUGICT` config block at the top of `index.html`.
 
 ## Issuing licenses
 
@@ -107,7 +106,8 @@ the purchase event.
 
 ## Wiring the landing page (frontend half)
 
-The landing page (`index.html` / `landing/index.html`) has a payment-method
+The landing page (`index.html` — the only copy; `landing/index.html` is just
+a redirect stub) has a payment-method
 modal wired to every **Get Lifetime Access** button. All of its knobs live in
 one `window.PLUGICT` config block at the top of the file — fill in what you
 have; anything left empty degrades gracefully:
