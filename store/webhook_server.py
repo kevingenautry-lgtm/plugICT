@@ -29,6 +29,7 @@ Security notes are in store/README.md — verify signatures, never expose
 import os
 import sys
 import json
+import time
 import hmac
 import hashlib
 from pathlib import Path
@@ -91,6 +92,54 @@ def verify_billplz(secret, payload):
     return hmac.compare_digest(expected, str(payload.get("x_signature", "")))
 
 
+def _sig_pairs(header_sig):
+    """Yield (key, value) pairs from a 't=..,v1=..,v1=..' signature header.
+
+    A bare hex string (no '=', as LemonSqueezy/Gumroad send) yields a single
+    ('v1', hex) pair so those providers flow through the same parser.
+    """
+    if "=" not in header_sig:
+        yield "v1", header_sig
+        return
+    for part in header_sig.split(","):
+        if "=" in part:
+            k, v = part.split("=", 1)
+            yield k.strip(), v.strip()
+
+
+def verify_stripe(secret, raw_body, header_sig, tolerance=0):
+    """Verify a Stripe webhook signature.
+
+    Stripe signs `HMAC-SHA256(secret, f"{t}.{body}")` and sends
+    `Stripe-Signature: t=<unix>,v1=<hexdigest>[,v1=<older>]`. The signed payload
+    is the timestamp, a literal dot, then the raw body — reconstructing that is
+    the fix: the previous code hashed the body alone, so every real Stripe
+    webhook failed verification (401) once WEBHOOK_SECRET was set.
+
+    `tolerance` (seconds) optionally rejects timestamps too far from now to blunt
+    replay attacks; 0 disables it. Idempotency on order_id is the real replay
+    guard, so this defaults off to avoid clock-skew false rejects on a fresh host.
+    A header may carry several v1 values during secret rotation — any match wins.
+    """
+    if not secret:
+        return True  # dev mode; configure WEBHOOK_SECRET in production
+    if not header_sig:
+        return False
+    pairs = list(_sig_pairs(header_sig))
+    t = next((v for k, v in pairs if k == "t"), None)
+    if not t:
+        return False
+    if tolerance:
+        try:
+            if abs(time.time() - int(t)) > tolerance:
+                return False
+        except (TypeError, ValueError):
+            return False
+    signed = t.encode() + b"." + raw_body
+    expected = hmac.new(secret.encode(), signed, hashlib.sha256).hexdigest()
+    return any(hmac.compare_digest(expected, v) for k, v in pairs if k == "v1")
+
+
 def verify_signature(provider, secret, raw_body, header_sig):
     """Best-effort HMAC check. Returns True if valid or if no secret configured."""
     if not secret:
@@ -98,14 +147,13 @@ def verify_signature(provider, secret, raw_body, header_sig):
     if not header_sig:
         return False
     provider = (provider or "").lower()
-    if provider in ("lemonsqueezy", "stripe", "gumroad"):
+    if provider == "stripe":
+        tol = int(os.environ.get("STRIPE_SIG_TOLERANCE", "0") or 0)
+        return verify_stripe(secret, raw_body, header_sig, tolerance=tol)
+    if provider in ("lemonsqueezy", "gumroad"):
+        # These sign the raw body directly; header is a bare hex HMAC.
         digest = hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
-        # Stripe uses a t=..,v1=.. scheme; this compares the raw hex for LS/Gumroad
-        # and the v1 component for Stripe if present.
-        candidate = header_sig
-        if "v1=" in header_sig:
-            candidate = dict(p.split("=", 1) for p in header_sig.split(",") if "=" in p).get("v1", "")
-        return hmac.compare_digest(digest, candidate)
+        return hmac.compare_digest(digest, header_sig)
     return False
 
 
@@ -143,6 +191,12 @@ def _build_app():
         email, order_id = parse_event(provider, payload)
         if not email:
             return {"status": "ignored"}  # not a fulfilable sale
+
+        # Idempotency: processors re-deliver events on any non-2xx / timeout.
+        # If we've already fulfilled this order, ack with 200 (so the processor
+        # stops retrying) but don't mint a second license or re-email the buyer.
+        if order_id and issue_license.find_issued(order_id):
+            return {"status": "duplicate", "order_id": order_id}
 
         issue_license.issue(email, order_id, email_it=True, method=provider.lower())
         return {"status": "issued", "email": email}

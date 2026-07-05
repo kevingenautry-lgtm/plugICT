@@ -73,3 +73,56 @@ def test_signature_valid_hmac():
     good = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
     assert wh.verify_signature("lemonsqueezy", secret, body, good) is True
     assert wh.verify_signature("lemonsqueezy", secret, body, "deadbeef") is False
+
+
+def _stripe_header(secret, body, t):
+    """Build a real Stripe-Signature header: HMAC over 't.body', not body alone."""
+    signed = f"{t}.".encode() + body
+    v1 = hmac.new(secret.encode(), signed, hashlib.sha256).hexdigest()
+    return f"t={t},v1={v1}"
+
+
+def test_stripe_signature_roundtrip():
+    body = b'{"type":"checkout.session.completed"}'
+    secret = "whsec_test"
+    header = _stripe_header(secret, body, 1700000000)
+    assert wh.verify_signature("stripe", secret, body, header) is True
+
+
+def test_stripe_signature_rejects_body_only_hmac():
+    # Regression: the old code hashed the body alone (no 't.' prefix). That
+    # digest must now be rejected — it's exactly what broke real Stripe webhooks.
+    body = b'{"type":"checkout.session.completed"}'
+    secret = "whsec_test"
+    body_only = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+    header = f"t=1700000000,v1={body_only}"
+    assert wh.verify_signature("stripe", secret, body, header) is False
+
+
+def test_stripe_signature_tampered_body_fails():
+    secret = "whsec_test"
+    header = _stripe_header(secret, b'{"amount":1899}', 1700000000)
+    assert wh.verify_stripe(secret, b'{"amount":1}', header) is False
+
+
+def test_stripe_signature_multiple_v1_rotation():
+    # During secret rotation Stripe sends more than one v1; any valid one passes.
+    body = b'{"ok":1}'
+    secret = "whsec_new"
+    good = wh._sig_pairs(_stripe_header(secret, body, 1700000000))
+    v1 = [v for k, v in good if k == "v1"][0]
+    header = f"t=1700000000,v1=deadbeef,v1={v1}"
+    assert wh.verify_stripe(secret, body, header) is True
+
+
+def test_stripe_signature_tolerance_rejects_old_timestamp():
+    body = b'{"ok":1}'
+    secret = "whsec_test"
+    header = _stripe_header(secret, body, 1000000000)  # year 2001, very old
+    assert wh.verify_stripe(secret, body, header, tolerance=300) is False
+    # With tolerance off (default) the same old-but-valid signature passes.
+    assert wh.verify_stripe(secret, body, header, tolerance=0) is True
+
+
+def test_stripe_signature_missing_timestamp_fails():
+    assert wh.verify_stripe("whsec_test", b"{}", "v1=abc") is False

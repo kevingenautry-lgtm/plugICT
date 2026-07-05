@@ -56,6 +56,30 @@ def test_issued_license_unlocks_vault(tmp_path, monkeypatch):
     assert "buyer@example.com" in ledger and "ORDER-42" in ledger
 
 
+def test_find_issued_is_idempotency_key(tmp_path, monkeypatch):
+    """find_issued() must recognise an order_id already in the ledger, so the
+    webhook can skip a duplicate delivery instead of re-issuing + re-emailing."""
+    src = tmp_path / "seller"
+    src.mkdir()
+    _seed_source(src)
+    monkeypatch.setattr(issue_license, "SOURCE_DIR", src)
+    monkeypatch.setattr(issue_license, "ISSUED_DIR", tmp_path / "issued")
+    monkeypatch.setattr(issue_license, "LEDGER", tmp_path / "ledger.csv")
+
+    # Nothing issued yet, and an empty/missing ledger is fine.
+    assert issue_license.find_issued("cs_test_123") is None
+
+    issue_license.issue("buyer@example.com", "cs_test_123", method="stripe")
+
+    row = issue_license.find_issued("cs_test_123")
+    assert row is not None and row["email"] == "buyer@example.com"
+    assert row["method"] == "stripe"
+    # A different order is still unseen; a falsy order_id never matches.
+    assert issue_license.find_issued("cs_other") is None
+    assert issue_license.find_issued("") is None
+    assert issue_license.find_issued(None) is None
+
+
 def test_two_buyers_get_distinct_licenses(tmp_path, monkeypatch):
     src = tmp_path / "seller"
     src.mkdir()

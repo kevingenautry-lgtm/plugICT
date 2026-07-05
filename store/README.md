@@ -69,6 +69,25 @@ Point your processor's webhook at `https://your-host/webhook/<provider>` where
 `<provider>` is `gumroad`, `lemonsqueezy`, or `stripe`. The parser understands
 each payload shape and ignores refunds / non-purchase events.
 
+**Signatures & retries (important before you go live):**
+
+- **`WEBHOOK_SECRET` must be set in production.** With no secret the server
+  runs in *dev mode* and accepts every request — convenient for local testing,
+  fatal on a public URL (anyone could forge a sale and mint a free license).
+  Note this means a signature bug can hide during a secret-less test and only
+  surface once you set the secret — so **run your test buy with the secret set.**
+- **Stripe** signs `HMAC-SHA256(secret, "<timestamp>.<body>")` and sends it as
+  `Stripe-Signature: t=…,v1=…`. Use the **signing secret** from the webhook
+  endpoint (`whsec_…`), not your API key.
+- **Replay window:** set `STRIPE_SIG_TOLERANCE=300` (seconds) to reject Stripe
+  events whose timestamp is too old. Off by default so a fresh host with clock
+  skew doesn't reject real webhooks; idempotency (below) is the primary guard.
+- **Idempotency is automatic.** Processors re-deliver an event on any non-2xx
+  response or timeout. The handler looks up the order/session id in
+  `issued_licenses.csv` first and, if already fulfilled, returns
+  `{"status":"duplicate"}` with 200 — no second license, no second email. Keep
+  the ledger intact for this to work.
+
 ## Payment methods (Malaysia-first)
 
 Four methods, split by how the license gets issued:

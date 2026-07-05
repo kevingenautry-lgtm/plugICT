@@ -69,6 +69,29 @@ def issue(email, order_id, email_it=False, method="manual"):
     return dest
 
 
+def find_issued(order_id):
+    """Return the ledger row (dict) for an already-fulfilled order_id, or None.
+
+    The webhook uses this to stay idempotent: payment processors (Stripe in
+    particular) re-deliver an event on any non-2xx response or timeout, and a
+    naive handler would mint a second license and email the buyer twice. Keyed
+    on the processor's own order/session id, which is stable across retries.
+
+    Note: this is a read-before-write check, not a lock. On a single webhook
+    instance with retries seconds apart that's sufficient; it is not safe
+    against two genuinely concurrent deliveries of the same event (worst case:
+    one duplicate email — acceptable at this volume, not worth a file lock).
+    """
+    if not order_id or not LEDGER.exists():
+        return None
+    key = str(order_id).strip()
+    with open(LEDGER, newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            if (row.get("order_id") or "").strip() == key:
+                return row
+    return None
+
+
 def _log(email, order_id, license_id, filename, method):
     new = not LEDGER.exists()
     with open(LEDGER, "a", newline="", encoding="utf-8") as f:
