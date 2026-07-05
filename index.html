@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0D0B08">
 <title>PlugICT — Ten Years of ICT Lessons. One Instant Answer.</title>
 <meta name="description" content="576 ICT videos transcribed, indexed and searchable by your own AI agent via MCP. Verified answers with exact video sources and timestamps. Lifetime license, runs locally.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -52,11 +53,12 @@ window.PLUGICT = {
 </script>
 <style>
   :root{
-    --paper:#F4EFE4; --paper-alt:#ECE5D4; --card:#FBF8F0;
-    --dark:#171410; --dark-line:rgba(244,239,228,.1);
-    --ink:#1B1811; --ink-soft:#57503F; --ink-mut:#8A8171;
-    --line:rgba(27,24,17,.14); --line-soft:rgba(27,24,17,.1);
-    --terracotta:#BC4B22; --terracotta-bright:#E06A3B; --terracotta-deep:#8C5A14;
+    --paper:#0D0B08; --paper-alt:#12100C; --card:#17130E;
+    --dark:#0A0806; --dark-line:rgba(244,239,228,.1);
+    --ink:#F2EAD9; --ink-soft:#B8AC96; --ink-mut:#8F8470;
+    --line:rgba(242,234,217,.13); --line-soft:rgba(242,234,217,.08);
+    --terracotta:#E8622C; --terracotta-bright:#FF8A4A; --terracotta-deep:#B9440F;
+    --ember-glow:rgba(232,98,44,.35);
     --maxw:1180px;
     --serif:'Newsreader',Georgia,serif;
     --sans:'Instrument Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -64,19 +66,20 @@ window.PLUGICT = {
   }
   *{box-sizing:border-box; margin:0}
   html{scroll-behavior:smooth}
+  html{overflow-x:clip}
   body{
     background:var(--paper); color:var(--ink);
     font:400 17px/1.65 var(--sans);
-    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+    -webkit-font-smoothing:antialiased; overflow-x:clip;
   }
   a{color:inherit}
-  ::selection{background:rgba(188,75,34,.2)}
+  ::selection{background:rgba(232,98,44,.3)}
   .wrap{max-width:var(--maxw); margin:0 auto; padding:0 28px}
   em{font-style:italic; color:var(--terracotta)}
 
   /* ── nav ────────────────────────────────────────────────── */
   nav{position:sticky; top:0; z-index:20; backdrop-filter:blur(10px);
-      background:rgba(244,239,228,.85); border-bottom:1px solid var(--line)}
+      background:rgba(13,11,8,.82); border-bottom:1px solid var(--line-soft)}
   nav .wrap{display:flex; align-items:center; justify-content:space-between; height:76px}
   .brand{display:flex; align-items:center; gap:10px; font:500 20px var(--serif); font-style:italic; letter-spacing:-.01em}
   .brand .mark{width:21px;height:21px;flex-shrink:0;color:var(--terracotta)}
@@ -86,17 +89,21 @@ window.PLUGICT = {
   .btn{display:inline-flex; align-items:center; gap:9px; text-decoration:none; cursor:pointer;
     font:500 15.5px var(--sans); padding:16px 30px; border-radius:999px; border:none;
     transition:transform .15s ease, background .2s;}
-  .btn.primary{background:var(--ink); color:var(--paper)}
-  .btn.primary:hover{transform:translateY(-2px)}
+  .btn.primary{background:linear-gradient(180deg,var(--terracotta-bright),var(--terracotta)); color:#fff;
+    box-shadow:0 8px 28px -10px var(--ember-glow), inset 0 1px 0 rgba(255,255,255,.18)}
+  .btn.primary:hover{transform:translateY(-2px); box-shadow:0 14px 36px -10px var(--ember-glow), inset 0 1px 0 rgba(255,255,255,.18)}
   .btn.small{padding:10px 22px; font-size:13.5px; font-weight:500}
   .btn:focus-visible{outline:2px solid var(--terracotta); outline-offset:3px}
   .link-arrow{font:500 12.5px var(--mono); letter-spacing:.08em; color:var(--ink); text-decoration:none;
-    border-bottom:1px solid rgba(27,24,17,.4); padding-bottom:3px; transition:color .2s}
+    border-bottom:1px solid rgba(242,234,217,.35); padding-bottom:3px; transition:color .2s}
   .link-arrow:hover{color:var(--terracotta)}
   @media(max-width:760px){ .navlinks a:not(.btn){display:none} }
 
   /* ── hero ───────────────────────────────────────────────── */
-  .hero .wrap{display:grid; grid-template-columns:1.05fr .95fr; gap:52px; align-items:center; padding:80px 28px 72px}
+  .hero{position:relative; overflow:hidden}
+  .hero::before{content:""; position:absolute; top:-30%; right:-15%; width:70%; height:130%; pointer-events:none;
+    background:radial-gradient(50% 50% at 60% 40%, rgba(232,98,44,.16), transparent 70%)}
+  .hero .wrap{display:grid; grid-template-columns:1.05fr .95fr; gap:52px; align-items:center; padding:80px 28px 72px; position:relative}
   @media(max-width:900px){ .hero .wrap{grid-template-columns:1fr} }
   .eyebrow{font:500 11.5px var(--mono); letter-spacing:.18em; color:var(--terracotta); text-transform:uppercase}
   .hero h1{font:400 clamp(38px,5.4vw,68px)/1.08 var(--serif); letter-spacing:-.015em; margin-top:22px}
@@ -105,7 +112,10 @@ window.PLUGICT = {
   .hero .fine{font:400 12px var(--mono); letter-spacing:.05em; color:var(--ink-mut); margin-top:18px}
 
   /* terminal panel */
-  .terminal{background:var(--dark); border-radius:18px; box-shadow:0 40px 80px -40px rgba(27,24,17,.5); overflow:hidden}
+  .terminal{background:var(--dark); border-radius:18px; border:1px solid rgba(232,98,44,.35); overflow:hidden;
+    box-shadow:0 0 70px -18px var(--ember-glow), 0 40px 80px -40px rgba(0,0,0,.9);
+    transform:perspective(1400px) rotateY(-7deg) rotateX(1.5deg)}
+  @media(max-width:900px){ .terminal{transform:none} }
   .term-head{display:flex; align-items:center; gap:7px; padding:14px 18px; border-bottom:1px solid var(--dark-line)}
   .term-head i{width:10px;height:10px;border-radius:50%;background:rgba(244,239,228,.18);display:block}
   .term-head span{margin-left:8px; font:400 11.5px var(--mono); color:rgba(244,239,228,.45)}
@@ -119,20 +129,37 @@ window.PLUGICT = {
   .t-cite .ts{color:var(--terracotta-bright)}
 
   /* ── video placeholder ─────────────────────────────────── */
-  .video-slot{margin:0 28px}
+  .video-slot{margin:0 28px; position:relative}
+  .video-slot::before{content:""; position:absolute; left:-10%; right:-10%; top:30%; bottom:-90px; pointer-events:none;
+    background:
+      radial-gradient(60% 55% at 50% 100%, rgba(232,98,44,.14), transparent 70%),
+      repeating-linear-gradient(90deg, rgba(232,98,44,.10) 0 1px, transparent 1px 72px),
+      repeating-linear-gradient(0deg, rgba(232,98,44,.10) 0 1px, transparent 1px 46px);
+    transform:perspective(700px) rotateX(58deg); transform-origin:50% 100%;
+    -webkit-mask-image:radial-gradient(65% 80% at 50% 90%, #000 30%, transparent 75%);
+    mask-image:radial-gradient(65% 80% at 50% 90%, #000 30%, transparent 75%)}
   .video-box{max-width:calc(var(--maxw) - 56px); margin:0 auto; height:min(560px,52vw); min-height:280px;
-    border:1.5px solid var(--ink); border-radius:20px; background:var(--dark);
+    border:1px solid var(--line); border-radius:20px; background:rgba(10,8,6,.88); position:relative;
+    box-shadow:0 30px 80px -30px rgba(0,0,0,.9);
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px}
-  .video-box .play{width:82px;height:82px;border-radius:50%;background:#F4EFE4;display:flex;align-items:center;justify-content:center;
-    cursor:pointer; transition:transform .2s}
-  .video-box .play:hover{transform:scale(1.05)}
+  .video-box .play{width:84px;height:84px;border-radius:50%;background:rgba(232,98,44,.08);
+    border:2px solid var(--terracotta); display:flex;align-items:center;justify-content:center;
+    cursor:pointer; transition:transform .2s, box-shadow .2s; box-shadow:0 0 40px -10px var(--ember-glow)}
+  .video-box .play:hover{transform:scale(1.05); box-shadow:0 0 60px -8px var(--ember-glow)}
   .video-box .label{font:400 12px var(--mono); letter-spacing:.14em; color:rgba(244,239,228,.5); text-align:center; padding:0 24px}
   .video-cap{font:400 12px var(--mono); color:var(--ink-mut); max-width:var(--maxw); margin:12px auto 0; padding:0 28px}
 
-  /* ── stats line ─────────────────────────────────────────── */
-  .stats{display:flex; gap:40px; flex-wrap:wrap; padding:26px 28px; border-bottom:1px solid var(--line); margin-top:56px;
-    font:500 12.5px var(--mono); letter-spacing:.1em; color:var(--ink-soft); max-width:var(--maxw); margin-left:auto; margin-right:auto}
-  .stats span b{font-weight:500; color:var(--ink)}
+  /* ── stats strip ────────────────────────────────────────── */
+  .stats{display:flex; gap:14px; flex-wrap:wrap; justify-content:space-between; align-items:center;
+    padding:22px 28px; margin:56px auto 0; max-width:calc(var(--maxw) - 56px);
+    background:var(--card); border:1px solid var(--line); border-radius:18px;
+    font:500 12px var(--mono); letter-spacing:.1em; color:var(--ink-mut); position:relative; z-index:1}
+  .stats span{display:flex; align-items:center; gap:12px}
+  .stats span b{display:block; font:500 19px var(--mono); letter-spacing:.02em; color:var(--ink)}
+  .stats .s-ic{width:38px; height:38px; flex-shrink:0; border-radius:11px; display:flex; align-items:center; justify-content:center;
+    color:var(--terracotta); background:rgba(232,98,44,.1); border:1px solid rgba(232,98,44,.28)}
+  .stats .s-ic svg{width:18px; height:18px}
+  @media(max-width:900px){ .stats{justify-content:flex-start; gap:20px} }
 
   /* ── sections ───────────────────────────────────────────── */
   section{padding:88px 28px}
@@ -149,12 +176,13 @@ window.PLUGICT = {
   .panel{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:28px; min-height:280px; position:relative}
   .panel-label{position:absolute; top:14px; right:16px; font:500 11px var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-mut)}
   .chaos .vid{display:inline-block; font-size:12px; font-weight:500; color:var(--ink-soft);
-    border:1px solid var(--line); background:rgba(27,24,17,.02); border-radius:8px; padding:7px 11px; margin:5px 3px}
+    border:1px solid var(--line); background:rgba(242,234,217,.04); border-radius:8px; padding:7px 11px; margin:5px 3px}
   .chaos .vid.r1{transform:rotate(-3deg)} .chaos .vid.r2{transform:rotate(2.5deg)} .chaos .vid.r3{transform:rotate(-1.5deg)}
   .chaos .searchbar{margin-top:18px; border:1px solid var(--line); border-radius:10px; padding:12px 16px;
-    color:var(--ink-mut); font-size:14px; display:flex; justify-content:space-between; background:rgba(27,24,17,.03)}
+    color:var(--ink-mut); font-size:14px; display:flex; justify-content:space-between; background:rgba(0,0,0,.35)}
   .story .arrow{font:400 30px var(--serif); color:var(--terracotta)}
-  .answer{background:var(--dark); color:#F4EFE4; border-color:var(--dark-line)}
+  .answer{background:var(--dark); color:#F4EFE4; border-color:rgba(232,98,44,.3);
+    box-shadow:0 0 50px -20px var(--ember-glow)}
   .answer .panel-label{color:rgba(244,239,228,.5)}
   .answer .q{color:var(--terracotta-bright); font-size:14px; font-weight:600; margin-bottom:14px}
   .answer .a{font-size:15px; line-height:1.7; color:rgba(244,239,228,.85)}
@@ -163,30 +191,34 @@ window.PLUGICT = {
   .answer .cite b{color:#F4EFE4}
   .answer .cite .ts{color:var(--terracotta-bright); font-weight:600; font-family:var(--mono)}
 
-  /* ── capability rows ────────────────────────────────────── */
-  .cap-list{margin-top:52px; border-top:1px solid var(--line)}
-  .cap-row{display:grid; grid-template-columns:90px 1fr 320px; gap:36px; align-items:center; padding:34px 0; border-bottom:1px solid var(--line)}
+  /* ── capability cards ───────────────────────────────────── */
+  .cap-list{margin-top:52px; display:flex; flex-direction:column; gap:14px}
+  .cap-row{display:grid; grid-template-columns:56px 1fr 320px; gap:30px; align-items:center; padding:28px 30px;
+    background:var(--card); border:1px solid var(--line); border-radius:18px; transition:border-color .25s}
+  .cap-row:hover{border-color:rgba(232,98,44,.4)}
   @media(max-width:900px){ .cap-row{grid-template-columns:56px 1fr} .cap-row .cap-visual{grid-column:1/-1; width:100%; max-width:320px} }
-  .cap-num{font:400 40px var(--serif); color:var(--terracotta)}
+  .cap-num{width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; align-self:start;
+    font:500 18px var(--mono); color:var(--terracotta); background:rgba(232,98,44,.1); border:1px solid rgba(232,98,44,.32)}
   .cap-text h3{font:500 27px var(--serif); letter-spacing:-.01em; margin-bottom:8px}
   .cap-text p{font-size:15px; line-height:1.65; color:var(--ink-soft); max-width:460px}
   .cap-visual{width:320px}
-  .cv-term{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; font:400 12.5px/1.9 var(--mono)}
+  .cv-term{background:var(--dark); border:1px solid var(--line); border-radius:12px; padding:16px; font:400 12.5px/1.9 var(--mono)}
   .cv-term .q{color:var(--terracotta)}
   .cv-term .dim{color:var(--ink-mut)}
-  .cv-cite{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px}
+  .cv-cite{background:var(--dark); border:1px solid var(--line); border-radius:12px; padding:16px}
   .cv-cite .line{border-left:2px solid var(--terracotta); padding-left:14px}
   .cv-cite .title{font-size:13.5px; font-weight:600}
   .cv-cite .ts{font:500 12.5px var(--mono); color:var(--terracotta); margin-top:4px}
   .cv-cite .note{font-size:12px; color:var(--ink-mut); margin-top:4px}
   .cv-code{background:var(--dark); border-radius:12px; padding:16px; font:400 12px/1.8 var(--mono); color:rgba(244,239,228,.75)}
   .cv-code .k{color:var(--terracotta-bright)} .cv-code .v{color:#F4EFE4}
-  .cv-graph{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px}
+  .cv-graph{background:var(--dark); border:1px solid var(--line); border-radius:12px; padding:14px}
   .cv-graph svg{display:block; width:100%; height:auto}
   .cv-badges{display:flex; flex-wrap:wrap; gap:8px}
   .cv-badges span{border:1px solid var(--line); border-radius:999px; padding:8px 14px; font:400 12px var(--mono); color:var(--ink-soft)}
   .cv-badges span.on{border-color:var(--terracotta); color:var(--terracotta)}
-  .cv-license{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px}
+  .cv-license{background:var(--dark); border:1px solid var(--line); border-radius:12px; padding:16px; position:relative}
+  .cv-icon{position:absolute; top:14px; right:14px; color:var(--terracotta); opacity:.85}
   .cv-license .lbl{font:500 11px var(--mono); letter-spacing:.14em; color:var(--ink-mut)}
   .cv-license .price{font:500 22px var(--serif); margin-top:8px}
   .cv-license .note{font-size:12.5px; color:var(--ink-soft); margin-top:4px}
@@ -207,12 +239,25 @@ window.PLUGICT = {
   .move-chips{display:flex; gap:6px; margin-top:16px; flex-wrap:wrap}
   .move-chips span{border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-size:12px; color:var(--ink-soft)}
 
+  /* ── trust banner ───────────────────────────────────────── */
+  .banner-band{padding:10px 28px 74px}
+  .band-card{max-width:var(--maxw); margin:0 auto; display:flex; align-items:center; gap:22px; flex-wrap:wrap;
+    background:linear-gradient(180deg, rgba(232,98,44,.09), rgba(232,98,44,.03)), var(--card);
+    border:1px solid rgba(232,98,44,.3); border-radius:20px; padding:26px 32px;
+    box-shadow:0 0 60px -28px var(--ember-glow)}
+  .band-card .b-ic{width:46px; height:46px; flex-shrink:0; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    color:var(--terracotta); border:1.5px solid var(--terracotta); background:rgba(232,98,44,.08)}
+  .band-card .b-txt{flex:1; min-width:220px}
+  .band-card .b-title{font:500 22px var(--serif); letter-spacing:-.01em; color:var(--ink)}
+  .band-card .b-sub{font-size:14px; color:var(--ink-soft); margin-top:3px}
+
   /* ── pricing ────────────────────────────────────────────── */
   .price-wrap{display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:center; max-width:var(--maxw); margin:0 auto}
   @media(max-width:900px){ .price-wrap{grid-template-columns:1fr} }
   .price-feats{margin-top:28px; display:flex; flex-direction:column; gap:12px; font-size:15px}
   .price-feats div span.tick{color:var(--terracotta); font-weight:600}
-  .price-card{border:2px solid var(--ink); border-radius:18px; background:var(--card); padding:42px 40px; text-align:center}
+  .price-card{border:1px solid rgba(232,98,44,.35); border-radius:18px; background:var(--card); padding:42px 40px; text-align:center;
+    box-shadow:0 0 70px -25px var(--ember-glow)}
   .price-card .tag{font:500 11px var(--mono); letter-spacing:.18em; color:var(--terracotta)}
   .price-card .was{font-size:14px; color:var(--ink-mut); margin-top:20px}
   .price-card .was s{color:var(--ink-soft)}
@@ -229,11 +274,12 @@ window.PLUGICT = {
   .countdown.on{display:block}
 
   /* ── payment modal ──────────────────────────────────────── */
-  .pay-overlay{position:fixed; inset:0; z-index:50; background:rgba(27,24,17,.55); display:none;
+  .pay-overlay{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.72); display:none;
     align-items:center; justify-content:center; padding:20px}
   .pay-overlay.open{display:flex}
-  .pay-modal{background:var(--card); border:1.5px solid var(--ink); border-radius:18px; max-width:520px; width:100%;
-    max-height:88vh; overflow-y:auto; padding:34px 32px; position:relative}
+  .pay-modal{background:var(--card); border:1px solid rgba(232,98,44,.35); border-radius:18px; max-width:520px; width:100%;
+    max-height:88vh; overflow-y:auto; padding:34px 32px; position:relative;
+    box-shadow:0 0 80px -20px var(--ember-glow), 0 40px 90px -30px rgba(0,0,0,.9)}
   .pay-modal .close{position:absolute; top:16px; right:18px; background:none; border:none; cursor:pointer;
     font:400 22px var(--serif); color:var(--ink-mut); line-height:1; padding:4px}
   .pay-modal .close:hover{color:var(--ink)}
@@ -266,11 +312,13 @@ window.PLUGICT = {
   .pay-note a{color:var(--terracotta)}
 
   /* ── final CTA + email capture ──────────────────────────── */
-  .final-cta{background:var(--dark); color:#F4EFE4}
+  .final-cta{background:var(--dark); color:#F4EFE4; border-top:1px solid var(--line-soft); position:relative; overflow:hidden}
+  .final-cta::before{content:""; position:absolute; left:20%; right:20%; bottom:-40%; height:80%; pointer-events:none;
+    background:radial-gradient(50% 50% at 50% 50%, rgba(232,98,44,.14), transparent 70%)}
   .final-cta h2{color:#F4EFE4}
   .final-cta h2 em{color:var(--terracotta-bright)}
   .final-cta .sub{color:rgba(244,239,228,.6)}
-  .final-cta .btn.primary{background:#F4EFE4; color:var(--ink)}
+  .final-cta .inner{position:relative}
   .final-cta .fine{font:400 12px var(--mono); letter-spacing:.05em; color:rgba(244,239,228,.45); margin-top:18px}
   .capture{max-width:440px; margin:44px auto 0; padding-top:34px; border-top:1px solid var(--dark-line)}
   .capture .cap-lbl{font:500 11.5px var(--mono); letter-spacing:.14em; color:rgba(244,239,228,.5)}
@@ -296,7 +344,7 @@ window.PLUGICT = {
   details[open] .faq-body{grid-template-rows:1fr}
   .faq-body > div{overflow:hidden}
   .faq-body p{color:var(--ink-soft); font-size:15px; padding:0 4px 22px; line-height:1.7}
-  code{font-family:var(--mono); font-size:.9em; background:rgba(27,24,17,.06);
+  code{font-family:var(--mono); font-size:.9em; background:rgba(242,234,217,.07);
     border:1px solid var(--line); border-radius:6px; padding:2px 7px}
 
   /* ── footer ─────────────────────────────────────────────── */
@@ -354,7 +402,7 @@ window.PLUGICT = {
 <!-- ═══ VIDEO PLACEHOLDER ═══ -->
 <div class="video-slot fadeup">
   <div class="video-box">
-    <div class="play" aria-hidden="true"><svg width="20" height="24" viewBox="0 0 22 26"><path d="M2 1 L21 13 L2 25 Z" fill="#1B1811"></path></svg></div>
+    <div class="play" aria-hidden="true"><svg width="20" height="24" viewBox="0 0 22 26"><path d="M2 1 L21 13 L2 25 Z" fill="#E8622C"></path></svg></div>
     <div class="label">DEMO VIDEO PLACEHOLDER — DROP YOUR WALKTHROUGH HERE</div>
   </div>
   <div class="video-cap">↑ A real query, answered and cited in ~3 seconds.</div>
@@ -362,11 +410,11 @@ window.PLUGICT = {
 
 <!-- ═══ STATS ═══ -->
 <div class="stats fadeup">
-  <span><b><span data-count="576">0</span></b> VIDEOS</span>
-  <span><b><span data-count="100">0</span>+</b> CONCEPTS</span>
-  <span><b>~3s</b> TO AN ANSWER</span>
-  <span><b>100%</b> LOCAL</span>
-  <span><b>LIFETIME</b> LICENSE</span>
+  <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5 15 12l-5 2.5z" fill="currentColor" stroke="none"/></svg></i><span><b><span data-count="576">0</span></b>VIDEOS</span></span>
+  <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.8.6 1.5 1.6 1.5 2.6h4c0-1 .7-2 1.5-2.6A6 6 0 0 0 12 3z"/></svg></i><span><b><span data-count="100">0</span>+</b>CONCEPTS</span></span>
+  <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg></i><span><b>~3s</b>TO AN ANSWER</span></span>
+  <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></i><span><b>100%</b>LOCAL</span></span>
+  <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3z"/><path d="m9 11.5 2 2 4-4"/></svg></i><span><b>LIFETIME</b>LICENSE</span></span>
 </div>
 
 <!-- ═══ PROBLEM ═══ -->
@@ -444,15 +492,15 @@ window.PLUGICT = {
         <div class="cap-text"><h3>Walk the knowledge graph.</h3><p>FVG, liquidity, order blocks — concepts linked into a graph your AI traverses to build complete answers.</p></div>
         <div class="cap-visual cv-graph">
           <svg viewBox="0 0 292 122" role="img" aria-label="Knowledge graph linking FVG, Liquidity and Order Block">
-            <path d="M60,30 C110,18 160,40 220,26" fill="none" stroke="rgba(188,75,34,.5)" stroke-width="1" stroke-dasharray="4 5"></path>
-            <path d="M60,30 C80,66 130,84 146,90" fill="none" stroke="rgba(27,24,17,.25)" stroke-width="1" stroke-dasharray="4 5"></path>
-            <path d="M220,26 C210,60 180,80 146,90" fill="none" stroke="rgba(27,24,17,.25)" stroke-width="1" stroke-dasharray="4 5"></path>
-            <rect x="24" y="16" width="72" height="28" rx="8" fill="#F4EFE4" stroke="#BC4B22"></rect>
-            <text x="60" y="34" text-anchor="middle" fill="#BC4B22" style="font:500 11px 'IBM Plex Mono',monospace">FVG</text>
-            <rect x="178" y="12" width="84" height="28" rx="8" fill="#F4EFE4" stroke="rgba(27,24,17,.35)"></rect>
-            <text x="220" y="30" text-anchor="middle" fill="#1B1811" style="font:500 11px 'IBM Plex Mono',monospace">Liquidity</text>
-            <rect x="94" y="76" width="104" height="28" rx="8" fill="#F4EFE4" stroke="rgba(27,24,17,.35)"></rect>
-            <text x="146" y="94" text-anchor="middle" fill="#1B1811" style="font:500 11px 'IBM Plex Mono',monospace">Order Block</text>
+            <path d="M60,30 C110,18 160,40 220,26" fill="none" stroke="rgba(232,98,44,.55)" stroke-width="1" stroke-dasharray="4 5"></path>
+            <path d="M60,30 C80,66 130,84 146,90" fill="none" stroke="rgba(242,234,217,.25)" stroke-width="1" stroke-dasharray="4 5"></path>
+            <path d="M220,26 C210,60 180,80 146,90" fill="none" stroke="rgba(242,234,217,.25)" stroke-width="1" stroke-dasharray="4 5"></path>
+            <rect x="24" y="16" width="72" height="28" rx="8" fill="#12100C" stroke="#E8622C"></rect>
+            <text x="60" y="34" text-anchor="middle" fill="#FF8A4A" style="font:500 11px 'IBM Plex Mono',monospace">FVG</text>
+            <rect x="178" y="12" width="84" height="28" rx="8" fill="#12100C" stroke="rgba(242,234,217,.35)"></rect>
+            <text x="220" y="30" text-anchor="middle" fill="#F2EAD9" style="font:500 11px 'IBM Plex Mono',monospace">Liquidity</text>
+            <rect x="94" y="76" width="104" height="28" rx="8" fill="#12100C" stroke="rgba(242,234,217,.35)"></rect>
+            <text x="146" y="94" text-anchor="middle" fill="#F2EAD9" style="font:500 11px 'IBM Plex Mono',monospace">Order Block</text>
           </svg>
         </div>
       </div>
@@ -465,6 +513,7 @@ window.PLUGICT = {
           <span>no cloud</span>
           <span class="on">encrypted</span>
           <span>zero vault fees</span>
+          <span style="border:none;padding:4px 2px;color:var(--terracotta)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
         </div>
       </div>
 
@@ -472,6 +521,7 @@ window.PLUGICT = {
         <div class="cap-num">6.</div>
         <div class="cap-text"><h3>Own it outright.</h3><p>One payment, a license tied to you. Lifetime access — it always works.</p></div>
         <div class="cap-visual cv-license">
+          <span class="cv-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8.5 8.5C5.5 8.5 3.5 10 3.5 12s2 3.5 5 3.5c3.5 0 4.5-7 8-7 3 0 5 1.5 5 3.5s-2 3.5-5 3.5c-3.5 0-4.5-7-8-7z" transform="scale(.86) translate(2 2)"/></svg></span>
           <div class="lbl">LICENSE.KEY</div>
           <div class="price">$23.99 · one-time</div>
           <div class="note">lifetime access · always works</div>
@@ -481,6 +531,18 @@ window.PLUGICT = {
     </div>
   </div>
 </section>
+
+<!-- ═══ TRUST BANNER ═══ -->
+<div class="banner-band fadeup">
+  <div class="band-card">
+    <span class="b-ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3z"/><path d="m9 11.5 2 2 4-4"/></svg></span>
+    <div class="b-txt">
+      <div class="b-title">Built for traders. Powered by precision.</div>
+      <div class="b-sub">Private. Fast. Accurate. Yours.</div>
+    </div>
+    <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access →</a>
+  </div>
+</div>
 
 <!-- ═══ SETUP ═══ -->
 <section id="setup">
