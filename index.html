@@ -42,6 +42,15 @@ window.PLUGICT = {
 
   supportEmail: 'hermesian0000@gmail.com',  // where buyers send payment proof / questions
 
+  /* Demo walkthrough video. Set a YouTube embed URL (e.g.
+     'https://www.youtube.com/embed/VIDEO_ID') and the demo section appears.
+     Empty = section stays hidden. No placeholder shown to visitors. */
+  demoVideoUrl: '',
+
+  /* Real buyer quotes only — leave empty until you have them. Each item:
+     {quote:'…', who:'Firdaus, KL'}. Section stays hidden while empty. */
+  testimonials: [],
+
   /* Launch-price countdown. Set a REAL deadline (ISO 8601) or leave empty —
      an empty value hides the countdown entirely. No fake scarcity. */
   saleEndsAt: '',          // e.g. '2026-08-01T00:00:00+08:00'
@@ -93,6 +102,11 @@ window.PLUGICT = {
     box-shadow:0 8px 28px -10px var(--ember-glow), inset 0 1px 0 rgba(255,255,255,.18)}
   .btn.primary:hover{transform:translateY(-2px); box-shadow:0 14px 36px -10px var(--ember-glow), inset 0 1px 0 rgba(255,255,255,.18)}
   .btn.small{padding:10px 22px; font-size:13.5px; font-weight:500}
+  .btn.ghost{background:none; color:var(--ink); border:1.5px solid rgba(232,98,44,.55);
+    font:500 13px var(--mono); letter-spacing:.06em; padding:14px 26px;
+    transition:transform .15s ease, background .2s, border-color .2s, color .2s}
+  .btn.ghost:hover{background:rgba(232,98,44,.12); border-color:var(--terracotta-bright);
+    color:var(--terracotta-bright); transform:translateY(-2px)}
   .btn:focus-visible{outline:2px solid var(--terracotta); outline-offset:3px}
   .link-arrow{font:500 12.5px var(--mono); letter-spacing:.08em; color:var(--ink); text-decoration:none;
     border-bottom:1px solid rgba(242,234,217,.35); padding-bottom:3px; transition:color .2s}
@@ -119,7 +133,7 @@ window.PLUGICT = {
   .term-head{display:flex; align-items:center; gap:7px; padding:14px 18px; border-bottom:1px solid var(--dark-line)}
   .term-head i{width:10px;height:10px;border-radius:50%;background:rgba(244,239,228,.18);display:block}
   .term-head span{margin-left:8px; font:400 11.5px var(--mono); color:rgba(244,239,228,.45)}
-  .term-body{padding:24px 24px 28px; font:400 13px/1.95 var(--mono); min-height:220px; color:#F4EFE4}
+  .term-body{padding:26px 26px 30px; font:400 13.5px/1.95 var(--mono); min-height:252px; color:#F4EFE4}
   .t-prompt{color:var(--terracotta-bright)} .t-cmd{color:#F4EFE4} .t-dim{color:rgba(244,239,228,.4)}
   .t-warm{color:var(--terracotta-bright)}
   .t-cursor{display:inline-block; width:7px; height:14px; background:var(--terracotta-bright); vertical-align:-2px; animation:blink 1s steps(1) infinite}
@@ -138,15 +152,10 @@ window.PLUGICT = {
     transform:perspective(700px) rotateX(58deg); transform-origin:50% 100%;
     -webkit-mask-image:radial-gradient(65% 80% at 50% 90%, #000 30%, transparent 75%);
     mask-image:radial-gradient(65% 80% at 50% 90%, #000 30%, transparent 75%)}
-  .video-box{max-width:calc(var(--maxw) - 56px); margin:0 auto; height:min(560px,52vw); min-height:280px;
+  .video-box{max-width:calc(var(--maxw) - 56px); margin:0 auto; aspect-ratio:16/9;
     border:1px solid var(--line); border-radius:20px; background:rgba(10,8,6,.88); position:relative;
-    box-shadow:0 30px 80px -30px rgba(0,0,0,.9);
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px}
-  .video-box .play{width:84px;height:84px;border-radius:50%;background:rgba(232,98,44,.08);
-    border:2px solid var(--terracotta); display:flex;align-items:center;justify-content:center;
-    cursor:pointer; transition:transform .2s, box-shadow .2s; box-shadow:0 0 40px -10px var(--ember-glow)}
-  .video-box .play:hover{transform:scale(1.05); box-shadow:0 0 60px -8px var(--ember-glow)}
-  .video-box .label{font:400 12px var(--mono); letter-spacing:.14em; color:rgba(244,239,228,.5); text-align:center; padding:0 24px}
+    overflow:hidden; box-shadow:0 30px 80px -30px rgba(0,0,0,.9)}
+  .video-box iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
   .video-cap{font:400 12px var(--mono); color:var(--ink-mut); max-width:var(--maxw); margin:12px auto 0; padding:0 28px}
 
   /* ── stats strip ────────────────────────────────────────── */
@@ -155,7 +164,8 @@ window.PLUGICT = {
     background:var(--card); border:1px solid var(--line); border-radius:18px;
     font:500 12px var(--mono); letter-spacing:.1em; color:var(--ink-mut); position:relative; z-index:1}
   .stats span{display:flex; align-items:center; gap:12px}
-  .stats span b{display:block; font:500 19px var(--mono); letter-spacing:.02em; color:var(--ink)}
+  .stats span b{display:block; font:500 23px var(--mono); letter-spacing:.02em; color:var(--ink); white-space:nowrap}
+  .stats span b span{display:inline}
   .stats .s-ic{width:38px; height:38px; flex-shrink:0; border-radius:11px; display:flex; align-items:center; justify-content:center;
     color:var(--terracotta); background:rgba(232,98,44,.1); border:1px solid rgba(232,98,44,.28)}
   .stats .s-ic svg{width:18px; height:18px}
@@ -209,16 +219,18 @@ window.PLUGICT = {
   .answer .cite .ts{color:var(--terracotta-bright); font-weight:600; font-family:var(--mono)}
 
   /* ── capability cards ───────────────────────────────────── */
-  .cap-list{margin-top:52px; display:flex; flex-direction:column; gap:14px}
-  .cap-row{display:grid; grid-template-columns:56px 1fr 320px; gap:30px; align-items:center; padding:28px 30px;
-    background:var(--card); border:1px solid var(--line); border-radius:18px; transition:border-color .25s}
-  .cap-row:hover{border-color:rgba(232,98,44,.4)}
-  @media(max-width:900px){ .cap-row{grid-template-columns:56px 1fr} .cap-row .cap-visual{grid-column:1/-1; width:100%; max-width:320px} }
+  .cap-list{margin-top:52px; display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  .cap-row{display:grid; grid-template-columns:56px 1fr; gap:18px 24px; align-content:start; padding:28px 30px;
+    background:var(--card); border:1px solid var(--line); border-radius:18px;
+    transition:border-color .25s, transform .2s ease}
+  .cap-row:hover{border-color:rgba(232,98,44,.4); transform:translateY(-2px)}
+  @media(max-width:900px){ .cap-list{grid-template-columns:1fr} }
   .cap-num{width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; align-self:start;
     font:500 18px var(--mono); color:var(--terracotta); background:rgba(232,98,44,.1); border:1px solid rgba(232,98,44,.32)}
   .cap-text h3{font:500 27px var(--serif); letter-spacing:-.01em; margin-bottom:8px}
   .cap-text p{font-size:15px; line-height:1.65; color:var(--ink-soft); max-width:460px}
-  .cap-visual{width:320px}
+  .cap-visual{grid-column:2; width:100%; max-width:380px}
+  @media(max-width:560px){ .cap-visual{grid-column:1/-1} }
   .cv-term{background:var(--dark); border:1px solid var(--line); border-radius:12px; padding:16px; font:400 12.5px/1.9 var(--mono)}
   .cv-term .q{color:var(--terracotta)}
   .cv-term .dim{color:var(--ink-mut)}
@@ -267,6 +279,13 @@ window.PLUGICT = {
   .band-card .b-txt{flex:1; min-width:220px}
   .band-card .b-title{font:500 22px var(--serif); letter-spacing:-.01em; color:var(--ink)}
   .band-card .b-sub{font-size:14px; color:var(--ink-soft); margin-top:3px}
+  .band-steps{width:100%; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    margin-top:6px; padding-top:20px; border-top:1px solid rgba(232,98,44,.18);
+    font:500 12px var(--mono); letter-spacing:.06em; color:var(--ink-soft)}
+  .band-steps span.step{display:inline-flex; align-items:center; gap:8px;
+    border:1px solid var(--line); border-radius:999px; padding:8px 15px; background:rgba(0,0,0,.25)}
+  .band-steps span.step b{color:var(--terracotta); font-weight:500}
+  .band-steps .sep{color:var(--terracotta); opacity:.7}
 
   /* ── pricing ────────────────────────────────────────────── */
   .price-wrap{display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:center; max-width:var(--maxw); margin:0 auto}
@@ -274,10 +293,14 @@ window.PLUGICT = {
   .price-feats{margin-top:28px; display:flex; flex-direction:column; gap:12px; font-size:15px}
   .price-feats div span.tick{color:var(--terracotta); font-weight:600}
   .price-card{border:1px solid rgba(232,98,44,.35); border-radius:18px; background:var(--card); padding:42px 40px; text-align:center;
-    box-shadow:0 0 70px -25px var(--ember-glow)}
+    box-shadow:0 0 70px -25px var(--ember-glow); transition:transform .25s ease, box-shadow .25s ease}
+  .price-card:hover{transform:translateY(-3px); box-shadow:0 0 90px -22px var(--ember-glow)}
   .price-card .tag{font:500 11px var(--mono); letter-spacing:.18em; color:var(--terracotta)}
-  .price-card .was{font-size:14px; color:var(--ink-mut); margin-top:20px}
-  .price-card .was s{color:var(--ink-soft)}
+  .price-card .was{font-size:18px; color:var(--ink-soft); margin-top:20px}
+  .price-card .was s{color:var(--ink-soft); text-decoration-color:rgba(232,98,44,.75); text-decoration-thickness:2px}
+  .price-card .save-badge{display:inline-block; margin-left:10px; vertical-align:2px;
+    font:500 11px var(--mono); letter-spacing:.08em; color:var(--terracotta-bright);
+    border:1px solid rgba(232,98,44,.5); background:rgba(232,98,44,.1); border-radius:999px; padding:4px 11px}
   .price-card .now{font:400 clamp(52px,7vw,78px)/1 var(--serif); letter-spacing:-.02em; margin-top:8px}
   .price-card .onetime{font:400 12.5px var(--mono); color:var(--ink-mut); margin-top:8px}
   .price-card .btn{width:100%; justify-content:center; font-size:16px; padding:17px; margin-top:30px}
@@ -293,7 +316,10 @@ window.PLUGICT = {
   /* ── payment modal ──────────────────────────────────────── */
   .pay-overlay{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.72); display:none;
     align-items:center; justify-content:center; padding:20px}
-  .pay-overlay.open{display:flex}
+  .pay-overlay.open{display:flex; animation:overlay-in .18s ease}
+  .pay-overlay.open .pay-modal{animation:modal-in .22s cubic-bezier(.22,1,.36,1)}
+  @keyframes overlay-in{from{opacity:0}}
+  @keyframes modal-in{from{opacity:0; transform:translateY(12px) scale(.98)}}
   .pay-modal{background:var(--card); border:1px solid rgba(232,98,44,.35); border-radius:18px; max-width:520px; width:100%;
     max-height:88vh; overflow-y:auto; padding:34px 32px; position:relative;
     box-shadow:0 0 80px -20px var(--ember-glow), 0 40px 90px -30px rgba(0,0,0,.9)}
@@ -328,6 +354,14 @@ window.PLUGICT = {
     line-height:1.65; color:var(--ink-soft)}
   .pay-note a{color:var(--terracotta)}
 
+  /* ── testimonials (hidden until real quotes exist in config) ── */
+  .quotes-band{padding:0 28px 74px}
+  .quotes{max-width:var(--maxw); margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px}
+  .quote-card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:26px 28px}
+  .quote-card .qmark{font:500 34px var(--serif); color:var(--terracotta); line-height:1}
+  .quote-card p{font-size:15px; line-height:1.7; color:var(--ink-soft); margin-top:10px; font-style:italic}
+  .quote-card .who{margin-top:14px; font:500 12px var(--mono); letter-spacing:.08em; color:var(--ink-mut)}
+
   /* ── final CTA + email capture ──────────────────────────── */
   .final-cta{background:var(--dark); color:#F4EFE4; border-top:1px solid var(--line-soft); position:relative; overflow:hidden}
   .final-cta::before{content:""; position:absolute; left:20%; right:20%; bottom:-40%; height:80%; pointer-events:none;
@@ -350,7 +384,12 @@ window.PLUGICT = {
   .capture .cap-done{display:none; margin-top:14px; font-size:14px; color:var(--terracotta-bright)}
 
   /* ── FAQ ────────────────────────────────────────────────── */
-  .faq{max-width:720px; margin:36px 0 0}
+  .faq{max-width:720px; margin:36px 0 0; background:#0F0D0A; border:1px solid var(--line);
+    border-radius:18px; padding:6px 26px}
+  .faq details:last-of-type{border-bottom:none}
+  .faq-more{max-width:720px; margin:20px 0 0; font-size:14px; color:var(--ink-mut); padding-left:4px}
+  .faq-more a{color:var(--terracotta); text-decoration:none; border-bottom:1px solid rgba(232,98,44,.4)}
+  .faq-more a:hover{color:var(--terracotta-bright)}
   details{border-bottom:1px solid var(--line)}
   summary{cursor:pointer; list-style:none; padding:22px 4px; font-size:16.5px; font-weight:500;
     display:flex; justify-content:space-between; align-items:center; gap:14px}
@@ -402,12 +441,12 @@ window.PLUGICT = {
     <div>
       <div class="eyebrow fadeup">The ICT knowledge engine</div>
       <h1 class="fadeup" data-delay=".08">Years of ICT lessons — <em>one instant answer.</em></h1>
-      <p class="sub fadeup" data-delay=".16">The complete catalogue — 576 videos transcribed, indexed and connected to your AI agent. Every answer verified with the exact video and timestamp.</p>
+      <p class="sub fadeup" data-delay=".16">576 videos transcribed, indexed and connected to your AI — every answer cited to the exact video and timestamp.</p>
       <div class="cta fadeup" data-delay=".24">
         <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access</a>
-        <a class="link-arrow" href="https://github.com/godzillacode0000/plugICT/releases/download/v1.0-demo/ict-vault-demo.zip" data-demo-link>TRY THE FREE DEMO →</a>
+        <a class="btn ghost" href="https://github.com/godzillacode0000/plugICT/releases/download/v1.0-demo/ict-vault-demo.zip" data-demo-link>TRY THE FREE DEMO →</a>
       </div>
-      <div class="fine fadeup" data-delay=".3">$23.99 one-time · runs locally · you bring your own AI key</div>
+      <div class="fine fadeup" data-delay=".3">$23.99 one-time · runs locally · use your own AI agent — free options work</div>
     </div>
     <div class="terminal fadeup" data-delay=".2" role="img" aria-label="Terminal demo: searching the ICT Vault">
       <div class="term-head"><i></i><i></i><i></i><span>ict-vault — search</span></div>
@@ -416,19 +455,16 @@ window.PLUGICT = {
   </div>
 </header>
 
-<!-- ═══ VIDEO PLACEHOLDER ═══ -->
-<div class="video-slot fadeup">
-  <div class="video-box">
-    <div class="play" aria-hidden="true"><svg width="20" height="24" viewBox="0 0 22 26"><path d="M2 1 L21 13 L2 25 Z" fill="#E8622C"></path></svg></div>
-    <div class="label">DEMO VIDEO PLACEHOLDER — DROP YOUR WALKTHROUGH HERE</div>
-  </div>
+<!-- ═══ DEMO VIDEO — hidden until PLUGICT.demoVideoUrl is set in the config ═══ -->
+<div class="video-slot fadeup" id="video-slot" hidden>
+  <div class="video-box" id="video-box"></div>
   <div class="video-cap">↑ A real query, answered and cited in ~3 seconds.</div>
 </div>
 
 <!-- ═══ STATS ═══ -->
 <div class="stats fadeup">
-  <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5 15 12l-5 2.5z" fill="currentColor" stroke="none"/></svg></i><span><b><span data-count="576">0</span></b>VIDEOS</span></span>
-  <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.8.6 1.5 1.6 1.5 2.6h4c0-1 .7-2 1.5-2.6A6 6 0 0 0 12 3z"/></svg></i><span><b><span data-count="100">0</span>+</b>CONCEPTS</span></span>
+  <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5 15 12l-5 2.5z" fill="currentColor" stroke="none"/></svg></i><span><b><span data-count="576">576</span></b>VIDEOS</span></span>
+  <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.8.6 1.5 1.6 1.5 2.6h4c0-1 .7-2 1.5-2.6A6 6 0 0 0 12 3z"/></svg></i><span><b><span data-count="100">100</span>+</b>CONCEPTS</span></span>
   <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg></i><span><b>~3s</b>TO AN ANSWER</span></span>
   <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></i><span><b>100%</b>LOCAL</span></span>
   <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3z"/><path d="m9 11.5 2 2 4-4"/></svg></i><span><b>LIFETIME</b>LICENSE</span></span>
@@ -562,6 +598,13 @@ window.PLUGICT = {
       <div class="b-sub">Private. Fast. Accurate. Yours.</div>
     </div>
     <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access →</a>
+    <div class="band-steps" aria-label="How it works in three steps">
+      <span class="step"><b>1</b> download the vault</span>
+      <span class="sep">→</span>
+      <span class="step"><b>2</b> connect your AI agent</span>
+      <span class="sep">→</span>
+      <span class="step"><b>3</b> ask — get cited answers</span>
+    </div>
   </div>
 </div>
 
@@ -569,6 +612,7 @@ window.PLUGICT = {
 <section id="setup">
   <div class="inner">
     <h2 class="fadeup">Three moves to set up.</h2>
+    <p class="sub fadeup" data-delay=".05" style="margin-top:14px"><span style="font:500 12px var(--mono);letter-spacing:.1em;color:var(--terracotta);border:1px solid rgba(232,98,44,.4);border-radius:999px;padding:6px 14px">≈ 3 MINUTES · NO CODE</span></p>
     <div class="moves">
       <div class="move-card fadeup">
         <div class="num">01</div>
@@ -622,7 +666,7 @@ window.PLUGICT = {
     </div>
     <div class="price-card fadeup" data-delay=".1">
       <div class="tag">LIFETIME LICENSE · LAUNCH PRICING</div>
-      <div class="was">Normal price <s>$49.99</s></div>
+      <div class="was">Normal price <s>$49.99</s><span class="save-badge">52% OFF AT LAUNCH</span></div>
       <div class="now">$23.99</div>
       <div class="onetime">one-time payment</div>
       <div class="countdown" id="countdown" role="timer" aria-live="off"></div>
@@ -658,8 +702,14 @@ window.PLUGICT = {
       <details class="fadeup"><summary>What are the system requirements? <span class="chev">+</span></summary>
         <div class="faq-body"><div><p>Windows, macOS or Linux with Python 3.9+. The setup script handles the rest in an isolated environment, so it won't interfere with anything else on your computer.</p></div></div></details>
     </div>
+    <p class="faq-more fadeup">Still have questions? Email <a href="" class="support-mail"></a> — a real person answers.</p>
   </div>
 </section>
+
+<!-- ═══ TESTIMONIALS — hidden until PLUGICT.testimonials has real quotes ═══ -->
+<div class="quotes-band fadeup" id="quotes-band" hidden>
+  <div class="quotes" id="quotes"></div>
+</div>
 
 <!-- ═══ FINAL CTA ═══ -->
 <section id="get-access" class="final-cta center">
@@ -775,6 +825,8 @@ window.PLUGICT = {
       requestAnimationFrame(step);};
     if(REDUCED){document.querySelectorAll('.fadeup').forEach(el=>el.classList.add('infade'));
       counters.forEach(c=>c.textContent=c.dataset.count);return;}
+    /* HTML ships real values (for no-JS); zero them here, pre-paint, for the count-up */
+    counters.forEach(c=>c.textContent='0');
     const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){
       en.target.classList.add('infade');
       en.target.querySelectorAll('[data-count]').forEach(runCount);
@@ -802,6 +854,33 @@ window.PLUGICT = {
 
     document.getElementById('pay-price').textContent=
       (cfg.priceUsd||'$23.99')+' one-time'+(cfg.priceMyr?' · '+cfg.priceMyr:'');
+
+    /* demo walkthrough video — appears only when a real URL is configured */
+    if(cfg.demoVideoUrl){
+      const slot=document.getElementById('video-slot');
+      const box=document.getElementById('video-box');
+      const f=document.createElement('iframe');
+      f.src=cfg.demoVideoUrl; f.title='PlugICT demo walkthrough';
+      f.loading='lazy'; f.allowFullscreen=true;
+      f.allow='accelerometer; encrypted-media; picture-in-picture';
+      box.appendChild(f); slot.hidden=false;
+    }
+
+    /* testimonials — real quotes only, rendered from config */
+    if(Array.isArray(cfg.testimonials)&&cfg.testimonials.length){
+      const wrap=document.getElementById('quotes');
+      cfg.testimonials.forEach(t=>{
+        if(!t||!t.quote)return;
+        const card=document.createElement('figure'); card.className='quote-card';
+        const mark=document.createElement('div'); mark.className='qmark'; mark.textContent='“';
+        const p=document.createElement('p'); p.textContent=t.quote;
+        card.appendChild(mark); card.appendChild(p);
+        if(t.who){const who=document.createElement('figcaption'); who.className='who';
+          who.textContent='— '+t.who; card.appendChild(who);}
+        wrap.appendChild(card);
+      });
+      if(wrap.children.length)document.getElementById('quotes-band').hidden=false;
+    }
     document.querySelectorAll('.support-mail').forEach(a=>{
       a.href='mailto:'+(cfg.supportEmail||'');a.textContent=cfg.supportEmail||'us';});
     document.querySelectorAll('.usd-amt').forEach(e=>e.textContent=cfg.priceUsd||'$23.99');
