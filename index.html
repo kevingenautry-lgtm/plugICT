@@ -17,7 +17,7 @@
   "description": "AI knowledge base of 576 ICT videos — transcribed, indexed, searchable by any MCP-compatible AI agent with exact video sources and timestamps.",
   "offers": {
     "@type": "Offer",
-    "price": "18.99",
+    "price": "23.99",
     "priceCurrency": "USD",
     "availability": "https://schema.org/InStock"
   }
@@ -28,7 +28,7 @@
    Backend reference: store/README.md (payment methods) and
    store/webhook_server.py (automated license delivery for billplz/stripe). */
 window.PLUGICT = {
-  priceUsd: '$18.99',
+  priceUsd: '$23.99',
   priceMyr: '',            // optional MYR shown on DuitNow QR pane, e.g. 'RM 105'
 
   /* Automated checkout (webhook issues the license, buyer gets email instantly) */
@@ -407,7 +407,7 @@ window.PLUGICT = {
         <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access</a>
         <a class="link-arrow" href="https://github.com/godzillacode0000/plugICT/releases/download/v1.0-demo/ict-vault-demo.zip" data-demo-link>TRY THE FREE DEMO →</a>
       </div>
-      <div class="fine fadeup" data-delay=".3">$18.99 one-time · runs locally · you bring your own AI key</div>
+      <div class="fine fadeup" data-delay=".3">$23.99 one-time · runs locally · you bring your own AI key</div>
     </div>
     <div class="terminal fadeup" data-delay=".2" role="img" aria-label="Terminal demo: searching the ICT Vault">
       <div class="term-head"><i></i><i></i><i></i><span>ict-vault — search</span></div>
@@ -544,7 +544,7 @@ window.PLUGICT = {
         <div class="cap-visual cv-license">
           <span class="cv-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8.5 8.5C5.5 8.5 3.5 10 3.5 12s2 3.5 5 3.5c3.5 0 4.5-7 8-7 3 0 5 1.5 5 3.5s-2 3.5-5 3.5c-3.5 0-4.5-7-8-7z" transform="scale(.86) translate(2 2)"/></svg></span>
           <div class="lbl">LICENSE.KEY</div>
-          <div class="price">$18.99 · one-time</div>
+          <div class="price">$23.99 · one-time</div>
           <div class="note">lifetime access · always works</div>
         </div>
       </div>
@@ -623,7 +623,7 @@ window.PLUGICT = {
     <div class="price-card fadeup" data-delay=".1">
       <div class="tag">LIFETIME LICENSE · LAUNCH PRICING</div>
       <div class="was">Normal price <s>$49.99</s></div>
-      <div class="now">$18.99</div>
+      <div class="now">$23.99</div>
       <div class="onetime">one-time payment</div>
       <div class="countdown" id="countdown" role="timer" aria-live="off"></div>
       <!-- TODO: replace href with your Billplz / Stripe checkout link -->
@@ -652,7 +652,7 @@ window.PLUGICT = {
       <details class="fadeup"><summary>What exactly do I download? <span class="chev">+</span></summary>
         <div class="faq-body"><div><p>Three things: an encrypted knowledge vault file, a setup file that handles everything automatically, and your personal <code>license.key</code> (emailed to you). No app, no installer, no bloat. The license is tied to you and traceable, so please don't share it.</p></div></div></details>
       <details class="fadeup"><summary>Do I need to pay for anything else? <span class="chev">+</span></summary>
-        <div class="faq-body"><div><p>The vault is one-time $18.99 with zero ongoing fees. Your AI agent needs its own API key — free options include Google Gemini (1,500 queries/day free), and DeepSeek runs about $2/month. Claude Desktop's free plan works too.</p></div></div></details>
+        <div class="faq-body"><div><p>The vault is one-time $23.99 with zero ongoing fees. Your AI agent needs its own API key — free options include Google Gemini (1,500 queries/day free), and DeepSeek runs about $2/month. Claude Desktop's free plan works too.</p></div></div></details>
       <details class="fadeup"><summary>How can I pay? <span class="chev">+</span></summary>
         <div class="faq-body"><div><p>DuitNow QR and FPX online banking for Malaysia, international cards via Stripe, or USDT (Solana / TRC20) for crypto. However you pay, your license is emailed to you and the product works exactly the same.</p></div></div></details>
       <details class="fadeup"><summary>What are the system requirements? <span class="chev">+</span></summary>
@@ -667,7 +667,7 @@ window.PLUGICT = {
     <h2 class="fadeup">Stop scrubbing timelines. <em>Start asking.</em></h2>
     <p class="sub fadeup" data-delay=".08">576 videos, one license, yours for life. Set up in three minutes.</p>
     <div class="fadeup" data-delay=".16" style="margin-top:34px">
-      <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access — $18.99</a>
+      <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access — $23.99</a>
     </div>
     <div class="fine fadeup" data-delay=".22">ONE-TIME · NO SUBSCRIPTION · NO ONGOING FEES</div>
 
@@ -801,11 +801,11 @@ window.PLUGICT = {
     const panes={duitnow:'pane-duitnow',usdt:'pane-usdt',fallback:'pane-fallback'};
 
     document.getElementById('pay-price').textContent=
-      (cfg.priceUsd||'$18.99')+' one-time'+(cfg.priceMyr?' · '+cfg.priceMyr:'');
+      (cfg.priceUsd||'$23.99')+' one-time'+(cfg.priceMyr?' · '+cfg.priceMyr:'');
     document.querySelectorAll('.support-mail').forEach(a=>{
       a.href='mailto:'+(cfg.supportEmail||'');a.textContent=cfg.supportEmail||'us';});
-    document.querySelectorAll('.usd-amt').forEach(e=>e.textContent=cfg.priceUsd||'$18.99');
-    document.getElementById('duitnow-amt').textContent=cfg.priceMyr||('the equivalent of '+(cfg.priceUsd||'$18.99')+' in MYR');
+    document.querySelectorAll('.usd-amt').forEach(e=>e.textContent=cfg.priceUsd||'$23.99');
+    document.getElementById('duitnow-amt').textContent=cfg.priceMyr||('the equivalent of '+(cfg.priceUsd||'$23.99')+' in MYR');
     if(cfg.duitnowQrImg){const img=document.getElementById('duitnow-qr');img.src=cfg.duitnowQrImg;img.hidden=false;}
     const solRow=document.getElementById('usdt-sol-row'),trcRow=document.getElementById('usdt-trc-row');
     if(cfg.usdtSol){solRow.hidden=false;document.getElementById('usdt-sol').textContent=cfg.usdtSol;
