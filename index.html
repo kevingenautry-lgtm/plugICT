@@ -51,6 +51,27 @@ window.PLUGICT = {
      {quote:'…', who:'Firdaus, KL'}. Section stays hidden while empty. */
   testimonials: [],
 
+  /* ── LIVE "Try it" demo (client-side, no backend, no API key) ──────────
+     The section auto-appears if EITHER of these is set:
+
+     1) demoIndexUrl — a JSON file built from your DEMO vault by
+        store/export_web_demo.py (commit it at the repo root). Powers the
+        free-text search box: real keyword search over the demo transcripts,
+        with clickable YouTube timestamps. This is honest "raw search" — the
+        full product's AI reasons on top of exactly this.
+
+     2) demoQA — REAL answers you captured by asking Claude (connected to the
+        vault) these questions. Shown as one-click suggested questions so a
+        visitor with no AI setup still sees a full reasoned, cited answer.
+        Leave empty until you paste real captures — never invent answers.
+        Each item:
+          { q:'What is FVG?',
+            a:'A fair value gap is …',                     // real Claude output
+            cites:[{title:'2022 Mentorship — Ep 4', ts:'15:23', v:'YT_ID'}] }
+  */
+  demoIndexUrl: 'demo-index.json',
+  demoQA: [],
+
   /* Launch-price countdown. Set a REAL deadline (ISO 8601) or leave empty —
      an empty value hides the countdown entirely. No fake scarcity. */
   saleEndsAt: '',          // e.g. '2026-08-01T00:00:00+08:00'
@@ -141,6 +162,41 @@ window.PLUGICT = {
   .t-cite{margin-top:14px; border-left:2px solid var(--terracotta-bright); padding-left:14px}
   .t-cite .title{color:#F4EFE4; font-weight:500}
   .t-cite .ts{color:var(--terracotta-bright)}
+
+  /* ── live "try it" demo ─────────────────────────────────── */
+  .trydemo{padding:70px 28px 40px}
+  .trydemo .inner{max-width:860px}
+  .trydemo .eyebrow{text-align:center}
+  .trydemo h2{font:400 clamp(28px,4vw,44px)/1.12 var(--serif); letter-spacing:-.015em; text-align:center; margin-top:16px}
+  .trydemo .sub{text-align:center; margin:16px auto 0}
+  .demo-chips{display:flex; flex-wrap:wrap; justify-content:center; gap:9px; margin:26px auto 0; max-width:720px}
+  .demo-chip{font:500 13px var(--sans); color:var(--ink-soft); cursor:pointer;
+    background:var(--card); border:1px solid var(--line); border-radius:999px; padding:9px 16px;
+    transition:border-color .2s, color .2s, transform .15s}
+  .demo-chip:hover{border-color:var(--terracotta); color:var(--ink); transform:translateY(-1px)}
+  .demo-console{margin:26px auto 0; background:var(--dark); border:1px solid rgba(232,98,44,.32); border-radius:16px;
+    overflow:hidden; box-shadow:0 0 60px -22px var(--ember-glow), 0 30px 70px -40px rgba(0,0,0,.9)}
+  .demo-bar{display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid var(--dark-line)}
+  .demo-bar .t-prompt{font:500 13px var(--mono); flex-shrink:0}
+  .demo-input{flex:1; background:none; border:none; outline:none; color:#F4EFE4;
+    font:400 13.5px var(--mono); caret-color:var(--terracotta-bright)}
+  .demo-input::placeholder{color:rgba(244,239,228,.35)}
+  .demo-go{background:rgba(232,98,44,.14); border:1px solid rgba(232,98,44,.4); color:var(--terracotta-bright);
+    font:500 12px var(--mono); border-radius:8px; padding:7px 14px; cursor:pointer; flex-shrink:0; transition:background .2s}
+  .demo-go:hover{background:rgba(232,98,44,.24)}
+  .demo-out{padding:22px 24px 26px; font:400 13.5px/1.8 var(--mono); color:#F4EFE4; min-height:150px}
+  .demo-out .status{color:rgba(244,239,228,.45)}
+  .demo-answer{color:rgba(244,239,228,.92); font:400 14.5px/1.7 var(--sans); white-space:pre-wrap; margin-bottom:8px}
+  .demo-hit{margin-top:14px; border-left:2px solid var(--terracotta-bright); padding-left:14px}
+  .demo-hit .title{color:#F4EFE4; font-weight:600; font-size:13.5px}
+  .demo-hit .snip{color:rgba(244,239,228,.7); font-size:12.5px; margin-top:3px}
+  .demo-hit .snip b{color:var(--terracotta-bright); font-weight:600}
+  .demo-hit a.play{display:inline-flex; align-items:center; gap:6px; margin-top:6px;
+    color:var(--terracotta-bright); text-decoration:none; font:500 12px var(--mono)}
+  .demo-hit a.play:hover{text-decoration:underline}
+  .demo-note{max-width:640px; margin:20px auto 0; text-align:center; font-size:13px; line-height:1.6; color:var(--ink-mut)}
+  .demo-note b{color:var(--terracotta)}
+  .demo-empty{color:rgba(244,239,228,.5)}
 
   /* ── video placeholder ─────────────────────────────────── */
   .video-slot{margin:0 28px; position:relative}
@@ -454,6 +510,26 @@ window.PLUGICT = {
     </div>
   </div>
 </header>
+
+<!-- ═══ LIVE "TRY IT" DEMO — appears if demoIndexUrl or demoQA is configured ═══ -->
+<section class="trydemo fadeup" id="trydemo" hidden>
+  <div class="inner">
+    <div class="eyebrow">Try it — no download, no signup</div>
+    <h2>Ask the vault <em>right here.</em></h2>
+    <p class="sub">A live sample of 5 videos from the 2022 Mentorship. Type a question, or tap one:</p>
+    <div class="demo-chips" id="demo-chips"></div>
+    <div class="demo-console">
+      <div class="demo-bar">
+        <span class="t-prompt">ict&gt;</span>
+        <input class="demo-input" id="demo-input" type="text" autocomplete="off"
+               spellcheck="false" placeholder="e.g. what is a fair value gap?" aria-label="Ask the demo vault">
+        <button class="demo-go" id="demo-go" type="button">ask</button>
+      </div>
+      <div class="demo-out" id="demo-out"></div>
+    </div>
+    <p class="demo-note" id="demo-note"></p>
+  </div>
+</section>
 
 <!-- ═══ DEMO VIDEO — hidden until PLUGICT.demoVideoUrl is set in the config ═══ -->
 <div class="video-slot fadeup" id="video-slot" hidden>
@@ -989,6 +1065,139 @@ window.PLUGICT = {
       run();
     }
     run();
+  })();
+
+  /* ── live "try it" demo: real client-side search over the demo vault ──
+     Powered by demo-index.json (built by store/export_web_demo.py) and/or
+     PLUGICT.demoQA (real captured Claude answers). Nothing here fabricates
+     ICT content — search results come from the actual demo transcripts, and
+     canned answers are only shown if you pasted real ones into the config. */
+  (function(){
+    const cfg=window.PLUGICT||{};
+    const sec=document.getElementById('trydemo'); if(!sec) return;
+    const out=document.getElementById('demo-out');
+    const input=document.getElementById('demo-input');
+    const go=document.getElementById('demo-go');
+    const chipsEl=document.getElementById('demo-chips');
+    const noteEl=document.getElementById('demo-note');
+    const qa=Array.isArray(cfg.demoQA)?cfg.demoQA.filter(x=>x&&x.q&&x.a):[];
+
+    let index=null;              // {shortforms, chunks:[{t,v,p,ts,x}], demo:{count,total}}
+    const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const tsToSec=ts=>{const p=String(ts).split(':').map(Number);
+      return p.length===3?p[0]*3600+p[1]*60+p[2]:p.length===2?p[0]*60+p[1]:(p[0]||0);};
+    const ytLink=(v,ts)=>v?`https://youtu.be/${encodeURIComponent(v)}?t=${tsToSec(ts)}`:null;
+
+    // expand ALL-CAPS ICT acronyms exactly like the vault's expand_query()
+    const expand=q=>{const sf=(index&&index.shortforms)||{};
+      return q.split(/\s+/).map(tok=>{const core=tok.replace(/[?!.,;:()]/g,'');
+        if(core&&core===core.toUpperCase()&&sf[core])
+          return sf[core].split(' — ')[0].split(' / ')[0].trim();
+        return tok;}).join(' ');};
+
+    const STOP=new Set(['the','a','an','is','of','to','in','on','and','or','what','how','does','do','you','your','it','for','me','explain','define']);
+    const terms=q=>expand(q).toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>2&&!STOP.has(w));
+
+    function search(q){
+      if(!index||!index.chunks) return [];
+      const ts=terms(q); if(!ts.length) return [];
+      const scored=[];
+      for(const c of index.chunks){
+        const hay=(c.t+' '+c.x).toLowerCase();
+        let score=0; for(const t of ts){ let i=hay.indexOf(t);
+          while(i!==-1){ score+=(hay.indexOf(t)<c.t.length?3:1); i=hay.indexOf(t,i+t.length);} }
+        if(score>0) scored.push({c,score});
+      }
+      scored.sort((a,b)=>b.score-a.score);
+      const seen=new Set(),hits=[];
+      for(const {c} of scored){const k=c.t+'|'+c.ts; if(seen.has(k))continue; seen.add(k);
+        hits.push(c); if(hits.length>=3)break;}
+      return hits;
+    }
+
+    function snippet(text,q){
+      const ts=terms(q); let text2=esc(text);
+      // bold the first matched term occurrence(s), trim around the first hit
+      let firstIdx=-1;
+      for(const t of ts){const i=text.toLowerCase().indexOf(t); if(i!==-1&&(firstIdx===-1||i<firstIdx))firstIdx=i;}
+      let start=Math.max(0,firstIdx-60);
+      let frag=text.slice(start,start+220);
+      frag=esc(frag);
+      for(const t of ts){frag=frag.replace(new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig'),'<b>$1</b>');}
+      return (start>0?'…':'')+frag+'…';
+    }
+
+    function renderHits(hits,q){
+      if(!hits.length){
+        out.innerHTML='<div class="demo-empty">No match in this 5-video sample. '
+          +'Try “fair value gap”, “liquidity”, or a suggested question above — '
+          +'the full vault covers all 576 videos.</div>'; return;}
+      let html='<div class="status">✓ '+hits.length+' result'+(hits.length>1?'s':'')
+        +' in the demo sample</div>';
+      for(const c of hits){const link=ytLink(c.v,c.ts);
+        html+='<div class="demo-hit"><div class="title">'+esc(c.t)+'</div>'
+          +'<div class="snip">'+snippet(c.x,q)+'</div>'
+          +(link?'<a class="play" href="'+link+'" target="_blank" rel="noopener">▶ watch at '+esc(c.ts)+'</a>':'')
+          +'</div>';}
+      out.innerHTML=html;
+    }
+
+    function renderQA(item){
+      let html='<div class="demo-answer">'+esc(item.a)+'</div>';
+      (item.cites||[]).forEach(ct=>{const link=ytLink(ct.v,ct.ts);
+        html+='<div class="demo-hit"><div class="title">'+esc(ct.title||'')+'</div>'
+          +(link?'<a class="play" href="'+link+'" target="_blank" rel="noopener">▶ watch at '+esc(ct.ts||'')+'</a>':'')
+          +'</div>';});
+      out.innerHTML=html;
+    }
+
+    async function ask(q){
+      q=(q||'').trim(); if(!q) return;
+      input.value=q;
+      // exact-ish match against a captured Q&A first (full reasoned answer)
+      const hit=qa.find(x=>x.q.toLowerCase().replace(/[?.!]/g,'').trim()
+                          ===q.toLowerCase().replace(/[?.!]/g,'').trim());
+      if(hit){renderQA(hit); return;}
+      out.innerHTML='<div class="status">Searching the demo sample…</div>';
+      await new Promise(r=>setTimeout(r,180));
+      renderHits(search(q),q);
+    }
+
+    function buildChips(){
+      const qs=qa.length?qa.map(x=>x.q):['What is a fair value gap?','Silver bullet entry window','Liquidity sweep','Order block'];
+      chipsEl.innerHTML='';
+      qs.slice(0,6).forEach(q=>{const b=document.createElement('button');
+        b.type='button'; b.className='demo-chip'; b.textContent=q;
+        b.addEventListener('click',()=>ask(q)); chipsEl.appendChild(b);});
+    }
+
+    function activate(){
+      sec.hidden=false;
+      buildChips();
+      go.addEventListener('click',()=>ask(input.value));
+      input.addEventListener('keydown',e=>{if(e.key==='Enter')ask(input.value);});
+      // seed the console with the first suggested answer/search so it's never empty
+      const seed=qa.length?qa[0].q:'fair value gap';
+      if(index||qa.length) ask(seed);
+      else out.innerHTML='<div class="demo-empty">Live demo loading…</div>';
+    }
+
+    // Try to load the search index; show the section if we have EITHER
+    // real search data OR captured Q&A. Never show an empty shell.
+    const url=cfg.demoIndexUrl;
+    const finish=()=>{ if(index||qa.length) activate(); };
+    if(url){
+      fetch(url,{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{
+        if(j&&Array.isArray(j.chunks)&&j.chunks.length){
+          index=j;
+          if(noteEl&&j.demo) noteEl.innerHTML='This is the <b>raw search</b> over '
+            +(j.demo.count||'5')+' sample videos. The full product connects your AI '
+            +'agent, which <b>reasons over these results</b> to answer in plain English '
+            +'— across all '+(j.demo.total||'576')+' videos.';
+        }
+        finish();
+      }).catch(finish);
+    } else { finish(); }
   })();
 </script>
 </body>
