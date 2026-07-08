@@ -156,6 +156,18 @@ their same `license.key`.
    existing `license.key` opens it unchanged. (New buyers: nothing changes.)
 5. Update the video count in the landing page / schema / emails if it changed.
 
+> **Measure before you ship.** After any rebuild — or any change to chunking,
+> embeddings, reranking, FTS, or KG expansion — run the retrieval eval against
+> your real vault and compare to the last run:
+> ```bash
+> ICT_VAULT_FILE=…/ict-vault.kevin ICT_VAULT_LICENSE=…/license.key \
+>   python tests/run_benchmark.py --json bench-$(date +%F).json
+> ```
+> It reports top-1 hit rate, top-5 recall, timing, and a per-category breakdown
+> (definition / comparison / timing / news / model / …), and fails if top-5
+> recall drops below 80%. That's how you know a change actually helped instead
+> of guessing.
+
 > **Guard your `.vault_key`.** Losing it means you can't rebuild an
 > update-compatible vault (you'd be forced to `--rotate-key`, which re-licenses
 > everyone). Keep a secure backup — it's the one irreplaceable secret.
