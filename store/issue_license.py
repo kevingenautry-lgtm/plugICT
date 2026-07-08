@@ -101,6 +101,42 @@ def _log(email, order_id, license_id, filename, method):
         w.writerow([datetime.now(timezone.utc).isoformat(), email, order_id, license_id, filename, method])
 
 
+def _seller_bcc():
+    """Where to blind-copy every issued license, so the seller keeps a durable
+    record even though Render's ledger CSV is on ephemeral disk. Defaults to the
+    support address (already configured); set LICENSE_BCC to override, or set it
+    to a blank/'off' value to disable."""
+    bcc = os.environ.get("LICENSE_BCC")
+    if bcc is None:
+        bcc = os.environ.get("ICT_SUPPORT_EMAIL", "")
+    bcc = bcc.strip()
+    if bcc.lower() in ("", "off", "none", "false"):
+        return ""
+    return bcc
+
+
+def _build_license_message(email, license_path, license_id, sender, bcc=""):
+    """Construct the license email (buyer + optional blind seller copy).
+
+    Bcc is set as a header; smtplib.send_message adds it to the envelope
+    recipients but strips it from the transmitted message, so the buyer never
+    sees it — a true blind copy.
+    """
+    subject, text, html = emails.license_email(email, license_id)
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = sender
+    msg["To"] = email
+    if bcc and bcc.strip().lower() != email.strip().lower():
+        msg["Bcc"] = bcc
+    msg.set_content(text)
+    msg.add_alternative(html, subtype="html")
+    with open(license_path, "rb") as f:
+        msg.add_attachment(f.read(), maintype="application", subtype="octet-stream",
+                           filename="license.key")
+    return msg
+
+
 def _email_license(email, license_path, license_id):
     """Send the license.key as an attachment via SMTP. Config via env vars."""
     host = os.environ.get("SMTP_HOST")
@@ -111,17 +147,9 @@ def _email_license(email, license_path, license_id):
     user = os.environ.get("SMTP_USER", "")
     pw = os.environ.get("SMTP_PASS", "")
     sender = os.environ.get("SMTP_FROM", user)
+    bcc = _seller_bcc()
 
-    subject, text, html = emails.license_email(email, license_id)
-    msg = EmailMessage()
-    msg["Subject"] = subject
-    msg["From"] = sender
-    msg["To"] = email
-    msg.set_content(text)
-    msg.add_alternative(html, subtype="html")
-    with open(license_path, "rb") as f:
-        msg.add_attachment(f.read(), maintype="application", subtype="octet-stream",
-                           filename="license.key")
+    msg = _build_license_message(email, license_path, license_id, sender, bcc)
 
     ctx = ssl.create_default_context()
     with smtplib.SMTP(host, port) as s:
@@ -129,7 +157,7 @@ def _email_license(email, license_path, license_id):
         if user:
             s.login(user, pw)
         s.send_message(msg)
-    print(f"  emailed license to {email}")
+    print(f"  emailed license to {email}" + (f" (bcc {bcc})" if bcc else ""))
 
 
 def _batch(csv_path, email_it, method="manual"):
