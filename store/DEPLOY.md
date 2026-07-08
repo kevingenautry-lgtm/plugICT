@@ -75,16 +75,22 @@ Order matters — do the sections top to bottom.
 
 1. `python scripts/build.py` → produces `ict-vault.kevin` (+ the keys, which stay
    secret).
-2. `python scripts/deliver.py you@example.com TEST` → builds a delivery folder
-   (app + vault + `setup.bat/.sh` + example configs, **no** `.vault_key`). Zip it.
-3. Create a **GitHub Release** on `plugICT` and attach that zip. The vault is
-   AES-encrypted and useless without a per-buyer `license.key`, so a public
-   Release asset is safe by design.
+2. `python scripts/deliver.py --hosted` → builds `delivery/plugict/` **and**
+   `delivery/plugict.zip` (app + vault + `setup.bat/.sh` + example configs,
+   **no** `license.key`, **no** `.vault_key` — it aborts if a license sneaks in).
+3. Create a **GitHub Release** on `plugICT` (tag `v1.0`) and attach
+   `plugict.zip`. The vault is AES-encrypted and useless without a per-buyer
+   `license.key`, so a public Release asset is safe by design. The new release
+   becomes `/releases/latest` — exactly where the license email points (the demo
+   keeps its own `v1.0-demo` tag, so the landing-page demo link is unaffected).
 4. Confirm `ICT_VAULT_DOWNLOAD_URL` (in Render env / `render.yaml`) points at the
    release — the `/releases/latest` default works once a release exists.
 
-> The one rule: **`.vault_key` must never appear in the zip, the repo, or the
-> Release.** It lives only on your machine and in Render's Secret Files.
+> Two rules: **`.vault_key` never appears in any zip, the repo, or a Release**
+> (it lives only on your machine and in Render's Secret Files). And **only the
+> `--hosted` zip is ever uploaded publicly** — a per-buyer folder
+> (`python scripts/deliver.py buyer@email ORDER-1`) contains that buyer's real
+> `license.key` and is for direct manual delivery only.
 
 ---
 
