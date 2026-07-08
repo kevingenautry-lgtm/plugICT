@@ -61,34 +61,41 @@ def _get_collection():
 
 
 # ── Search functions ─────────────────────────────────────────────────────────
-def search_vault(query, top_k=5, playlist=None):
+def _fts_candidates(query_text, limit, playlist=None):
+    """Keyword (FTS5) candidates for a query string. Returns [] on any error."""
+    out = []
+    fts_query = vc.sanitize_fts(query_text)
+    if not fts_query:
+        return out
+    try:
+        sql = ("SELECT title, video_id, start_ts, playlist, "
+               "snippet(transcripts_fts, 5, '<b>', '</b>', '...', 80) "
+               "FROM transcripts_fts WHERE content MATCH ?")
+        params = [fts_query]
+        if playlist:
+            sql += " AND playlist = ?"
+            params.append(playlist)
+        sql += " ORDER BY rank LIMIT ?"
+        params.append(limit)
+        for r in _db.execute(sql, params).fetchall():
+            out.append({'method': 'keyword', 'title': r[0], 'video_id': r[1],
+                        'timestamp': r[2], 'playlist': r[3], 'snippet': r[4]})
+    except sqlite3.Error as e:
+        log(f"[warn] keyword search unavailable: {e}")
+    return out
+
+
+def search_vault(query, top_k=5, playlist=None, kg=True):
     ensure_vault()
     results = []
     expanded, _ = vc.expand_query(query)
     # Over-fetch from each source so the reranker has real choice, then trim.
     pool = top_k + 5
 
-    # FTS5 — snippet from the CONTENT column (index 5), sanitised input.
-    fts_query = vc.sanitize_fts(expanded)
-    if fts_query:
-        try:
-            sql = ("SELECT title, video_id, start_ts, playlist, "
-                   "snippet(transcripts_fts, 5, '<b>', '</b>', '...', 80) "
-                   "FROM transcripts_fts WHERE content MATCH ?")
-            params = [fts_query]
-            if playlist:
-                sql += " AND playlist = ?"
-                params.append(playlist)
-            sql += " ORDER BY rank LIMIT ?"
-            params.append(pool)
-            for r in _db.execute(sql, params).fetchall():
-                results.append({'method': 'keyword', 'title': r[0], 'video_id': r[1],
-                                'timestamp': r[2], 'playlist': r[3], 'snippet': r[4]})
-        except sqlite3.Error as e:
-            log(f"[warn] keyword search unavailable: {e}")
+    # 1) FTS5 keyword on the (acronym-expanded) query.
+    results.extend(_fts_candidates(expanded, pool, playlist))
 
-    # ChromaDB — semantic, uses original query. Dedup against keyword hits by
-    # (title, timestamp) so the same chunk never occupies two result slots.
+    # 2) ChromaDB semantic on the original query.
     try:
         where = {'playlist': playlist} if playlist else None
         out = _get_collection().query(query_texts=[query], n_results=pool, where=where)
@@ -96,18 +103,29 @@ def search_vault(query, top_k=5, playlist=None):
         metas = out.get('metadatas', [[]])[0]
         for i, doc in enumerate(docs):
             m = metas[i] if i < len(metas) else {}
-            if not any(r.get('title') == m.get('title') and r.get('timestamp') == m.get('start_ts')
-                       for r in results):
-                results.append({'method': 'semantic', 'title': m.get('title', 'Unknown'),
-                                'video_id': m.get('video_id', ''), 'timestamp': m.get('start_ts', ''),
-                                'playlist': m.get('playlist', ''), 'snippet': doc[:500]})
+            results.append({'method': 'semantic', 'title': m.get('title', 'Unknown'),
+                            'video_id': m.get('video_id', ''), 'timestamp': m.get('start_ts', ''),
+                            'playlist': m.get('playlist', ''), 'snippet': doc[:500]})
     except ImportError:
         log("[warn] semantic search unavailable — chromadb not installed")
     except Exception as e:
         log(f"[warn] semantic search unavailable: {e}")
 
-    # Cross-encoder rerank the deduped pool → most relevant first. Degrades to
-    # the pre-rerank order if the model isn't available (never worse than before).
+    # 3) Knowledge-graph auto-expansion: widen the pool with chunks about
+    #    concepts directly related to the query's ICT entities. The reranker
+    #    (step 5) scores these against the ORIGINAL query, so a related-concept
+    #    chunk only surfaces if it's genuinely relevant — otherwise it's dropped.
+    if kg:
+        try:
+            for term in vc.kg_expand(_db, query + ' ' + expanded):
+                for c in _fts_candidates(term, 2, playlist):
+                    c['method'] = 'kg'
+                    results.append(c)
+        except Exception as e:
+            log(f"[warn] kg expansion skipped: {e}")
+
+    # 4) Dedup (one chunk never fills two slots), then 5) cross-encoder rerank.
+    results = vc.dedup_candidates(results)
     return vc.rerank(query, results, top_k)
 
 

@@ -15,6 +15,7 @@ never drift out of sync again.
 
 import io
 import os
+import re
 import sys
 import glob
 import signal
@@ -633,6 +634,75 @@ def _cand_text(c):
     return t.replace('<b>', '').replace('</b>', '')
 
 
+def _cand_key(c):
+    """Identity of a chunk for dedup: its source video + timestamp (falls back
+    to title when video_id is absent). Both search paths carry these fields
+    (session uses start_ts, MCP uses timestamp)."""
+    vid = c.get('video_id') or c.get('title') or ''
+    ts = c.get('start_ts') or c.get('timestamp') or ''
+    return (vid.strip().lower(), str(ts).strip())
+
+
+def dedup_candidates(cands):
+    """Drop duplicate chunks (same video+timestamp) so one chunk never occupies
+    two result slots. Keeps first occurrence; on a duplicate, prefers the longer
+    text (fuller rerank context) and marks it as matching both sources."""
+    seen = {}
+    order = []
+    for c in cands:
+        k = _cand_key(c)
+        if k not in seen:
+            seen[k] = c
+            order.append(k)
+        else:
+            kept = seen[k]
+            if len(_cand_text(c)) > len(_cand_text(kept)):
+                # keep the fuller text but remember it matched both retrievers
+                c['_dup_of'] = kept.get('source') or kept.get('method')
+                seen[k] = c
+    return [seen[k] for k in order]
+
+
+def kg_expand(db, text, max_related=3):
+    """Auto knowledge-graph expansion: find KG entities the query mentions and
+    return their directly-related entity names, to widen retrieval. Empty on any
+    problem (missing tables, older vault) — callers degrade to normal search.
+
+    The reranker then judges every widened candidate against the ORIGINAL query,
+    so related-concept chunks only surface if they're actually relevant.
+    """
+    if not text:
+        return []
+    try:
+        names = [r[0] for r in db.execute("SELECT name FROM entities").fetchall() if r[0]]
+    except Exception:
+        return []
+    low = text.lower()
+    # word-boundary match so short entities ('OB','MS') don't match inside words
+    def mentioned(name):
+        return re.search(r'(?<![a-z0-9])' + re.escape(name.lower()) + r'(?![a-z0-9])', low)
+    hits = [n for n in names if mentioned(n)]
+    if not hits:
+        return []
+    seen = {h.lower() for h in hits}
+    related = []
+    for e in hits:
+        try:
+            rows = db.execute(
+                "SELECT from_entity, to_entity FROM relations "
+                "WHERE from_entity=? OR to_entity=?", (e, e)).fetchall()
+        except Exception:
+            continue
+        for a, b in rows:
+            other = b if a == e else a
+            if other and other.lower() not in seen:
+                seen.add(other.lower())
+                related.append(other)
+                if len(related) >= max_related:
+                    return related
+    return related
+
+
 def warm_reranker():
     """Best-effort preload of the cross-encoder so the buyer's FIRST real query
     isn't stalled by a model download. Called from run_doctor (setup). Returns
@@ -730,6 +800,7 @@ class VaultSession:
         except Exception as e:
             print(f"(semantic search unavailable: {e})", file=sys.stderr)
 
+        candidates = dedup_candidates(candidates)
         ranked = rerank(query, candidates, top_k) if candidates else []
         return ranked, expanded, changed
 
