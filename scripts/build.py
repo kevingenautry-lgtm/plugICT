@@ -2,8 +2,14 @@
 build.py — Build encrypted ICT Knowledge Vault
 ================================================
 Envelope encryption:
-  vault_key (random) → encrypts the vault (zstd-compressed, AES-256-CTR)
+  vault_key → encrypts the vault (zstd-compressed, AES-256-CTR)
   .vault_key → saved for generate_key.py to wrap per-buyer
+
+Key stability (so you can ship new videos to existing buyers):
+  If .vault_key already exists, it is REUSED, so the rebuilt vault opens with
+  every license already issued. Buyers just re-download and keep their key.
+  Pass --rotate-key to force a NEW key (security rotation) — this invalidates
+  all previously issued licenses, so only do it deliberately.
 
 Output: ict-vault.kevin + .vault_key (keep both secret)
 """
@@ -13,6 +19,8 @@ from pathlib import Path
 from datetime import datetime
 
 import vault_core as vc
+
+ROTATE_KEY = "--rotate-key" in sys.argv
 
 # Source content lives on the seller machine; override with ICT_SOURCE_DIR.
 VAULT_DIR = Path(os.environ.get("ICT_SOURCE_DIR", r"C:\Users\kevin\Hermes ICT Selling Idea"))
@@ -126,8 +134,23 @@ print(f"  OK ChromaDB tar: {chroma_size:.0f} MB")
 print("\n[4/5] Compressing + encrypting vault...")
 
 raw_size = (len(db_bytes) + len(chroma_bytes)) / 1024 / 1024
+
+# Reuse the existing key (default) so already-issued licenses keep working with
+# the rebuilt vault. --rotate-key forces a fresh key (invalidates old licenses).
+existing_key = None
+if VAULT_KEY_FILE.exists() and not ROTATE_KEY:
+    existing_key = VAULT_KEY_FILE.read_bytes()
+    if len(existing_key) != 32:
+        sys.exit(f"ERROR: {VAULT_KEY_FILE} is {len(existing_key)} bytes, expected 32. "
+                 "Refusing to build with a malformed key. Restore the real .vault_key "
+                 "or run with --rotate-key to mint a new one (invalidates old licenses).")
+    print(f"  Reusing existing .vault_key — existing licenses stay valid.")
+elif ROTATE_KEY and VAULT_KEY_FILE.exists():
+    print("  --rotate-key: minting a NEW key. WARNING: all previously issued "
+          "licenses will STOP working with this vault.")
+
 final_encrypted, vault_key, vault_hash = vc.pack_and_encrypt(
-    db_bytes, chroma_bytes, compress=True, level=19)
+    db_bytes, chroma_bytes, compress=True, level=19, vault_key=existing_key)
 
 with open(OUTPUT_FILE, 'wb') as f:
     f.write(final_encrypted)

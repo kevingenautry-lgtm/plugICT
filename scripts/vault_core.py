@@ -408,11 +408,16 @@ def expand_query(query):
 
 
 # ── Build-side packaging (used by build.py; keeps format symmetric) ──────────
-def pack_and_encrypt(db_bytes, chroma_bytes, compress=True, level=19):
+def pack_and_encrypt(db_bytes, chroma_bytes, compress=True, level=19, vault_key=None):
     """Package db+chroma, optionally zstd-compress, then AES-256-CTR encrypt.
 
     Returns (encrypted_blob, vault_key, sha256_hex). The blob layout is
     [iv:16][ciphertext] where the plaintext is the versioned header + body.
+
+    Pass an existing 32-byte `vault_key` to keep the key STABLE across rebuilds
+    — this is what lets you ship new videos to existing buyers without
+    re-licensing them (their license wraps this same key). Omit it to mint a
+    fresh key (first build, or a deliberate security rotation).
     """
     from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
     from cryptography.hazmat.backends import default_backend
@@ -429,7 +434,10 @@ def pack_and_encrypt(db_bytes, chroma_bytes, compress=True, level=19):
 
     plaintext = HEADER.pack(version, len(db_bytes), len(chroma_bytes)) + body
 
-    vault_key = secrets.token_bytes(32)
+    if vault_key is None:
+        vault_key = secrets.token_bytes(32)
+    elif len(vault_key) != 32:
+        raise ValueError(f"vault_key must be 32 bytes, got {len(vault_key)}")
     iv = secrets.token_bytes(16)
     cipher = Cipher(algorithms.AES(vault_key), modes.CTR(iv), backend=default_backend())
     encryptor = cipher.encryptor()

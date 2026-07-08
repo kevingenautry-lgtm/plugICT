@@ -134,4 +134,33 @@ python store/issue_license.py buyer@email ORDER-ID --method usdt --email
 python store/issue_license.py buyer@email ORDER-ID --method duitnow --email
 ```
 
+---
+
+## Shipping NEW videos to existing buyers (ICT uploads more content)
+
+The vault key is **stable across rebuilds** (`build.py` reuses `.vault_key`
+unless you pass `--rotate-key`), so a vault rebuilt with new videos still opens
+with **every license already issued**. Existing buyers just re-download and keep
+their same `license.key`.
+
+1. Drop the new transcript `.md` files into your source library.
+2. Rebuild the search infra + vault (reprocesses everything, **reuses the key**):
+   ```bash
+   python scripts/ict_ingest.py          # rebuilds FTS5 + Chroma + kg.db
+   python scripts/build.py               # reuses .vault_key -> old licenses stay valid
+   python scripts/deliver.py --hosted    # -> delivery/plugict.zip
+   ```
+3. Upload the new `plugict.zip` to the GitHub Release (new tag, e.g. `v1.1`, or
+   replace the `v1.0` asset). `/releases/latest` keeps the email link correct.
+4. Tell existing buyers to re-download and replace their `ict-vault.kevin` — their
+   existing `license.key` opens it unchanged. (New buyers: nothing changes.)
+5. Update the video count in the landing page / schema / emails if it changed.
+
+> **Guard your `.vault_key`.** Losing it means you can't rebuild an
+> update-compatible vault (you'd be forced to `--rotate-key`, which re-licenses
+> everyone). Keep a secure backup — it's the one irreplaceable secret.
+>
+> **`--rotate-key`** is only for a security incident (key leaked). It mints a new
+> key and **invalidates every issued license** — you'd have to re-issue them all.
+
 (Needs the same `SMTP_*` and `ICT_SOURCE_DIR` env as the webhook.)
