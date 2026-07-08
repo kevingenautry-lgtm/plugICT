@@ -65,6 +65,8 @@ def search_vault(query, top_k=5, playlist=None):
     ensure_vault()
     results = []
     expanded, _ = vc.expand_query(query)
+    # Over-fetch from each source so the reranker has real choice, then trim.
+    pool = top_k + 5
 
     # FTS5 — snippet from the CONTENT column (index 5), sanitised input.
     fts_query = vc.sanitize_fts(expanded)
@@ -78,17 +80,18 @@ def search_vault(query, top_k=5, playlist=None):
                 sql += " AND playlist = ?"
                 params.append(playlist)
             sql += " ORDER BY rank LIMIT ?"
-            params.append(top_k)
+            params.append(pool)
             for r in _db.execute(sql, params).fetchall():
                 results.append({'method': 'keyword', 'title': r[0], 'video_id': r[1],
                                 'timestamp': r[2], 'playlist': r[3], 'snippet': r[4]})
         except sqlite3.Error as e:
             log(f"[warn] keyword search unavailable: {e}")
 
-    # ChromaDB — semantic, uses original query.
+    # ChromaDB — semantic, uses original query. Dedup against keyword hits by
+    # (title, timestamp) so the same chunk never occupies two result slots.
     try:
         where = {'playlist': playlist} if playlist else None
-        out = _get_collection().query(query_texts=[query], n_results=top_k, where=where)
+        out = _get_collection().query(query_texts=[query], n_results=pool, where=where)
         docs = out.get('documents', [[]])[0]
         metas = out.get('metadatas', [[]])[0]
         for i, doc in enumerate(docs):
@@ -103,7 +106,9 @@ def search_vault(query, top_k=5, playlist=None):
     except Exception as e:
         log(f"[warn] semantic search unavailable: {e}")
 
-    return results[:top_k]
+    # Cross-encoder rerank the deduped pool → most relevant first. Degrades to
+    # the pre-rerank order if the model isn't available (never worse than before).
+    return vc.rerank(query, results, top_k)
 
 
 def get_all_playlists():

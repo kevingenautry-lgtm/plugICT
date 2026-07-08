@@ -626,6 +626,28 @@ def open_vault(vault_file=VAULT_FILE, license_file=LICENSE_FILE, on_progress=Non
 _reranker = None
 
 
+def _cand_text(c):
+    """Text a candidate exposes for reranking — supports both the session path
+    ('text') and the MCP path ('snippet'). Strips FTS highlight tags."""
+    t = c.get('text') or c.get('snippet') or ''
+    return t.replace('<b>', '').replace('</b>', '')
+
+
+def warm_reranker():
+    """Best-effort preload of the cross-encoder so the buyer's FIRST real query
+    isn't stalled by a model download. Called from run_doctor (setup). Returns
+    True if the model is ready, False if unavailable (rerank then no-ops)."""
+    global _reranker
+    if _reranker is not None:
+        return True
+    try:
+        from sentence_transformers import CrossEncoder
+        _reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
+        return True
+    except Exception:
+        return False
+
+
 def rerank(query, candidates, top_k):
     """Cross-encoder rerank; degrades gracefully if the model isn't available."""
     global _reranker
@@ -635,7 +657,7 @@ def rerank(query, candidates, top_k):
         if _reranker is None:
             from sentence_transformers import CrossEncoder
             _reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
-        scores = _reranker.predict([(query, c.get('text', '')[:512]) for c in candidates])
+        scores = _reranker.predict([(query, _cand_text(c)[:512]) for c in candidates])
         for c, s in zip(candidates, scores):
             c['rerank_score'] = float(s)
         candidates.sort(key=lambda c: c.get('rerank_score', 0.0), reverse=True)
@@ -757,6 +779,14 @@ def run_doctor(vault_file=VAULT_FILE, license_file=LICENSE_FILE):
             check(f"vault opens & decrypts ({n} videos, licensed to {who})", True)
         except Exception as e:
             check("vault opens & decrypts", False, str(e))
+    # Preload the reranker now (one-time ~90MB) so the first real search is fast.
+    # Not a hard requirement — search still works (unranked) if it can't load.
+    print("  … preparing the reranker model (one-time download, ~90MB)…")
+    if warm_reranker():
+        check("reranker model ready", True)
+    else:
+        print("  ⚠ reranker model unavailable — search still works, just unranked "
+              "(install sentence-transformers to enable it)")
     print("\n" + ("✅ All good — add the MCP config to your AI agent and start asking questions."
                   if ok else "Some checks failed; fix the items above and re-run."))
     return 0 if ok else 1
