@@ -197,6 +197,17 @@ window.PLUGICT = {
   .demo-note{max-width:640px; margin:20px auto 0; text-align:center; font-size:13px; line-height:1.6; color:var(--ink-mut)}
   .demo-note b{color:var(--terracotta)}
   .demo-empty{color:rgba(244,239,228,.5)}
+  /* streaming demo: idle hint, typing caret, staggered card reveal */
+  .demo-idle{color:rgba(244,239,228,.42); font:400 13.5px/1.7 var(--mono)}
+  .demo-idle .cur{display:inline-block; width:7px; height:15px; margin-left:2px;
+    background:var(--terracotta-bright); vertical-align:-2px; animation:blink 1s steps(1) infinite}
+  .demo-cur{display:inline-block; width:7px; height:15px; background:var(--terracotta-bright);
+    vertical-align:-2px; margin-left:1px; animation:blink 1s steps(1) infinite}
+  .demo-hit.rin{opacity:0; transform:translateY(8px); animation:demo-rise .34s ease forwards}
+  @keyframes demo-rise{to{opacity:1; transform:none}}
+  .demo-again{margin-top:16px; font:500 12px var(--mono); letter-spacing:.04em;
+    color:var(--ink-mut); background:none; border:none; cursor:pointer; padding:0}
+  .demo-again:hover{color:var(--terracotta-bright)}
 
   /* ── video placeholder ─────────────────────────────────── */
   .video-slot{margin:0 28px; position:relative}
@@ -1140,40 +1151,85 @@ window.PLUGICT = {
       return (start>0?'…':'')+frag+'…';
     }
 
-    function renderHits(hits,q){
+    const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+    let runId=0;  // cancels an in-flight stream if the user asks again
+
+    function citeHtml(title,v,ts){
+      const link=ytLink(v,ts);
+      return '<div class="demo-hit"><div class="title">'+esc(title||'')+'</div>'
+        +(link?'<a class="play" href="'+link+'" target="_blank" rel="noopener">▶ watch at '+esc(ts||'')+'</a>':'')
+        +'</div>';
+    }
+    function againBtn(){
+      return '<button class="demo-again" type="button" data-again>↑ ask another question</button>';
+    }
+
+    // Stream real text word-by-word into el (ChatGPT-style). Honest: the text is
+    // real — a captured Claude answer or a real transcript snippet.
+    async function typeInto(el, text, myRun, wps){
+      if(REDUCED){ el.innerHTML=esc(text); return; }
+      const words=text.split(/(\s+)/); el.innerHTML='';
+      const cur=document.createElement('span'); cur.className='demo-cur';
+      el.appendChild(cur);
+      const delay=1000/((wps||42));
+      for(const w of words){
+        if(myRun!==runId) return;              // superseded — stop
+        cur.insertAdjacentText('beforebegin', w);
+        if(w.trim()) await sleep(delay);
+      }
+      cur.remove();
+    }
+
+    // Chip / captured-answer path: stream a REAL reasoned answer, then citations.
+    async function renderQA(item, myRun){
+      out.innerHTML='<div class="status">Answer from the vault</div>'
+        +'<div class="demo-answer" id="demo-ans"></div><div id="demo-cites"></div>';
+      await typeInto(document.getElementById('demo-ans'), item.a, myRun, 46);
+      if(myRun!==runId) return;
+      let c=''; (item.cites||[]).forEach(ct=>{c+=citeHtml(ct.title,ct.v,ct.ts);});
+      document.getElementById('demo-cites').innerHTML=c+againBtn();
+    }
+
+    // Typed-query path: real keyword search, results revealed one by one.
+    async function renderHits(hits,q,myRun){
       if(!hits.length){
         out.innerHTML='<div class="demo-empty">No match in this 5-video sample. '
           +'Try “fair value gap”, “liquidity”, or a suggested question above — '
           +'the full vault covers all 576 videos.</div>'; return;}
-      let html='<div class="status">✓ '+hits.length+' result'+(hits.length>1?'s':'')
-        +' in the demo sample</div>';
-      for(const c of hits){const link=ytLink(c.v,c.ts);
-        html+='<div class="demo-hit"><div class="title">'+esc(c.t)+'</div>'
+      out.innerHTML='<div class="status">✓ '+hits.length+' result'+(hits.length>1?'s':'')
+        +' in the demo sample</div><div id="demo-hits"></div>';
+      const box=document.getElementById('demo-hits');
+      for(const c of hits){
+        if(myRun!==runId) return;
+        const link=ytLink(c.v,c.ts);
+        const el=document.createElement('div');
+        el.className='demo-hit'+(REDUCED?'':' rin');
+        el.innerHTML='<div class="title">'+esc(c.t)+'</div>'
           +'<div class="snip">'+snippet(c.x,q)+'</div>'
-          +(link?'<a class="play" href="'+link+'" target="_blank" rel="noopener">▶ watch at '+esc(c.ts)+'</a>':'')
-          +'</div>';}
-      out.innerHTML=html;
-    }
-
-    function renderQA(item){
-      let html='<div class="demo-answer">'+esc(item.a)+'</div>';
-      (item.cites||[]).forEach(ct=>{const link=ytLink(ct.v,ct.ts);
-        html+='<div class="demo-hit"><div class="title">'+esc(ct.title||'')+'</div>'
-          +(link?'<a class="play" href="'+link+'" target="_blank" rel="noopener">▶ watch at '+esc(ct.ts||'')+'</a>':'')
-          +'</div>';});
-      out.innerHTML=html;
+          +(link?'<a class="play" href="'+link+'" target="_blank" rel="noopener">▶ watch at '+esc(c.ts)+'</a>':'');
+        box.appendChild(el);
+        if(!REDUCED) await sleep(150);
+      }
+      if(myRun===runId) box.insertAdjacentHTML('beforeend', againBtn());
     }
 
     async function ask(q){
       q=(q||'').trim(); if(!q) return;
       input.value=q;
-      // exact-ish match against a captured Q&A first (full reasoned answer)
+      const myRun=++runId;
+      // exact-ish match against a captured Q&A first (real reasoned answer)
       const hit=qa.find(x=>x.q.toLowerCase().replace(/[?.!]/g,'').trim()
                           ===q.toLowerCase().replace(/[?.!]/g,'').trim());
-      if(hit){renderQA(hit); return;}
+      if(hit){
+        out.innerHTML='<div class="status">Thinking…</div>';
+        if(!REDUCED) await sleep(450);
+        if(myRun!==runId) return;
+        return renderQA(hit, myRun);
+      }
       out.innerHTML='<div class="status">Searching the demo sample…</div>';
-      await new Promise(r=>setTimeout(r,180));
-      renderHits(search(q),q);
+      if(!REDUCED) await sleep(400);
+      if(myRun!==runId) return;
+      await renderHits(search(q), q, myRun);
     }
 
     function buildChips(){
@@ -1194,15 +1250,25 @@ window.PLUGICT = {
         b.addEventListener('click',()=>ask(q)); chipsEl.appendChild(b);});
     }
 
+    function idle(){
+      // empty, inviting start — user types first (no pre-filled answer)
+      out.innerHTML='<div class="demo-idle">Ask anything about ICT, or tap a '
+        +'question above.<span class="cur"></span></div>';
+    }
+
     function activate(){
       sec.hidden=false;
       buildChips();
+      input.placeholder = qa.length
+        ? 'Ask a question — e.g. ' + qa[0].q
+        : 'Ask anything about ICT — e.g. what is a fair value gap?';
       go.addEventListener('click',()=>ask(input.value));
       input.addEventListener('keydown',e=>{if(e.key==='Enter')ask(input.value);});
-      // seed the console with the first suggested answer/search so it's never empty
-      const seed=qa.length?qa[0].q:'fair value gap';
-      if(index||qa.length) ask(seed);
-      else out.innerHTML='<div class="demo-empty">Live demo loading…</div>';
+      // "ask another" → clear + refocus the input for a fresh question
+      out.addEventListener('click',e=>{
+        if(e.target.closest('[data-again]')){ input.value=''; idle(); input.focus(); }
+      });
+      idle();   // start empty; nothing is answered until the user acts
     }
 
     // Try to load the search index; show the section if we have EITHER
