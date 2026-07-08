@@ -125,6 +125,8 @@ ICT_GLOSSARY = {
         'IRL': 'Internal Range Liquidity — Liquidity within the current dealing range',
         'EQH': 'Equal Highs — Two or more swing highs at the same level, liquidity target',
         'EQL': 'Equal Lows — Two or more swing lows at the same level, liquidity target',
+        'REH': 'Relative Equal Highs — Roughly equal swing highs forming a buy-side liquidity pool',
+        'REL': 'Relative Equal Lows — Roughly equal swing lows forming a sell-side liquidity pool',
         'PDH': 'Previous Day High — Yesterday\'s highest price, often a liquidity level',
         'PDL': 'Previous Day Low — Yesterday\'s lowest price, often a liquidity level',
         'PWH': 'Previous Week High — Last week\'s highest price',
@@ -164,6 +166,7 @@ ICT_GLOSSARY = {
         'AMD': 'Accumulation, Manipulation, Distribution — The three-phase market cycle',
         'MMSM': 'Market Maker Sell Model — Institutional sell-side liquidity algorithm',
         'MMBM': 'Market Maker Buy Model — Institutional buy-side liquidity algorithm',
+        'MMXM': 'Market Maker Model — The general market maker buy/sell model (buy or sell variant)',
         'MM': 'Market Maker — Major institutions moving price to access liquidity',
     },
     "Time Concepts": {
@@ -202,6 +205,7 @@ ICT_GLOSSARY = {
         'DOP': 'Daily Open Price — The opening price of the current daily candle',
         'PO3': 'Power of 3 — Accumulation, Manipulation, Distribution market cycle',
         'CISD': 'Change In State of Delivery — Shift in how price is being delivered (fast vs slow)',
+        'ORB': 'Opening Range Break — A break of the range set at the open of a session',
     },
     "Candlestick & Price Action": {
         'Displacement': 'Displacement — Strong impulsive candle beyond the recent range',
