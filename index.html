@@ -1115,14 +1115,27 @@ window.PLUGICT = {
       return hits;
     }
 
+    // strip transcript formatting noise so snippets read as clean prose:
+    // play markers, markdown table rules, stray backticks, and the inline
+    // per-line timestamps (the citation already shows the real one).
+    function cleanText(t){
+      return String(t)
+        .replace(/[▶►]️?/g,' ')
+        .replace(/`+/g,'')
+        .replace(/:-+:|-{3,}/g,' ')
+        .replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g,' ')
+        .replace(/\s+/g,' ')
+        .trim();
+    }
+
     function snippet(text,q){
-      const ts=terms(q); let text2=esc(text);
-      // bold the first matched term occurrence(s), trim around the first hit
+      text=cleanText(text);
+      const ts=terms(q);
+      // trim around the first matched term occurrence
       let firstIdx=-1;
       for(const t of ts){const i=text.toLowerCase().indexOf(t); if(i!==-1&&(firstIdx===-1||i<firstIdx))firstIdx=i;}
       let start=Math.max(0,firstIdx-60);
-      let frag=text.slice(start,start+220);
-      frag=esc(frag);
+      let frag=esc(text.slice(start,start+220));
       for(const t of ts){frag=frag.replace(new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig'),'<b>$1</b>');}
       return (start>0?'…':'')+frag+'…';
     }
@@ -1164,9 +1177,19 @@ window.PLUGICT = {
     }
 
     function buildChips(){
-      const qs=qa.length?qa.map(x=>x.q):['What is a fair value gap?','Silver bullet entry window','Liquidity sweep','Order block'];
+      let qs;
+      if(qa.length){ qs=qa.map(x=>x.q); }
+      else {
+        // Only suggest questions that actually return a hit in THIS demo, so no
+        // chip ever leads to an empty result. Falls back if the index is thin.
+        const cand=['fair value gap','order block','liquidity','breaker block',
+          'optimal trade entry','market structure','displacement','equal highs',
+          'premium and discount','mitigation block','order flow','imbalance'];
+        qs=cand.filter(c=>search(c).length);
+        if(!qs.length) qs=['fair value gap','order block','liquidity'];
+      }
       chipsEl.innerHTML='';
-      qs.slice(0,6).forEach(q=>{const b=document.createElement('button');
+      qs.slice(0,5).forEach(q=>{const b=document.createElement('button');
         b.type='button'; b.className='demo-chip'; b.textContent=q;
         b.addEventListener('click',()=>ask(q)); chipsEl.appendChild(b);});
     }
