@@ -32,10 +32,13 @@ import json
 import time
 import hmac
 import hashlib
+import logging
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import issue_license  # noqa: E402
+
+logger = logging.getLogger(__name__)
 
 
 def parse_event(provider, payload):
@@ -223,6 +226,9 @@ def _build_app():
         except HTTPException:
             raise
         except Exception as e:  # noqa: BLE001 — 500 => processor retries
+            logger.exception(
+                "License issuance failed for provider=%s order_id=%s email=%s",
+                provider.lower(), order_id, email)
             raise HTTPException(status_code=500, detail="issuance failed; will retry") from e
         return {"status": "issued", "email": email}
 
@@ -232,5 +238,7 @@ def _build_app():
 # Exposed for `uvicorn store.webhook_server:app`
 try:  # pragma: no cover - only when fastapi is installed
     app = _build_app()
-except Exception:  # fastapi not installed — parse_event/verify_signature still importable
+except ModuleNotFoundError as e:  # fastapi not installed — helpers still importable
+    if e.name != "fastapi":
+        raise
     app = None
