@@ -28,6 +28,7 @@ import ssl
 import shutil
 import smtplib
 import argparse
+import tempfile
 from pathlib import Path
 from datetime import datetime, timezone
 from email.message import EmailMessage
@@ -41,6 +42,11 @@ import emails  # noqa: E402
 STORE_DIR = Path(__file__).resolve().parent
 # Where .vault_key / .vault_sha256 live (seller secrets). Override with env.
 SOURCE_DIR = Path(os.environ.get("ICT_SOURCE_DIR", STORE_DIR.parent / "scripts"))
+# Writable scratch space for generated license files. Render Secret Files mount
+# /etc/secrets read-only, so never write per-buyer keys next to .vault_key.
+LICENSE_WORK_DIR = Path(os.environ.get(
+    "ICT_LICENSE_WORK_DIR",
+    Path(tempfile.gettempdir()) / "plugict-licenses"))
 ISSUED_DIR = STORE_DIR / "issued"
 LEDGER = STORE_DIR / "issued_licenses.csv"
 
@@ -55,9 +61,11 @@ def issue(email, order_id, email_it=False, method="manual"):
     order_id = (order_id or f"ORDER-{datetime.now(timezone.utc):%Y%m%d%H%M%S}").strip()
     ISSUED_DIR.mkdir(exist_ok=True)
 
-    # generate_license writes next to vault_dir; point it at SOURCE_DIR, then
-    # move the result into store/issued/ so seller secrets stay put.
-    out_file, license_id = generate_license(email, order_id, vault_dir=SOURCE_DIR)
+    # Read seller secrets from SOURCE_DIR, but write the generated buyer license
+    # to a writable scratch dir. On Render, SOURCE_DIR is /etc/secrets, which is
+    # read-only because it is backed by Secret Files.
+    out_file, license_id = generate_license(
+        email, order_id, vault_dir=SOURCE_DIR, output_dir=LICENSE_WORK_DIR)
     dest = ISSUED_DIR / out_file.name
     shutil.move(str(out_file), str(dest))
 

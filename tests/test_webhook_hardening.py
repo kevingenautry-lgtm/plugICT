@@ -34,6 +34,16 @@ def test_b1_prod_refuses_without_secret(monkeypatch):
         webhook_server._build_app()
 
 
+def test_b1_module_import_surfaces_prod_guard(monkeypatch):
+    """The uvicorn-facing module import must not swallow the production guard."""
+    monkeypatch.setenv("RENDER", "true")
+    monkeypatch.delenv("WEBHOOK_SECRET", raising=False)
+    with pytest.raises(RuntimeError):
+        importlib.reload(webhook_server)
+    monkeypatch.delenv("RENDER", raising=False)
+    importlib.reload(webhook_server)
+
+
 def test_b1_dev_starts_without_secret():
     # No deploy env var -> local/dev -> still boots for testing
     assert webhook_server._build_app() is not None

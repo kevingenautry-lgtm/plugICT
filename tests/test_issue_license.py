@@ -56,6 +56,27 @@ def test_issued_license_unlocks_vault(tmp_path, monkeypatch):
     assert "buyer@example.com" in ledger and "ORDER-42" in ledger
 
 
+def test_issue_reads_secrets_but_writes_license_to_work_dir(tmp_path, monkeypatch):
+    """Render mounts /etc/secrets read-only; issuance must not write there."""
+    src = tmp_path / "secrets"
+    src.mkdir()
+    (src / ".vault_key").write_bytes(b"k" * 32)
+    (src / ".vault_sha256").write_text("abc123")
+    issued = tmp_path / "issued"
+    work = tmp_path / "work"
+    monkeypatch.setattr(issue_license, "SOURCE_DIR", src)
+    monkeypatch.setattr(issue_license, "LICENSE_WORK_DIR", work)
+    monkeypatch.setattr(issue_license, "ISSUED_DIR", issued)
+    monkeypatch.setattr(issue_license, "LEDGER", tmp_path / "ledger.csv")
+
+    license_path = issue_license.issue("Buyer@Example.com", "ORDER-43")
+
+    assert license_path.parent == issued
+    assert license_path.exists()
+    assert not list(src.glob("license_*.key"))
+    assert work.exists()
+
+
 def test_find_issued_is_idempotency_key(tmp_path, monkeypatch):
     """find_issued() must recognise an order_id already in the ledger, so the
     webhook can skip a duplicate delivery instead of re-issuing + re-emailing."""
