@@ -36,6 +36,26 @@ from generate_key import generate_license  # noqa: E402
 
 FULL_TOTAL = "576"
 
+# Regenerates the AI-agent config on the BUYER's machine (correct local paths),
+# so the demo never ships the seller's build path. Mirrors deliver.py.
+_DEMO_MAKE_CONFIGS = '''"""Write the Claude Desktop config with THIS folder's real path.
+
+Run once after creating the .venv (see README). Safe to re-run if you move
+the folder.
+"""
+import json, sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+VENV_PY = ROOT / ('.venv/Scripts/python.exe' if sys.platform == 'win32' else '.venv/bin/python')
+SERVER = ROOT / 'mcp_server.py'
+EXAMPLES = Path(__file__).resolve().parent
+
+cfg = {"mcpServers": {"ict-vault-demo": {"command": str(VENV_PY), "args": [str(SERVER)]}}}
+(EXAMPLES / 'claude_desktop_config.json').write_text(json.dumps(cfg, indent=2) + "\\n")
+print(f"Demo config written for: {ROOT}")
+'''
+
 
 def build_demo(source_dir, count=5, videos=None, cta="https://YOUR-SITE/#pricing"):
     source_dir = Path(source_dir)
@@ -97,23 +117,31 @@ def build_demo(source_dir, count=5, videos=None, cta="https://YOUR-SITE/#pricing
         "cryptography~=42.0\nchromadb~=0.5.0\nsentence-transformers~=3.0\n"
         "mcp~=1.2\nzstandard~=0.22\n")
 
-    # Bundle a ready-to-paste Claude Desktop config pointing at this demo folder.
+    # The AI-agent config must point at the BUYER's folder, not the seller's
+    # build path. Ship make_configs.py (regenerates the config on the buyer's
+    # machine) + a placeholder that says to run it — same pattern as the paid
+    # product. Never bake an absolute seller path into the demo.
     examples = out_dir / "examples"
     examples.mkdir(exist_ok=True)
+    (examples / "make_configs.py").write_text(_DEMO_MAKE_CONFIGS)
     (examples / "claude_desktop_config.json").write_text(
-        '{\n  "mcpServers": {\n    "ict-vault-demo": {\n'
-        f'      "command": "{(out_dir / ".venv/Scripts/python.exe").as_posix()}",\n'
-        f'      "args": ["{(out_dir / "mcp_server.py").as_posix()}"]\n'
-        "    }\n  }\n}\n")
+        '{\n  "_note": "Run  python examples/make_configs.py  first (after '
+        'creating the .venv) — it fills this file with the correct paths for '
+        'YOUR computer."\n}\n')
 
     (out_dir / "README.txt").write_text(
         f"ICT VAULT — FREE DEMO ({len(picks)}/{FULL_TOTAL} videos)\n"
         "=================================================\n\n"
         "This demo upgrades your AI agent with a few ICT videos so you can try\n"
         "the real experience before buying.\n\n"
-        "1. python -m venv .venv && .venv/Scripts/pip install -r requirements.txt\n"
-        "   (macOS/Linux: .venv/bin/pip install -r requirements.txt)\n"
-        "2. Verify:  .venv/Scripts/python mcp_server.py --doctor\n"
+        "1. Create the environment + install dependencies:\n"
+        "     python -m venv .venv\n"
+        "     .venv\\Scripts\\pip install -r requirements.txt      (Windows)\n"
+        "     .venv/bin/pip install -r requirements.txt          (macOS/Linux)\n"
+        "2. Write the config for THIS folder, then verify:\n"
+        "     .venv\\Scripts\\python examples\\make_configs.py\n"
+        "     .venv\\Scripts\\python mcp_server.py --doctor\n"
+        "     (macOS/Linux: swap .venv\\Scripts\\python -> .venv/bin/python)\n"
         "3. Add examples/claude_desktop_config.json to Claude Desktop, restart it,\n"
         "   then ask: \"What is a Fair Value Gap according to ICT?\"\n\n"
         f"This demo covers {len(picks)} videos. The full vault has {FULL_TOTAL} across\n"

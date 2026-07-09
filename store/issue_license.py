@@ -61,11 +61,17 @@ def issue(email, order_id, email_it=False, method="manual"):
     dest = ISSUED_DIR / out_file.name
     shutil.move(str(out_file), str(dest))
 
-    _log(email, order_id, license_id, dest.name, method)
-    print(f"  issued  {email}  →  {dest.name}  (license {license_id}, {method})")
-
+    # Email BEFORE writing the ledger, so the ledger means "actually delivered".
+    # If the send fails, we raise here WITHOUT a ledger row — the webhook returns
+    # 500, the processor retries, and issuance is re-attempted cleanly. If we
+    # logged first (old order), a transient SMTP error would mark the order
+    # "issued" and the retry would skip it as a duplicate — the buyer would pay
+    # and never receive their license. (Manual runs with email_it=False just log.)
     if email_it:
         _email_license(email, dest, license_id)
+
+    _log(email, order_id, license_id, dest.name, method)
+    print(f"  issued  {email}  →  {dest.name}  (license {license_id}, {method})")
     return dest
 
 

@@ -164,6 +164,17 @@ def _build_app():
     app = FastAPI(title="ICT Vault license webhook")
     secret = os.environ.get("WEBHOOK_SECRET", "")
 
+    # B1 — production guard: on a real deploy, refuse to run signature-less.
+    # With no secret, verify_* returns True for ANY request, so anyone could POST
+    # a forged sale and mint a free license. Render sets $RENDER; treat any
+    # recognised deploy env as production.
+    is_prod = any(os.environ.get(v) for v in ("RENDER", "FLY_APP_NAME", "DYNO", "K_SERVICE"))
+    if is_prod and not secret:
+        raise RuntimeError(
+            "WEBHOOK_SECRET is not set in a production environment. Refusing to "
+            "start: without it the webhook accepts forged events and mints free "
+            "licenses. Set WEBHOOK_SECRET (the whsec_… from your Stripe webhook).")
+
     @app.get("/health")
     async def health():
         return {"ok": True}
@@ -172,10 +183,15 @@ def _build_app():
     async def webhook(provider: str, request: Request):
         raw = await request.body()
         ctype = request.headers.get("content-type", "")
-        if "application/json" in ctype:
-            payload = json.loads(raw or b"{}")
-        else:
-            payload = dict(await request.form())
+        # B2 — a malformed body is the caller's fault: return 400 (permanent) so
+        # the processor stops retrying, instead of a 500 it hammers for days.
+        try:
+            if "application/json" in ctype:
+                payload = json.loads(raw or b"{}")
+            else:
+                payload = dict(await request.form())
+        except (ValueError, json.JSONDecodeError):
+            raise HTTPException(status_code=400, detail="unparseable body")
 
         # Billplz signs its payload fields; everyone else signs the raw body.
         if provider.lower() == "billplz":
@@ -198,7 +214,16 @@ def _build_app():
         if order_id and issue_license.find_issued(order_id):
             return {"status": "duplicate", "order_id": order_id}
 
-        issue_license.issue(email, order_id, email_it=True, method=provider.lower())
+        # B2 — issuance can fail transiently (e.g. SMTP hiccup). Let it surface
+        # as 500 so the processor RETRIES. issue_license emails BEFORE writing
+        # the ledger, so a failed send leaves no ledger row and the retry
+        # re-delivers cleanly (rather than being skipped as a false duplicate).
+        try:
+            issue_license.issue(email, order_id, email_it=True, method=provider.lower())
+        except HTTPException:
+            raise
+        except Exception as e:  # noqa: BLE001 — 500 => processor retries
+            raise HTTPException(status_code=500, detail="issuance failed; will retry") from e
         return {"status": "issued", "email": email}
 
     return app
