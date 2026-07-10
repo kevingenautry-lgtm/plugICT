@@ -93,50 +93,10 @@ for fp in transcripts:
     if not body:
         continue
     
-    # Timestamp-based chunking (ICT transcripts have "0:00 ..." format)
-    lines = body.split('\n')
-    current_chunk = []
-    current_len = 0
-    chunk_start_ts = None
+    # Timestamp-based chunking with complete timestamped-line overlap only.
     chunk_counter = 0  # Per-file counter for O(1) chunk indexing
-    
-    for line in lines:
-        line_clean = line.strip()
-        if not line_clean:
-            continue
-        
-        # Detect timestamp
-        ts_match = re.match(r'^(\d+:\d{2})\s', line_clean)
-        
-        if ts_match and current_len > CHUNK_SIZE:
-            # Save current chunk
-            chunk_text = '\n'.join(current_chunk)
-            all_chunks.append({
-                'id': f"chunk_{chunk_id:06d}",
-                'text': chunk_text,
-                'title': title,
-                'video_id': video_id,
-                'playlist': playlist,
-                'duration': duration,
-                'source_file': fp.name,
-                'start_ts': chunk_start_ts or '0:00',
-                'chunk_index': chunk_counter,
-            })
-            chunk_id += 1
-            chunk_counter += 1
-            overlap_text = chunk_text[-CHUNK_OVERLAP:] if CHUNK_OVERLAP > 0 else ''
-            current_chunk = ([overlap_text] if overlap_text else []) + [line_clean]
-            current_len = len('\n'.join(current_chunk))
-            chunk_start_ts = ts_match.group(1)
-        else:
-            if chunk_start_ts is None and ts_match:
-                chunk_start_ts = ts_match.group(1)
-            current_chunk.append(line_clean)
-            current_len += len(line_clean)
-    
-    # Don't forget last chunk
-    if current_chunk:
-        chunk_text = '\n'.join(current_chunk)
+    for chunk in vc.chunk_transcript_body(body, CHUNK_SIZE, CHUNK_OVERLAP):
+        chunk_text = chunk['text']
         if len(chunk_text) > 100:  # Skip tiny chunks
             all_chunks.append({
                 'id': f"chunk_{chunk_id:06d}",
@@ -146,7 +106,7 @@ for fp in transcripts:
                 'playlist': playlist,
                 'duration': duration,
                 'source_file': fp.name,
-                'start_ts': chunk_start_ts or '0:00',
+                'start_ts': chunk['start_ts'],
                 'chunk_index': chunk_counter,
             })
             chunk_id += 1
@@ -170,17 +130,33 @@ client = chromadb.PersistentClient(
     settings=Settings(anonymized_telemetry=False)
 )
 
-# Delete existing if present
+ef, embedding_meta = vc.get_embedding_function(return_metadata=True)
+print(f"  Embedding function: {ef.__class__.__name__}")
+
+
+def _embedding_dim(embedding_function):
+    return len(embedding_function(["dimension check"])[0])
+
+
+def _collection_dim(collection):
+    data = collection.get(limit=1, include=["embeddings"])
+    embeddings = data.get("embeddings")
+    if embeddings is None or len(embeddings) == 0:
+        return None
+    return len(embeddings[0])
+
+
 try:
-    client.delete_collection("ict_vault")
-except:
+    old = client.get_collection("ict_vault")
+    old_dim = _collection_dim(old)
+    new_dim = _embedding_dim(ef)
+    if old_dim is not None and old_dim != new_dim:
+        print(f"  Existing collection dimension {old_dim} != {new_dim}; recreating...")
+        client.delete_collection("ict_vault")
+except Exception:
     pass
 
-# ONNX embedding function
-from chromadb.utils import embedding_functions
-ef = embedding_functions.ONNXMiniLM_L6_V2()
-
-collection = client.create_collection(
+collection = client.get_or_create_collection(
     name="ict_vault",
     embedding_function=ef,
     metadata={"description": "ICT Knowledge Vault — Inner Circle Trader transcripts"}
@@ -189,7 +165,7 @@ collection = client.create_collection(
 # Embed in batches (avoid memory issues)
 for i in range(0, len(all_chunks), BATCH_SIZE):
     batch = all_chunks[i:i+BATCH_SIZE]
-    collection.add(
+    collection.upsert(
         ids=[c['id'] for c in batch],
         documents=[c['text'] for c in batch],
         metadatas=[{
@@ -197,6 +173,7 @@ for i in range(0, len(all_chunks), BATCH_SIZE):
             'video_id': c['video_id'],
             'playlist': c['playlist'],
             'source_file': c['source_file'],
+            'chunk_id': c['id'],
             'start_ts': c['start_ts'],
         } for c in batch],
     )
@@ -219,6 +196,7 @@ conn.execute("PRAGMA journal_mode=WAL")
 # FTS5 table
 conn.execute("""
     CREATE VIRTUAL TABLE IF NOT EXISTS transcripts_fts USING fts5(
+        chunk_id,
         title,
         video_id,
         playlist,
@@ -232,9 +210,11 @@ conn.execute("""
 # Insert into FTS5
 for c in all_chunks:
     conn.execute(
-        "INSERT INTO transcripts_fts VALUES (?, ?, ?, ?, ?, ?)",
-        (c['title'], c['video_id'], c['playlist'], c['start_ts'], c['source_file'], c['text'])
+        "INSERT INTO transcripts_fts VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (c['id'], c['title'], c['video_id'], c['playlist'], c['start_ts'], c['source_file'], c['text'])
     )
+
+vc.store_embedding_metadata(conn, embedding_meta)
 
 # ── Knowledge Graph Tables ──
 conn.execute("""

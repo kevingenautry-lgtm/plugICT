@@ -27,6 +27,14 @@ class _CapturingCE:
         return [0 for _ in pairs]
 
 
+class _ScoreCE:
+    def __init__(self, scores):
+        self.scores = scores
+
+    def predict(self, pairs):
+        return self.scores
+
+
 def test_cand_text_supports_both_shapes_and_strips_tags():
     assert vc._cand_text({"text": "<b>FVG</b> gap"}) == "FVG gap"
     assert vc._cand_text({"snippet": "order <b>block</b>"}) == "order block"
@@ -101,6 +109,38 @@ def test_rerank_fallback_orders_by_rrf(monkeypatch):
         {"title": "high", "snippet": "2", "rrf_score": 0.03},
     ], top_k=1)
     assert out[0]["title"] == "high"
+
+
+def test_cache_hit_and_miss(monkeypatch):
+    vc.clear_search_cache()
+    monkeypatch.setattr(vc, "vault_hash", "test-vault")
+    assert vc.get_cached_results("FVG", 2) is None
+
+    results = [{"title": "Fair Value Gap", "snippet": "same result"}]
+    vc.put_cached_results("FVG", 2, None, results)
+    cached = vc.get_cached_results("fvg", 2)
+
+    assert cached == results
+    assert cached is not results
+
+
+def test_mmr_diversifies_results():
+    cands = [
+        {"title": "A1", "video_id": "a", "snippet": "fair value gap imbalance entry", "final_score": 1.0},
+        {"title": "A2", "video_id": "a", "snippet": "fair value gap imbalance entry", "final_score": 0.99},
+        {"title": "B1", "video_id": "b", "snippet": "london session liquidity sweep", "final_score": 0.6},
+    ]
+    out = vc.apply_mmr(cands, top_k=2)
+    assert [c["video_id"] for c in out] == ["a", "b"]
+
+
+def test_min_score_threshold(monkeypatch):
+    monkeypatch.setattr(vc, "_reranker", _ScoreCE([1.0, vc.MIN_RERANK_SCORE - 1]))
+    ranked = vc.rerank("fair value gap", [
+        {"title": "keep", "snippet": "fair value gap"},
+        {"title": "drop", "snippet": "unrelated"},
+    ], top_k=2)
+    assert [r["title"] for r in ranked] == ["keep"]
 
 
 def test_single_candidate_shortcircuits(monkeypatch):
