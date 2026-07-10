@@ -29,10 +29,11 @@ Something not working? Run a health check:
 
 ## Connect Your AI Agent
 
-ICT Vault upgrades **your own AI agent**. Add the config from `examples/` to
-your agent and restart it — it gains ICT tools (`search_ict`,
-`explore_concept`, `glossary_lookup`, …) and can search all 576 videos,
-answering with exact video timestamps.
+ICT Vault upgrades **your own AI agent**. Add the MCP config to your agent and
+restart it. The best default tool is `multi_search_ict`; it returns cited,
+capped snippets plus safe `result_ref` values for `expand_result` when more
+context is needed. Legacy `search_ict`, `explore_concept`, `glossary_lookup`,
+`list_playlists`, and `vault_stats` are also available.
 
 - **Claude Desktop** → `examples/claude_desktop_config.json`
 - **Cursor** → `examples/cursor_mcp.json`
@@ -43,7 +44,9 @@ Then just ask, in natural conversation:
 > *"How does ICT teach the Silver Bullet entry in the New York session?"*
 
 Your agent searches the vault and answers with cited sources and timestamps.
-Full walkthrough: `docs/AI-AGENT-GUIDE.md`.
+Full walkthrough: `docs/AI-AGENT-GUIDE.md`. Evidence rules for agents are in
+`PLUGICT-AGENT-SKILL.md`; clients do not load that file automatically unless
+your agent setup explicitly supports it.
 
 ---
 

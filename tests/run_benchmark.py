@@ -1,47 +1,97 @@
 """
-Retrieval-quality eval harness for the ICT Vault (seller-side).
+Retrieval-quality eval harness for the ICT Vault.
+
+Compares:
+  1. normal single search
+  2. multi-search
+  3. multi-search plus selective context expansion
+
+Run seller-side against a real vault:
 
     ICT_VAULT_FILE=/path/ict-vault.kevin \
     ICT_VAULT_LICENSE=/path/license.key \
-    python tests/run_benchmark.py [--json out.json]
-
-Reads tests/benchmark_queries.json and reports, over the whole set and per
-category:
-  * top-1 hit rate  — an expected term is in the #1 result
-  * top-5 recall    — an expected term is anywhere in the top 5
-  * timing          — avg / p50 / p95 per-query (after the one-time unlock)
-
-Run before shipping ANY change to chunking, embeddings, reranking, FTS, or KG
-expansion — it catches silent quality regressions. Requires chromadb +
-sentence-transformers installed and a real (or demo) vault.
+    python tests/run_benchmark.py --json benchmark.json
 """
 
 import json
+import math
 import sys
 import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+import vault_core as vc  # noqa: E402
 from vault_core import VaultSession  # noqa: E402
 
 BENCH = Path(__file__).resolve().parent / "benchmark_queries.json"
 
 
 def result_text(r):
-    """The searchable text of a ranked result — works for both the session
-    ('text') and MCP ('snippet') shapes."""
     return ((r.get("title", "") or "") + " " + (r.get("text") or r.get("snippet") or "")).lower()
 
 
-def evaluate(case, ranked, min_results=1):
-    """Pure scoring for one query. Returns a dict of booleans/metrics so it can
-    be unit-tested without a vault."""
+def _relevance(case, result):
     terms = [t.lower() for t in case.get("expect_terms", [])]
+    if not terms:
+        return 0
+    blob = result_text(result)
+    return sum(1 for t in terms if t in blob)
+
+
+def _dcg(rels):
+    return sum(rel / math.log2(i + 2) for i, rel in enumerate(rels))
+
+
+def evaluate(case, ranked, min_results=1):
+    """Pure scoring for one query. Keeps old top1/top5 keys for unit tests."""
+    terms = [t.lower() for t in case.get("expect_terms", [])]
+    no_answer = bool(case.get("no_answer"))
     enough = len(ranked) >= min_results
-    top1 = bool(ranked) and (not terms or any(t in result_text(ranked[0]) for t in terms))
-    top5_blob = " ".join(result_text(r) for r in ranked[:5])
-    top5 = (not terms) or any(t in top5_blob for t in terms)
-    return {"enough": enough, "top1": top1 and enough, "top5": top5 and enough}
+    top1 = bool(ranked) and (not terms or _relevance(case, ranked[0]) > 0)
+    top5 = (not terms) or any(_relevance(case, r) > 0 for r in ranked[:5])
+
+    if no_answer:
+        no_answer_accuracy = 1.0 if not ranked else 0.0
+    else:
+        no_answer_accuracy = None
+
+    first_hit = None
+    rels = []
+    for i, r in enumerate(ranked[:5], 1):
+        rel = _relevance(case, r)
+        rels.append(rel)
+        if rel > 0 and first_hit is None:
+            first_hit = i
+    mrr = (1.0 / first_hit) if first_hit else 0.0
+    ideal = sorted(rels, reverse=True)
+    ndcg5 = (_dcg(rels) / _dcg(ideal)) if _dcg(ideal) else 0.0
+
+    expected_ts = case.get("expected_timestamp")
+    if expected_ts:
+        timestamp_accuracy = 1.0 if any(
+            (r.get("timestamp") or r.get("start_ts")) == expected_ts for r in ranked[:5]
+        ) else 0.0
+    else:
+        timestamp_accuracy = None
+
+    ids = [(r.get("video_id"), r.get("timestamp") or r.get("start_ts"), r.get("title"))
+           for r in ranked]
+    duplicate_rate = 0.0
+    if ids:
+        duplicate_rate = 1.0 - (len(set(ids)) / len(ids))
+
+    return {
+        "enough": enough,
+        "top1": top1 and enough,
+        "top5": top5 and enough,
+        "recall_at_1": 1.0 if (top1 and enough) else 0.0,
+        "recall_at_5": 1.0 if (top5 and enough) else 0.0,
+        "mrr": mrr,
+        "ndcg_at_5": ndcg5,
+        "timestamp_accuracy": timestamp_accuracy,
+        "no_answer_accuracy": no_answer_accuracy,
+        "duplicate_rate": duplicate_rate,
+    }
 
 
 def _pct(values, p):
@@ -50,6 +100,64 @@ def _pct(values, p):
     s = sorted(values)
     i = min(len(s) - 1, int(round((p / 100) * (len(s) - 1))))
     return s[i]
+
+
+def _variants(q):
+    out = [q]
+    expanded, changed = vc.expand_query(q)
+    if changed and expanded.lower() != q.lower():
+        out.append(expanded)
+    compact = q.replace("what is ", "").replace("how does ict ", "").strip()
+    if compact and compact.lower() not in {x.lower() for x in out}:
+        out.append(compact)
+    return out[:vc.MAX_QUERY_VARIANTS]
+
+
+def _rss_mb():
+    try:
+        import psutil
+        return psutil.Process().memory_info().rss / 1024 / 1024
+    except Exception:
+        return 0.0
+
+
+def _run_strategy(session, case, strategy):
+    q = case["q"]
+    if strategy == "single":
+        ranked, _, _ = session.search(q, top_k=5)
+        return ranked
+    if strategy == "multi":
+        ranked, _ = session.multi_search(q, _variants(q), top_k=5)
+        return ranked
+    if strategy == "multi_context":
+        internal, _ = vc.collect_multi_search_candidates(
+            session.db, session._semantic_candidates, q, _variants(q), top_k=5)
+        if internal:
+            try:
+                vc.expand_result_context(session.db, internal[0], before=1, after=1)
+            except Exception:
+                pass
+        return vc.finalize_ranked_results(internal)
+    raise ValueError(strategy)
+
+
+def _summarize(rows, times):
+    n = len(rows) or 1
+    def avg(key):
+        vals = [r[key] for r in rows if r[key] is not None]
+        return (sum(vals) / len(vals)) if vals else None
+    return {
+        "n": len(rows),
+        "recall_at_1": avg("recall_at_1"),
+        "recall_at_5": avg("recall_at_5"),
+        "mrr": avg("mrr"),
+        "ndcg_at_5": avg("ndcg_at_5"),
+        "timestamp_accuracy": avg("timestamp_accuracy"),
+        "no_answer_accuracy": avg("no_answer_accuracy"),
+        "duplicate_rate": avg("duplicate_rate"),
+        "avg_latency_ms": 1000 * sum(times) / n,
+        "p95_latency_ms": 1000 * _pct(times, 95),
+    }
 
 
 def main(argv=None):
@@ -61,52 +169,61 @@ def main(argv=None):
     spec = json.loads(BENCH.read_text())
     min_results = spec.get("min_results", 1)
 
+    peak_ram = _rss_mb()
     t0 = time.perf_counter()
     session = VaultSession().open()
-    print(f"Vault unlocked in {time.perf_counter() - t0:.1f}s (one-time)\n")
+    cold_start = time.perf_counter() - t0
+    peak_ram = max(peak_ram, _rss_mb())
+    print(f"Vault unlocked in {cold_start:.1f}s (one-time)\n")
 
-    rows, times = [], []
-    by_cat = {}
+    strategies = ["single", "multi", "multi_context"]
+    data = {s: {"rows": [], "times": []} for s in strategies}
+
     try:
         for case in spec["queries"]:
-            qt = time.perf_counter()
-            ranked, _, _ = session.search(case["q"], top_k=5)
-            dt = time.perf_counter() - qt
-            times.append(dt)
-            m = evaluate(case, ranked, min_results)
-            cat = case.get("category", "uncategorized")
-            by_cat.setdefault(cat, []).append(m)
-            rows.append((case["q"], m, dt))
-            mark = "✓" if m["top5"] else "✗"
-            r1 = "1" if m["top1"] else ("5" if m["top5"] else "-")
-            print(f"  [{mark}] rank≤{r1:>1}  {case['q']}")
+            print(case["q"])
+            for strategy in strategies:
+                qt = time.perf_counter()
+                ranked = _run_strategy(session, case, strategy)
+                dt = time.perf_counter() - qt
+                peak_ram = max(peak_ram, _rss_mb())
+                metrics = evaluate(case, ranked, min_results)
+                data[strategy]["rows"].append(metrics)
+                data[strategy]["times"].append(dt)
+                print(f"  {strategy:13s} R@1={metrics['recall_at_1']:.0f} "
+                      f"R@5={metrics['recall_at_5']:.0f} {1000*dt:.0f}ms")
     finally:
         session.close()
 
-    n = len(rows)
-    top1 = sum(r[1]["top1"] for r in rows)
-    top5 = sum(r[1]["top5"] for r in rows)
-    print(f"\n{'='*56}")
-    print(f"Top-1 hit rate : {top1}/{n} ({100*top1/n:.0f}%)")
-    print(f"Top-5 recall   : {top5}/{n} ({100*top5/n:.0f}%)")
-    print(f"Timing (ms)    : avg {1000*sum(times)/n:.0f} · p50 {1000*_pct(times,50):.0f} · p95 {1000*_pct(times,95):.0f}")
-    print("\nBy category (top-1 / top-5):")
-    for cat, ms in sorted(by_cat.items()):
-        c = len(ms)
-        print(f"  {cat:12s} {sum(x['top1'] for x in ms)}/{c}  ·  {sum(x['top5'] for x in ms)}/{c}")
+    report = {
+        "cold_start_seconds": cold_start,
+        "peak_ram_mb": peak_ram or None,
+        "strategies": {
+            s: _summarize(data[s]["rows"], data[s]["times"]) for s in strategies
+        },
+        "limitations": {
+            "timestamp_accuracy": "reported only for cases with expected_timestamp",
+            "no_answer_accuracy": "reported only for cases with no_answer=true",
+            "peak_ram_mb": "uses psutil RSS when available",
+        },
+    }
+
+    print("\n" + "=" * 64)
+    print(f"Cold start: {report['cold_start_seconds']:.2f}s")
+    print(f"Peak RAM: {report['peak_ram_mb'] or 'unavailable'} MB")
+    for name, summary in report["strategies"].items():
+        print(f"\n{name}")
+        for k, v in summary.items():
+            if k == "n":
+                continue
+            print(f"  {k}: {'n/a' if v is None else round(v, 4)}")
 
     if json_out:
-        Path(json_out).write_text(json.dumps({
-            "n": n, "top1": top1, "top5": top5,
-            "avg_ms": 1000*sum(times)/n, "p95_ms": 1000*_pct(times, 95),
-            "by_category": {c: {"n": len(ms), "top1": sum(x["top1"] for x in ms),
-                                "top5": sum(x["top5"] for x in ms)} for c, ms in by_cat.items()},
-            "failures": [q for q, m, _ in rows if not m["top5"]],
-        }, indent=2))
+        Path(json_out).write_text(json.dumps(report, indent=2))
         print(f"\nWrote {json_out}")
 
-    # Fail the run if top-5 recall drops below 80% — tune as the vault matures.
-    return 0 if (top5 / n) >= 0.80 else 1
+    single_r5 = report["strategies"]["single"]["recall_at_5"] or 0
+    return 0 if single_r5 >= 0.80 else 1
 
 
 if __name__ == "__main__":

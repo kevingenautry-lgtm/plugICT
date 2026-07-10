@@ -26,6 +26,8 @@ import hashlib
 import tarfile
 import tempfile
 import atexit
+import secrets
+import time
 from collections import OrderedDict
 from pathlib import Path
 
@@ -40,7 +42,16 @@ _CHUNK = 4 * 1024 * 1024  # 4 MB streaming chunk
 MIN_RERANK_SCORE = -6.0
 MMR_LAMBDA = 0.7
 SEARCH_CACHE_MAX = 100
+SNIPPET_DEFAULT_CHARS = 500
 SNIPPET_MAX_CHARS = 1000
+CONTEXT_BEFORE_MAX_CHARS = 500
+CONTEXT_CURRENT_MAX_CHARS = 1000
+CONTEXT_AFTER_MAX_CHARS = 500
+CONTEXT_TOTAL_MAX_CHARS = 2000
+MAX_QUERY_VARIANTS = 4
+MAX_TOP_K = 5
+RESULT_REF_TTL_SECONDS = 15 * 60
+RESULT_REF_MAX_USES = 1
 
 EMBEDDING_MODEL_KEY = "embedding_model_name"
 EMBEDDING_DIM_KEY = "embedding_dimension"
@@ -48,11 +59,18 @@ EMBEDDING_NORMALIZE_KEY = "embedding_normalize"
 EMBEDDING_REVISION_KEY = "embedding_revision"
 QUERY_INSTRUCTION_KEY = "query_instruction_version"
 VECTOR_SCHEMA_KEY = "vector_schema_version"
+CHUNK_SCHEMA_KEY = "chunk_schema_version"
+CHUNK_ID_STRATEGY_KEY = "chunk_id_strategy"
+SNIPPET_DEFAULT_KEY = "snippet_default_chars"
+SNIPPET_MAX_KEY = "snippet_max_chars"
+CONTEXT_MAX_KEY = "context_max_chars"
 
 DEFAULT_EMBEDDING_MODEL = "BAAI/bge-large-en-v1.5"
 DEFAULT_EMBEDDING_REVISION = "d4aa6901d3a41ba39fb536a557fa166f842b0e09"
 QUERY_INSTRUCTION_VERSION = "bge-v1.5-no-query-instruction-v1"
 VECTOR_SCHEMA_VERSION = "2"
+CHUNK_SCHEMA_VERSION = "2"
+CHUNK_ID_STRATEGY = "sha1-source-file-chunk-index-start-ts-v1"
 
 EMBEDDING_SPECS = {
     "BAAI/bge-large-en-v1.5": {
@@ -399,12 +417,52 @@ def embedding_metadata_rows(meta):
     )]
 
 
+def schema_metadata_rows():
+    return [
+        (CHUNK_SCHEMA_KEY, CHUNK_SCHEMA_VERSION),
+        (CHUNK_ID_STRATEGY_KEY, CHUNK_ID_STRATEGY),
+        (SNIPPET_DEFAULT_KEY, str(SNIPPET_DEFAULT_CHARS)),
+        (SNIPPET_MAX_KEY, str(SNIPPET_MAX_CHARS)),
+        (CONTEXT_MAX_KEY, str(CONTEXT_TOTAL_MAX_CHARS)),
+    ]
+
+
 def store_embedding_metadata(conn, meta):
     conn.execute("CREATE TABLE IF NOT EXISTS vault_metadata (key TEXT PRIMARY KEY, value TEXT)")
     conn.executemany(
         "INSERT OR REPLACE INTO vault_metadata (key, value) VALUES (?, ?)",
         embedding_metadata_rows(meta),
     )
+
+
+def store_schema_metadata(conn):
+    conn.execute("CREATE TABLE IF NOT EXISTS vault_metadata (key TEXT PRIMARY KEY, value TEXT)")
+    conn.executemany(
+        "INSERT OR REPLACE INTO vault_metadata (key, value) VALUES (?, ?)",
+        schema_metadata_rows(),
+    )
+
+
+def verify_chunk_schema(db):
+    cols = set(_fts_columns(db))
+    missing = [c for c in ('chunk_id', 'chunk_index', 'end_ts') if c not in cols]
+    if missing:
+        raise VaultError(
+            "transcripts_fts is missing required chunk schema columns: "
+            + ", ".join(missing)
+            + ". Run ict_ingest.py before build.py."
+        )
+    try:
+        row = db.execute(
+            "SELECT chunk_id, chunk_index, end_ts FROM transcripts_fts LIMIT 1"
+        ).fetchone()
+    except sqlite3.Error as e:
+        raise VaultError(f"Unable to verify transcripts_fts chunk schema: {e}") from e
+    if row and (not row[0] or row[1] is None or row[2] in (None, '')):
+        raise VaultError(
+            "transcripts_fts has empty chunk_id, chunk_index, or end_ts values. "
+            "Run ict_ingest.py before build.py."
+        )
 
 
 def read_embedding_metadata(db):
@@ -639,6 +697,14 @@ def _first_timestamp(lines):
     return None
 
 
+def _last_timestamp(lines):
+    for line in reversed(lines):
+        ts = line_timestamp(line)
+        if ts:
+            return ts
+    return None
+
+
 def _overlap_lines(lines, max_chars):
     if max_chars <= 0:
         return []
@@ -671,6 +737,7 @@ def chunk_transcript_body(body, chunk_size=900, overlap_chars=100):
             chunks.append({
                 "text": "\n".join(current),
                 "start_ts": _first_timestamp(current) or "0:00",
+                "end_ts": _last_timestamp(current) or _first_timestamp(current) or "0:00",
             })
             current = _overlap_lines(current, overlap_chars) + [line]
             current_len = len("\n".join(current))
@@ -681,8 +748,14 @@ def chunk_transcript_body(body, chunk_size=900, overlap_chars=100):
         chunks.append({
             "text": "\n".join(current),
             "start_ts": _first_timestamp(current) or "0:00",
+            "end_ts": _last_timestamp(current) or _first_timestamp(current) or "0:00",
         })
     return chunks
+
+
+def stable_chunk_id(source_file, chunk_index, start_ts):
+    raw = f"{source_file}\n{chunk_index}\n{start_ts or ''}".encode("utf-8", errors="replace")
+    return "ck_" + hashlib.sha1(raw).hexdigest()[:20]
 
 
 # ── Build-side packaging (used by build.py; keeps format symmetric) ──────────
@@ -945,6 +1018,23 @@ def _cand_key(c):
     return (vid.strip().lower(), str(ts).strip())
 
 
+def _merge_unique_values(*values):
+    out = []
+    seen = set()
+    for value in values:
+        if value is None:
+            continue
+        items = value if isinstance(value, (list, tuple, set)) else [value]
+        for item in items:
+            if item is None:
+                continue
+            text = str(item)
+            if text and text not in seen:
+                seen.add(text)
+                out.append(text)
+    return out
+
+
 def dedup_candidates(cands):
     """Drop duplicate chunks (same video+timestamp) so one chunk never occupies
     two result slots. Keeps first occurrence; on a duplicate, prefers the longer
@@ -962,13 +1052,27 @@ def dedup_candidates(cands):
             kept['dual_hit'] = True
             kept['rrf_score'] = merged_rrf
             kept['_dup_of'] = c.get('source') or c.get('method')
+            kept['matched_queries'] = _merge_unique_values(
+                kept.get('matched_queries'), c.get('matched_queries'))
+            kept['retrieval_sources'] = _merge_unique_values(
+                kept.get('retrieval_sources'), c.get('retrieval_sources'),
+                kept.get('source'), c.get('source'), kept.get('method'), c.get('method'))
             if len(_cand_text(c)) > len(_cand_text(kept)):
                 # keep the fuller text but remember it matched both retrievers
+                c['matched_queries'] = kept['matched_queries']
+                c['retrieval_sources'] = kept['retrieval_sources']
                 c['_dup_of'] = kept.get('source') or kept.get('method')
                 c['dual_hit'] = True
                 c['rrf_score'] = merged_rrf
                 seen[k] = c
-    return [seen[k] for k in order]
+    out = []
+    for k in order:
+        c = seen[k]
+        c['matched_queries'] = _merge_unique_values(c.get('matched_queries'))
+        c['retrieval_sources'] = _merge_unique_values(
+            c.get('retrieval_sources'), c.get('source'), c.get('method'))
+        out.append(c)
+    return out
 
 
 def apply_rrf_scores(cands):
@@ -1040,19 +1144,32 @@ def _fts_columns(db):
         return []
 
 
-def fts_candidates(db, query_text, limit, playlist=None, source='keyword', rrf_source=None):
+def fts_candidates(db, query_text, limit, playlist=None, source='keyword', rrf_source=None,
+                   matched_query=None):
     out = []
     fts_query = sanitize_fts(query_text)
     if not fts_query:
         return out
     cols = _fts_columns(db)
     has_chunk_id = 'chunk_id' in cols
+    has_chunk_index = 'chunk_index' in cols
+    has_end_ts = 'end_ts' in cols
     try:
         if has_chunk_id:
-            sql = ("SELECT chunk_id, title, video_id, start_ts, playlist, source_file, content "
+            select = ["chunk_id", "title", "video_id", "start_ts", "playlist", "source_file", "content"]
+            if has_chunk_index:
+                select.append("chunk_index")
+            if has_end_ts:
+                select.append("end_ts")
+            sql = ("SELECT " + ", ".join(select) + " "
                    "FROM transcripts_fts WHERE content MATCH ?")
         else:
-            sql = ("SELECT rowid, title, video_id, start_ts, playlist, source_file, content "
+            select = ["rowid", "title", "video_id", "start_ts", "playlist", "source_file", "content"]
+            if has_chunk_index:
+                select.append("chunk_index")
+            if has_end_ts:
+                select.append("end_ts")
+            sql = ("SELECT " + ", ".join(select) + " "
                    "FROM transcripts_fts WHERE content MATCH ?")
         params = [fts_query]
         if playlist:
@@ -1062,7 +1179,7 @@ def fts_candidates(db, query_text, limit, playlist=None, source='keyword', rrf_s
         params.append(limit)
         for i, r in enumerate(db.execute(sql, params).fetchall()):
             chunk_id = str(r[0]) if has_chunk_id else f"{r[5]}:{r[3]}:{r[0]}"
-            out.append({
+            item = {
                 'source': source,
                 'method': source,
                 'chunk_id': chunk_id,
@@ -1075,10 +1192,99 @@ def fts_candidates(db, query_text, limit, playlist=None, source='keyword', rrf_s
                 '_full_text': r[6],
                 '_rank_in_source': i,
                 '_rrf_source': rrf_source or source,
-            })
+                'retrieval_sources': [source],
+                'matched_queries': [matched_query or query_text],
+            }
+            idx = 7
+            if has_chunk_index:
+                item['chunk_index'] = r[idx]
+                idx += 1
+            if has_end_ts:
+                item['end_ts'] = r[idx]
+            out.append(item)
     except sqlite3.Error as e:
         print(f"(keyword search unavailable: {e})", file=sys.stderr)
     return out
+
+
+def _chunk_select_columns(db):
+    cols = _fts_columns(db)
+    wanted = ['chunk_id', 'title', 'video_id', 'playlist', 'start_ts',
+              'end_ts', 'chunk_index', 'source_file', 'content']
+    return [c for c in wanted if c in cols]
+
+
+def _row_to_dict(cursor, row):
+    if row is None:
+        return None
+    return {d[0]: row[i] for i, d in enumerate(cursor.description)}
+
+
+def _chunk_where_for_candidate(cols, candidate):
+    chunk_id = candidate.get('chunk_id')
+    if chunk_id and 'chunk_id' in cols and not str(chunk_id).startswith(candidate.get('source_file', '') + ":"):
+        return "chunk_id = ?", [chunk_id]
+    source_file = candidate.get('source_file')
+    chunk_index = candidate.get('chunk_index')
+    if source_file and chunk_index is not None and 'source_file' in cols and 'chunk_index' in cols:
+        return "source_file = ? AND chunk_index = ?", [source_file, int(chunk_index)]
+    start_ts = candidate.get('start_ts') or candidate.get('timestamp')
+    if source_file and start_ts and 'source_file' in cols and 'start_ts' in cols:
+        return "source_file = ? AND start_ts = ?", [source_file, start_ts]
+    return None, []
+
+
+def fetch_chunk(db, candidate):
+    cols = _chunk_select_columns(db)
+    if not cols:
+        return None
+    where, params = _chunk_where_for_candidate(cols, candidate)
+    if not where:
+        return None
+    try:
+        cur = db.execute(
+            "SELECT " + ", ".join(cols) + " FROM transcripts_fts WHERE " + where + " LIMIT 1",
+            params,
+        )
+        return _row_to_dict(cur, cur.fetchone())
+    except sqlite3.Error:
+        return None
+
+
+def hydrate_candidate_text(db, candidate):
+    row = fetch_chunk(db, candidate)
+    if not row:
+        return candidate
+    out = dict(candidate)
+    for key in ('chunk_id', 'title', 'video_id', 'playlist', 'start_ts',
+                'end_ts', 'chunk_index', 'source_file'):
+        if row.get(key) not in (None, ''):
+            out[key] = row[key]
+    out['timestamp'] = out.get('start_ts') or out.get('timestamp') or ''
+    out['_full_text'] = row.get('content') or out.get('_full_text') or ''
+    return out
+
+
+def adjacent_chunk(db, candidate, offset):
+    cols = _chunk_select_columns(db)
+    if 'source_file' not in cols or 'chunk_index' not in cols:
+        return None
+    source_file = candidate.get('source_file')
+    chunk_index = candidate.get('chunk_index')
+    if not source_file or chunk_index is None:
+        return None
+    wanted = int(chunk_index) + int(offset)
+    if wanted < 0:
+        return None
+    select = ", ".join(cols)
+    try:
+        cur = db.execute(
+            f"SELECT {select} FROM transcripts_fts WHERE source_file = ? AND chunk_index = ? LIMIT 1",
+            (source_file, wanted),
+        )
+        return _row_to_dict(cur, cur.fetchone())
+    except sqlite3.Error:
+        return None
 
 
 def _word_set(text):
@@ -1261,19 +1467,246 @@ def rerank(query, candidates, top_k):
         return candidates[:top_k]
 
 
-def make_snippet(text, max_chars=SNIPPET_MAX_CHARS):
+def _clamp_chars(value, default, hard_cap):
+    try:
+        value = int(value)
+    except (TypeError, ValueError):
+        value = default
+    return max(1, min(value, hard_cap))
+
+
+def make_snippet(text, max_chars=SNIPPET_DEFAULT_CHARS):
+    max_chars = _clamp_chars(max_chars, SNIPPET_DEFAULT_CHARS, SNIPPET_MAX_CHARS)
     clean = (text or "").replace("<b>", "").replace("</b>", "").strip()
     clean = re.sub(r"\s+", " ", clean)
     return clean[:max_chars]
 
 
-def finalize_ranked_results(ranked):
+def finalize_ranked_results(ranked, snippet_chars=SNIPPET_DEFAULT_CHARS):
     out = []
     for c in ranked:
-        item = dict(c)
-        item['snippet'] = make_snippet(_cand_text(c))
+        sources = _merge_unique_values(c.get('retrieval_sources'), c.get('source'), c.get('method'))
+        item = {
+            'title': c.get('title', ''),
+            'video_id': c.get('video_id', ''),
+            'timestamp': c.get('start_ts') or c.get('timestamp') or '',
+            'start_ts': c.get('start_ts') or c.get('timestamp') or '',
+            'end_ts': c.get('end_ts') or '',
+            'playlist': c.get('playlist', ''),
+            'method': "+".join(sources) if sources else (c.get('method') or c.get('source') or ''),
+            'retrieval_sources': sources,
+            'matched_queries': _merge_unique_values(c.get('matched_queries')),
+            'snippet': make_snippet(_cand_text(c), snippet_chars),
+        }
+        if c.get('result_ref'):
+            item['result_ref'] = c['result_ref']
+        if c.get('video_id'):
+            item['video_url'] = youtube_link(c.get('video_id'), item['timestamp'])
         out.append(item)
     return out
+
+
+def clamp_top_k(value):
+    try:
+        value = int(value or MAX_TOP_K)
+    except (TypeError, ValueError):
+        value = MAX_TOP_K
+    return max(1, min(value, MAX_TOP_K))
+
+
+def normalize_query_variants(question, queries):
+    if isinstance(queries, str):
+        queries = [queries]
+    out = []
+    seen = set()
+    for q in queries or []:
+        text = str(q or "").strip()
+        key = text.lower()
+        if text and key not in seen:
+            seen.add(key)
+            out.append(text)
+    if not out and question:
+        out.append(str(question).strip())
+    if not out:
+        raise ValueError("queries must contain 1 to 4 non-empty query variants")
+    if len(out) > MAX_QUERY_VARIANTS:
+        raise ValueError("queries accepts at most 4 variants")
+    return out
+
+
+def _tag_candidates(candidates, matched_query, source):
+    for c in candidates:
+        c['matched_queries'] = _merge_unique_values(c.get('matched_queries'), matched_query)
+        c['retrieval_sources'] = _merge_unique_values(c.get('retrieval_sources'), source)
+    return candidates
+
+
+def estimate_multi_search_work_units(db, question, queries, kg=True, semantic=True):
+    variants = normalize_query_variants(question, queries)
+    units = 0
+    for q in variants:
+        expanded, _ = expand_query(q)
+        units += 1  # FTS
+        if semantic:
+            units += 1
+        if kg:
+            units += len(kg_expand(db, q + ' ' + expanded))
+    return units
+
+
+def collect_multi_search_candidates(db, semantic_retriever, question, queries, top_k=5,
+                                    playlist=None, kg=True):
+    """Retrieve raw candidates for every query variant, then fuse and rerank once.
+
+    semantic_retriever(query, limit, playlist, rrf_source, matched_query) must
+    return raw semantic candidates, or [] if vector search is unavailable.
+    """
+    question = (question or "").strip()
+    if not question:
+        raise ValueError("question is required")
+    variants = normalize_query_variants(question, queries)
+    top_k = clamp_top_k(top_k)
+    pool = top_k + 5
+    candidates = []
+    work_units = 0
+
+    for idx, q in enumerate(variants):
+        expanded, _ = expand_query(q)
+        rrf_prefix = f"q{idx + 1}"
+
+        fts = fts_candidates(
+            db, expanded, pool, playlist, source='keyword',
+            rrf_source=f"{rrf_prefix}:keyword", matched_query=q)
+        candidates.extend(_tag_candidates(fts, q, 'keyword'))
+        work_units += 1
+
+        if semantic_retriever is not None:
+            semantic = semantic_retriever(q, pool, playlist, f"{rrf_prefix}:semantic", q)
+            candidates.extend(_tag_candidates(semantic, q, 'semantic'))
+            work_units += 1
+
+        if kg:
+            for term in kg_expand(db, q + ' ' + expanded):
+                kg_cands = fts_candidates(
+                    db, term, max(2, min(pool, top_k + 1)), playlist,
+                    source='kg', rrf_source=f"{rrf_prefix}:kg:{term}", matched_query=q)
+                candidates.extend(_tag_candidates(kg_cands, q, 'kg'))
+                work_units += 1
+
+    candidates = apply_rrf_scores(candidates)
+    candidates = dedup_candidates(candidates)
+    candidates = [hydrate_candidate_text(db, c) for c in candidates]
+    ranked = rerank(question, candidates, top_k) if candidates else []
+    return ranked, {
+        'queries': variants,
+        'work_units': work_units,
+        'candidate_count': len(candidates),
+    }
+
+
+class ResultRefStore:
+    def __init__(self, ttl_seconds=RESULT_REF_TTL_SECONDS, max_uses=RESULT_REF_MAX_USES,
+                 max_refs=200):
+        self.ttl_seconds = ttl_seconds
+        self.max_uses = max_uses
+        self.max_refs = max_refs
+        self._refs = {}
+
+    def _sweep(self, now=None):
+        now = time.time() if now is None else now
+        expired = [ref for ref, item in self._refs.items() if item['expires_at'] <= now]
+        for ref in expired:
+            self._refs.pop(ref, None)
+        while len(self._refs) > self.max_refs:
+            oldest = min(self._refs.items(), key=lambda kv: kv[1]['created_at'])[0]
+            self._refs.pop(oldest, None)
+
+    def issue(self, candidate, now=None):
+        now = time.time() if now is None else now
+        self._sweep(now)
+        ref = secrets.token_urlsafe(24)
+        self._refs[ref] = {
+            'candidate': {
+                'chunk_id': candidate.get('chunk_id'),
+                'source_file': candidate.get('source_file'),
+                'chunk_index': candidate.get('chunk_index'),
+                'start_ts': candidate.get('start_ts') or candidate.get('timestamp'),
+                'title': candidate.get('title'),
+                'video_id': candidate.get('video_id'),
+                'playlist': candidate.get('playlist'),
+            },
+            'created_at': now,
+            'expires_at': now + self.ttl_seconds,
+            'uses': 0,
+        }
+        return ref
+
+    def resolve(self, ref, now=None):
+        now = time.time() if now is None else now
+        self._sweep(now)
+        item = self._refs.get(ref)
+        if not item:
+            raise VaultError("Invalid or expired result_ref.")
+        if item['uses'] >= self.max_uses:
+            self._refs.pop(ref, None)
+            raise VaultError("This result_ref has already been expanded.")
+        item['uses'] += 1
+        return dict(item['candidate'])
+
+
+def _section_from_row(position, row, max_chars):
+    if not row:
+        return None
+    text = make_snippet(row.get('content') or '', max_chars)
+    return {
+        'position': position,
+        'title': row.get('title', ''),
+        'video_id': row.get('video_id', ''),
+        'playlist': row.get('playlist', ''),
+        'timestamp': row.get('start_ts', ''),
+        'start_ts': row.get('start_ts', ''),
+        'end_ts': row.get('end_ts', ''),
+        'text': text,
+    }
+
+
+def expand_result_context(db, candidate, before=0, after=0):
+    try:
+        before = 1 if int(before or 0) == 1 else 0
+    except (TypeError, ValueError):
+        before = 0
+    try:
+        after = 1 if int(after or 0) == 1 else 0
+    except (TypeError, ValueError):
+        after = 0
+    current = fetch_chunk(db, candidate)
+    if not current:
+        raise VaultError("Result reference no longer resolves to a vault chunk.")
+
+    sections = []
+    hydrated = dict(candidate)
+    hydrated.update({k: v for k, v in current.items() if k != 'content'})
+    if before:
+        sections.append(_section_from_row(
+            'before', adjacent_chunk(db, hydrated, -1), CONTEXT_BEFORE_MAX_CHARS))
+    sections.append(_section_from_row('current', current, CONTEXT_CURRENT_MAX_CHARS))
+    if after:
+        sections.append(_section_from_row(
+            'after', adjacent_chunk(db, hydrated, 1), CONTEXT_AFTER_MAX_CHARS))
+
+    clean_sections = [s for s in sections if s]
+    total = 0
+    for section in clean_sections:
+        remaining = CONTEXT_TOTAL_MAX_CHARS - total
+        if remaining <= 0:
+            section['text'] = ''
+        elif len(section['text']) > remaining:
+            section['text'] = section['text'][:remaining]
+        total += len(section['text'])
+    return {
+        'sections': clean_sections,
+        'total_chars': min(total, CONTEXT_TOTAL_MAX_CHARS),
+    }
 
 
 class VaultSession:
@@ -1305,8 +1738,44 @@ class VaultSession:
             )
         return self._collection
 
-    def _fts_candidates(self, query_text, limit, playlist=None, source='keyword', rrf_source=None):
-        return fts_candidates(self.db, query_text, limit, playlist, source, rrf_source)
+    def _fts_candidates(self, query_text, limit, playlist=None, source='keyword', rrf_source=None,
+                        matched_query=None):
+        return fts_candidates(
+            self.db, query_text, limit, playlist, source, rrf_source, matched_query)
+
+    def _semantic_candidates(self, query_text, limit, playlist=None, rrf_source='semantic',
+                             matched_query=None):
+        out = []
+        try:
+            if not chroma_store_usable(self.chroma_dir):
+                raise RuntimeError("chroma store is not a valid sqlite database")
+            where = {'playlist': playlist} if playlist else None
+            result = self._get_collection().query(query_texts=[query_text], n_results=limit, where=where)
+            ids = result.get('ids', [[]])[0]
+            docs = result.get('documents', [[]])[0]
+            metas = result.get('metadatas', [[]])[0]
+            for i, doc in enumerate(docs):
+                m = metas[i] if i < len(metas) else {}
+                out.append({'source': 'semantic', 'title': m.get('title', ''),
+                            'method': 'semantic',
+                            'chunk_id': ids[i] if i < len(ids) else m.get('chunk_id', ''),
+                            'video_id': m.get('video_id', ''),
+                            'start_ts': m.get('start_ts', ''),
+                            'timestamp': m.get('start_ts', ''),
+                            'end_ts': m.get('end_ts', ''),
+                            'chunk_index': m.get('chunk_index'),
+                            'playlist': m.get('playlist', ''),
+                            'source_file': m.get('source_file', ''),
+                            '_full_text': doc,
+                            '_rank_in_source': i,
+                            '_rrf_source': rrf_source,
+                            'retrieval_sources': ['semantic'],
+                            'matched_queries': [matched_query or query_text]})
+        except ImportError:
+            print("(semantic search unavailable - chromadb not installed)", file=sys.stderr)
+        except Exception as e:
+            print(f"(semantic search unavailable: {e})", file=sys.stderr)
+        return out
 
     def search(self, query, playlist=None, session=None, top_k=5):
         """Return (ranked_candidates, expanded_query, expansion_changed)."""
@@ -1317,43 +1786,29 @@ class VaultSession:
         candidates = []
         pool = top_k + 5
 
-        candidates.extend(self._fts_candidates(expanded, pool, playlist))
-
-        try:
-            if not chroma_store_usable(self.chroma_dir):
-                raise RuntimeError("chroma store is not a valid sqlite database")
-            where = {'playlist': playlist} if playlist else None
-            out = self._get_collection().query(query_texts=[query], n_results=pool, where=where)
-            ids = out.get('ids', [[]])[0]
-            docs = out.get('documents', [[]])[0]
-            metas = out.get('metadatas', [[]])[0]
-            for i, doc in enumerate(docs):
-                m = metas[i] if i < len(metas) else {}
-                candidates.append({'source': 'semantic', 'title': m.get('title', ''),
-                                   'method': 'semantic',
-                                   'chunk_id': ids[i] if i < len(ids) else m.get('chunk_id', ''),
-                                   'video_id': m.get('video_id', ''), 'start_ts': m.get('start_ts', ''),
-                                   'timestamp': m.get('start_ts', ''),
-                                   'playlist': m.get('playlist', ''), '_full_text': doc,
-                                   '_rank_in_source': i, '_rrf_source': 'semantic'})
-        except ImportError:
-            print("(semantic search unavailable — chromadb not installed)", file=sys.stderr)
-        except Exception as e:
-            print(f"(semantic search unavailable: {e})", file=sys.stderr)
+        candidates.extend(self._fts_candidates(expanded, pool, playlist, matched_query=query))
+        candidates.extend(self._semantic_candidates(query, pool, playlist, 'semantic', query))
 
         try:
             for term in kg_expand(self.db, query + ' ' + expanded):
                 candidates.extend(self._fts_candidates(
-                    term, 2, playlist, source='kg', rrf_source=f'kg:{term}'))
+                    term, 2, playlist, source='kg', rrf_source=f'kg:{term}',
+                    matched_query=query))
         except Exception as e:
             print(f"(kg expansion skipped: {e})", file=sys.stderr)
 
         candidates = apply_rrf_scores(candidates)
         candidates = dedup_candidates(candidates)
+        candidates = [hydrate_candidate_text(self.db, c) for c in candidates]
         ranked = rerank(query, candidates, top_k) if candidates else []
         ranked = finalize_ranked_results(ranked)
         put_cached_results(query, top_k, playlist, ranked)
         return ranked, expanded, changed
+
+    def multi_search(self, question, queries, playlist=None, top_k=5, snippet_chars=SNIPPET_DEFAULT_CHARS):
+        ranked, meta = collect_multi_search_candidates(
+            self.db, self._semantic_candidates, question, queries, top_k, playlist)
+        return finalize_ranked_results(ranked, snippet_chars), meta
 
     def close(self):
         if self.db:

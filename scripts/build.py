@@ -94,6 +94,11 @@ dst.execute("CREATE TABLE IF NOT EXISTS vault_metadata (key TEXT PRIMARY KEY, va
 dst.execute("INSERT OR REPLACE INTO vault_metadata VALUES ('version', '1.0.0')")
 dst.execute("INSERT OR REPLACE INTO vault_metadata VALUES ('build_date', ?)", (datetime.now().isoformat(),))
 dst.execute("INSERT OR REPLACE INTO vault_metadata VALUES ('total_transcripts', ?)", (str(len(transcripts)),))
+vc.store_schema_metadata(dst)
+try:
+    vc.verify_chunk_schema(dst)
+except vc.VaultError as e:
+    sys.exit(f"ERROR: {e}")
 
 # Demo builds (store/build_demo.py) stamp a watermark into the vault itself.
 if os.environ.get("ICT_DEMO") == "1":

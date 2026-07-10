@@ -56,7 +56,6 @@ print()
 print("[2/5] Chunking transcripts...")
 
 all_chunks = []
-chunk_id = 0
 
 for fp in transcripts:
     with open(fp, encoding='utf-8', errors='replace') as f:
@@ -98,8 +97,9 @@ for fp in transcripts:
     for chunk in vc.chunk_transcript_body(body, CHUNK_SIZE, CHUNK_OVERLAP):
         chunk_text = chunk['text']
         if len(chunk_text) > 100:  # Skip tiny chunks
+            stable_id = vc.stable_chunk_id(fp.name, chunk_counter, chunk['start_ts'])
             all_chunks.append({
-                'id': f"chunk_{chunk_id:06d}",
+                'id': stable_id,
                 'text': chunk_text,
                 'title': title,
                 'video_id': video_id,
@@ -107,9 +107,9 @@ for fp in transcripts:
                 'duration': duration,
                 'source_file': fp.name,
                 'start_ts': chunk['start_ts'],
+                'end_ts': chunk.get('end_ts', chunk['start_ts']),
                 'chunk_index': chunk_counter,
             })
-            chunk_id += 1
             chunk_counter += 1
 
 print(f"  Total chunks: {len(all_chunks):,}")
@@ -175,6 +175,8 @@ for i in range(0, len(all_chunks), BATCH_SIZE):
             'source_file': c['source_file'],
             'chunk_id': c['id'],
             'start_ts': c['start_ts'],
+            'end_ts': c['end_ts'],
+            'chunk_index': c['chunk_index'],
         } for c in batch],
     )
     if (i // BATCH_SIZE) % 5 == 0:
@@ -197,10 +199,12 @@ conn.execute("PRAGMA journal_mode=WAL")
 conn.execute("""
     CREATE VIRTUAL TABLE IF NOT EXISTS transcripts_fts USING fts5(
         chunk_id,
+        chunk_index,
         title,
         video_id,
         playlist,
         start_ts,
+        end_ts,
         source_file,
         content,
         tokenize='porter unicode61'
@@ -210,11 +214,14 @@ conn.execute("""
 # Insert into FTS5
 for c in all_chunks:
     conn.execute(
-        "INSERT INTO transcripts_fts VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (c['id'], c['title'], c['video_id'], c['playlist'], c['start_ts'], c['source_file'], c['text'])
+        "INSERT INTO transcripts_fts VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (c['id'], c['chunk_index'], c['title'], c['video_id'], c['playlist'],
+         c['start_ts'], c['end_ts'], c['source_file'], c['text'])
     )
 
 vc.store_embedding_metadata(conn, embedding_meta)
+vc.store_schema_metadata(conn)
+vc.verify_chunk_schema(conn)
 
 # ── Knowledge Graph Tables ──
 conn.execute("""
