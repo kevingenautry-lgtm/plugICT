@@ -85,13 +85,14 @@ window.PLUGICT = {
 </script>
 <style>
   :root{
-    --paper:#0D0B08; --paper-alt:#12100C; --card:#17130E;
-    --dark:#0A0806; --dark-line:rgba(244,239,228,.1);
-    --ink:#F2EAD9; --ink-soft:#B8AC96; --ink-mut:#8F8470;
-    --line:rgba(242,234,217,.13); --line-soft:rgba(242,234,217,.08);
+    --paper:#070605; --paper-alt:#0C0A08; --card:#131009;
+    --dark:#050403; --dark-line:rgba(244,239,228,.1);
+    --ink:#F4EEDF; --ink-soft:#B8AC96; --ink-mut:#8F8470;
+    --line:rgba(242,234,217,.11); --line-soft:rgba(242,234,217,.06);
     --terracotta:#E8622C; --terracotta-bright:#FF8A4A; --terracotta-deep:#B9440F;
     --ember-glow:rgba(232,98,44,.35);
     --maxw:1180px;
+    --spot:rgba(232,98,44,.10);
     --serif:'Newsreader',Georgia,serif;
     --sans:'Instrument Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -138,12 +139,21 @@ window.PLUGICT = {
 
   /* ── hero ───────────────────────────────────────────────── */
   .hero{position:relative; overflow:hidden}
-  .hero::before{content:""; position:absolute; top:-30%; right:-15%; width:70%; height:130%; pointer-events:none;
-    background:radial-gradient(50% 50% at 60% 40%, rgba(232,98,44,.16), transparent 70%)}
-  .hero .wrap{display:grid; grid-template-columns:1.05fr .95fr; gap:52px; align-items:center; padding:80px 28px 72px; position:relative}
+  .hero::before{content:""; position:absolute; top:-30%; right:-15%; width:70%; height:130%; pointer-events:none; z-index:1;
+    background:radial-gradient(50% 50% at 60% 40%, rgba(232,98,44,.18), transparent 70%)}
+  /* x.ai-style animated particle field behind the hero */
+  #hero-canvas{position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; opacity:.9}
+  /* faint engineering grid, masked to fade toward the edges (x.ai motif) */
+  .hero::after{content:""; position:absolute; inset:0; pointer-events:none; z-index:0; opacity:.5;
+    background:
+      repeating-linear-gradient(0deg, rgba(242,234,217,.045) 0 1px, transparent 1px 64px),
+      repeating-linear-gradient(90deg, rgba(242,234,217,.045) 0 1px, transparent 1px 64px);
+    -webkit-mask-image:radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 78%);
+    mask-image:radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 78%)}
+  .hero .wrap{display:grid; grid-template-columns:1.05fr .95fr; gap:52px; align-items:center; padding:96px 28px 84px; position:relative; z-index:2}
   @media(max-width:1000px){ .hero .wrap{grid-template-columns:1fr} }
   .eyebrow{font:500 11.5px var(--mono); letter-spacing:.18em; color:var(--terracotta); text-transform:uppercase}
-  .hero h1{font:400 clamp(38px,5.4vw,68px)/1.08 var(--serif); letter-spacing:-.015em; margin-top:22px}
+  .hero h1{font:400 clamp(42px,6.3vw,86px)/1.03 var(--serif); letter-spacing:-.025em; margin-top:24px}
   .hero .sub{font-size:17px; line-height:1.7; color:var(--ink-soft); max-width:460px; margin-top:24px}
   .hero .cta{display:flex; align-items:center; gap:22px; flex-wrap:wrap; margin-top:34px}
   .hero .fine{font:400 12px var(--mono); letter-spacing:.05em; color:var(--ink-mut); margin-top:18px}
@@ -481,13 +491,68 @@ window.PLUGICT = {
   .fadeup{opacity:0; transform:translateY(22px); transition:opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1)}
   .fadeup.infade{opacity:1; transform:none}
   html:not(.js) .fadeup{opacity:1; transform:none}
+  /* directional scroll-reveal variants (x.ai-style staggered entrances) */
+  .rv{opacity:0; transition:opacity .8s cubic-bezier(.22,1,.36,1), transform .8s cubic-bezier(.22,1,.36,1)}
+  .rv-up{transform:translateY(34px)} .rv-left{transform:translateX(-40px)} .rv-right{transform:translateX(40px)}
+  .rv-scale{transform:scale(.94)}
+  .rv.in{opacity:1; transform:none}
+  html:not(.js) .rv{opacity:1; transform:none}
+
+  /* ── cursor spotlight (x.ai signature) ──────────────────── */
+  #spotlight{position:fixed; top:0; left:0; width:640px; height:640px; margin:-320px 0 0 -320px;
+    border-radius:50%; pointer-events:none; z-index:5; opacity:0; transition:opacity .5s ease;
+    background:radial-gradient(circle, rgba(232,98,44,.09), rgba(232,98,44,.03) 40%, transparent 66%);
+    mix-blend-mode:screen; will-change:transform}
+  body.spot-on #spotlight{opacity:1}
+  @media(hover:none){ #spotlight{display:none} }
+
+  /* glow-on-hover for interactive cards */
+  .glow{position:relative}
+  .glow::before{content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+    opacity:0; transition:opacity .35s ease; z-index:0;
+    background:radial-gradient(220px circle at var(--mx,50%) var(--my,50%), rgba(232,98,44,.16), transparent 65%)}
+  .glow:hover::before{opacity:1}
+  .glow > *{position:relative; z-index:1}
+
+  /* ── x.ai-style code-snippet tabs ───────────────────────── */
+  .codeblock{margin-top:48px; display:grid; grid-template-columns:1.02fr 1.18fr; gap:44px; align-items:center; max-width:var(--maxw)}
+  @media(max-width:900px){ .codeblock{grid-template-columns:1fr; gap:30px} }
+  .codeblock .lead h3{font:400 clamp(26px,3.4vw,40px)/1.12 var(--serif); letter-spacing:-.02em}
+  .codeblock .lead p{font-size:15.5px; line-height:1.7; color:var(--ink-soft); max-width:440px; margin-top:16px}
+  .code-langs{display:flex; gap:14px; margin-top:22px; flex-wrap:wrap}
+  .code-lang{display:flex; align-items:center; gap:9px; font:500 13px var(--sans); color:var(--ink-soft)}
+  .code-lang i{width:7px; height:7px; border-radius:50%; background:var(--terracotta); box-shadow:0 0 10px 1px var(--ember-glow)}
+  .code-panel{background:linear-gradient(180deg,#0A0806,#050403); border:1px solid rgba(232,98,44,.28); border-radius:16px;
+    overflow:hidden; box-shadow:0 0 80px -30px var(--ember-glow), 0 40px 90px -50px rgba(0,0,0,.95)}
+  .code-tabs{display:flex; gap:2px; padding:10px 12px 0; border-bottom:1px solid var(--dark-line); overflow-x:auto; scrollbar-width:none}
+  .code-tabs::-webkit-scrollbar{display:none}
+  .code-tab{font:500 12.5px var(--mono); color:var(--ink-mut); background:none; border:none; cursor:pointer;
+    padding:10px 15px; border-radius:9px 9px 0 0; white-space:nowrap; transition:color .2s, background .2s; position:relative}
+  .code-tab:hover{color:var(--ink-soft)}
+  .code-tab.on{color:var(--terracotta-bright); background:rgba(232,98,44,.08)}
+  .code-tab.on::after{content:""; position:absolute; left:12px; right:12px; bottom:-1px; height:2px; background:var(--terracotta-bright); border-radius:2px}
+  .code-head{display:flex; align-items:center; justify-content:space-between; padding:12px 18px 4px}
+  .code-file{font:400 11.5px var(--mono); color:var(--ink-mut)}
+  .code-copy{font:500 11px var(--mono); color:rgba(244,239,228,.5); border:1px solid rgba(244,239,228,.18);
+    border-radius:6px; padding:5px 11px; cursor:pointer; background:none; transition:color .2s,border-color .2s}
+  .code-copy:hover{color:var(--terracotta-bright); border-color:var(--terracotta-bright)}
+  .code-body{margin:0; padding:8px 20px 24px; font:400 13px/1.85 var(--mono); color:rgba(244,239,228,.86);
+    overflow-x:auto; white-space:pre; scrollbar-width:thin}
+  .code-body .cm{color:var(--ink-mut)} .code-body .ky{color:var(--terracotta-bright)}
+  .code-body .st{color:#9BD39B} .code-body .fn{color:#7FB8FF}
+  .code-pane{display:none} .code-pane.on{display:block; animation:code-fade .3s ease}
+  @keyframes code-fade{from{opacity:0; transform:translateY(6px)}}
+
   @media (prefers-reduced-motion: reduce){
     *,*::before,*::after{animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important}
     .fadeup{opacity:1 !important; transform:none !important}
+    .rv{opacity:1 !important; transform:none !important}
+    #hero-canvas{display:none} #spotlight{display:none !important}
   }
 </style>
 </head>
 <body>
+<div id="spotlight" aria-hidden="true"></div>
 
 <nav aria-label="Main">
   <div class="wrap">
@@ -495,6 +560,7 @@ window.PLUGICT = {
     <div class="navlinks">
       <a href="#capabilities">What it does</a>
       <a href="#setup">Setup</a>
+      <a href="#connect">Connect</a>
       <a href="#pricing">Pricing</a>
       <a href="#faq">FAQ</a>
       <a class="btn primary small" href="#pricing">Get access</a>
@@ -506,6 +572,7 @@ window.PLUGICT = {
 
 <!-- ═══ HERO ═══ -->
 <header class="hero">
+  <canvas id="hero-canvas" aria-hidden="true"></canvas>
   <div class="wrap">
     <div>
       <div class="eyebrow fadeup">The ICT knowledge engine</div>
@@ -601,7 +668,7 @@ window.PLUGICT = {
 
     <div class="cap-list">
 
-      <div class="cap-row fadeup">
+      <div class="cap-row fadeup glow">
         <div class="cap-num">1.</div>
         <div class="cap-text"><h3>Ask anything.</h3><p>Hybrid semantic search finds the exact moment — even when you don't know ICT's exact words.</p></div>
         <div class="cap-visual cv-term">
@@ -611,7 +678,7 @@ window.PLUGICT = {
         </div>
       </div>
 
-      <div class="cap-row fadeup">
+      <div class="cap-row fadeup glow">
         <div class="cap-num">2.</div>
         <div class="cap-text"><h3>Verify every answer.</h3><p>Every answer cites its source video and the exact second, so you can jump in and check.</p></div>
         <div class="cap-visual cv-cite">
@@ -623,7 +690,7 @@ window.PLUGICT = {
         </div>
       </div>
 
-      <div class="cap-row fadeup">
+      <div class="cap-row fadeup glow">
         <div class="cap-num">3.</div>
         <div class="cap-text"><h3>Plug in your AI agent.</h3><p>Download, add one config to Claude Desktop, Cursor or Hermes — done. No code needed.</p></div>
         <div class="cap-visual cv-badges">
@@ -633,7 +700,7 @@ window.PLUGICT = {
         </div>
       </div>
 
-      <div class="cap-row fadeup">
+      <div class="cap-row fadeup glow">
         <div class="cap-num">4.</div>
         <div class="cap-text"><h3>Walk the knowledge graph.</h3><p>FVG, liquidity, order blocks — concepts linked into a graph your AI traverses to build complete answers.</p></div>
         <div class="cap-visual cv-graph">
@@ -651,7 +718,7 @@ window.PLUGICT = {
         </div>
       </div>
 
-      <div class="cap-row fadeup">
+      <div class="cap-row fadeup glow">
         <div class="cap-num">5.</div>
         <div class="cap-text"><h3>Keep it private.</h3><p>The encrypted vault runs on your machine. No cloud, no per-query fees from us — you just use your own AI agent's key (free options exist).</p></div>
         <div class="cap-visual cv-badges">
@@ -663,7 +730,7 @@ window.PLUGICT = {
         </div>
       </div>
 
-      <div class="cap-row fadeup">
+      <div class="cap-row fadeup glow">
         <div class="cap-num">6.</div>
         <div class="cap-text"><h3>Own it outright.</h3><p>One payment, a license tied to you. Lifetime access — it always works.</p></div>
         <div class="cap-visual cv-license">
@@ -703,7 +770,7 @@ window.PLUGICT = {
     <h2 class="fadeup">Three moves to set up.</h2>
     <p class="sub fadeup" data-delay=".05" style="margin-top:14px"><span style="font:500 12px var(--mono);letter-spacing:.1em;color:var(--terracotta);border:1px solid rgba(232,98,44,.4);border-radius:999px;padding:6px 14px">≈ 3 MINUTES · NO CODE</span></p>
     <div class="moves">
-      <div class="move-card fadeup">
+      <div class="move-card fadeup glow">
         <div class="num">01</div>
         <h3>Unlock the vault</h3>
         <p>Download the vault, drop in your license key, double-click the setup file. That's it.</p>
@@ -713,7 +780,7 @@ window.PLUGICT = {
           <span>▶ double-click setup</span>
         </div>
       </div>
-      <div class="move-card fadeup" data-delay=".08">
+      <div class="move-card fadeup glow" data-delay=".08">
         <div class="num">02</div>
         <h3>Connect your agent</h3>
         <p>Open your AI agent's settings and paste the PlugICT config — copy-paste, no code.</p>
@@ -722,7 +789,7 @@ window.PLUGICT = {
           <button class="copy-btn" type="button" data-cmd='"ict-vault": { "command": "ict-vault-mcp" }'>copy</button>
         </div>
       </div>
-      <div class="move-card fadeup" data-delay=".16">
+      <div class="move-card fadeup glow" data-delay=".16">
         <div class="num">03</div>
         <h3>Ask your AI</h3>
         <p>It searches, walks the graph, and answers with cited timestamps.</p>
@@ -732,6 +799,70 @@ window.PLUGICT = {
           <span>Hermes</span>
           <span>any MCP agent</span>
         </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CONNECT / CODE TABS (x.ai-style developer block) ═══ -->
+<section id="connect">
+  <div class="inner">
+    <div class="eyebrow rv rv-up">Connect your agent</div>
+    <div class="codeblock">
+      <div class="lead rv rv-left">
+        <h3>One config. <em>Any MCP agent.</em></h3>
+        <p>Paste the vault into your agent and every answer comes back cited to the exact video and timestamp — no glue code, no cloud round-trip. Copy the snippet for your tool and you're live.</p>
+        <div class="code-langs">
+          <span class="code-lang"><i></i>Claude Desktop</span>
+          <span class="code-lang"><i></i>Cursor</span>
+          <span class="code-lang"><i></i>CLI</span>
+          <span class="code-lang"><i></i>any agent</span>
+        </div>
+      </div>
+      <div class="code-panel glow rv rv-right">
+        <div class="code-tabs" role="tablist">
+          <button class="code-tab on" type="button" data-tab="claude" role="tab">Claude&nbsp;Desktop</button>
+          <button class="code-tab" type="button" data-tab="cursor" role="tab">Cursor</button>
+          <button class="code-tab" type="button" data-tab="cli" role="tab">CLI</button>
+          <button class="code-tab" type="button" data-tab="ask" role="tab">Ask</button>
+        </div>
+        <div class="code-head">
+          <span class="code-file" data-file>claude_desktop_config.json</span>
+          <button class="code-copy" type="button" data-code-copy>copy</button>
+        </div>
+
+        <div class="code-pane on" data-pane="claude"><pre class="code-body">{
+  <span class="ky">"mcpServers"</span>: {
+    <span class="ky">"ict-vault"</span>: {
+      <span class="ky">"command"</span>: <span class="st">"ict-vault-mcp"</span>,
+      <span class="ky">"args"</span>: [<span class="st">"--vault"</span>, <span class="st">"~/PlugICT/ict-vault"</span>],
+      <span class="ky">"env"</span>: { <span class="ky">"ICT_LICENSE"</span>: <span class="st">"~/PlugICT/license.key"</span> }
+    }
+  }
+}</pre></div>
+
+        <div class="code-pane" data-pane="cursor"><pre class="code-body"><span class="cm"># ~/.cursor/mcp.json — same shape, drop it in and reload</span>
+{
+  <span class="ky">"mcpServers"</span>: {
+    <span class="ky">"ict-vault"</span>: {
+      <span class="ky">"command"</span>: <span class="st">"ict-vault-mcp"</span>,
+      <span class="ky">"args"</span>: [<span class="st">"--vault"</span>, <span class="st">"~/PlugICT/ict-vault"</span>]
+    }
+  }
+}</pre></div>
+
+        <div class="code-pane" data-pane="cli"><pre class="code-body"><span class="cm"># unlock once, then let the doctor verify everything</span>
+<span class="fn">$</span> ict-vault unlock --license license.key
+<span class="fn">$</span> ict-vault doctor
+<span class="ky">✓</span> vault decrypted  <span class="cm">· 576 videos · 12,438 chunks</span>
+<span class="ky">✓</span> knowledge graph loaded  <span class="cm">· reranker ready</span>
+<span class="ky">✓</span> MCP server listening on stdio</pre></div>
+
+        <div class="code-pane" data-pane="ask"><pre class="code-body"><span class="fn">you&gt;</span> difference between an order block and a breaker?
+<span class="ky">ict-vault&gt;</span> An order block is the last down-candle before an
+          up-move; a breaker is that block after price fails
+          and breaks back through it…
+          <span class="cm">↳ 2023 Mentorship — Ep 31 · 41:07 (97% confidence)</span></pre></div>
       </div>
     </div>
   </div>
@@ -753,7 +884,7 @@ window.PLUGICT = {
       </div>
       <p style="margin-top:18px;font-size:13px;line-height:1.6;color:var(--ink-mut);max-width:400px">The vault has zero ongoing fees. Your AI agent brings its own key — free Google Gemini (1,500 queries/day) or ~$2/month DeepSeek both work.</p>
     </div>
-    <div class="price-card fadeup" data-delay=".1">
+    <div class="price-card fadeup glow" data-delay=".1">
       <div class="tag">LIFETIME LICENSE · LAUNCH PRICING</div>
       <div class="was">Normal price <s>$49.99</s><span class="save-badge">52% OFF AT LAUNCH</span></div>
       <div class="now">$1.00</div>
@@ -1288,6 +1419,119 @@ window.PLUGICT = {
         finish();
       }).catch(finish);
     } else { finish(); }
+  })();
+
+  /* ══════════════════════════════════════════════════════════════
+     x.ai-INSPIRED MOTION LAYER
+     — animated hero particle field, cursor spotlight, parallax,
+       directional scroll-reveal, and the code-snippet tabs.
+     All gated on prefers-reduced-motion and pointer capability.
+     ══════════════════════════════════════════════════════════════ */
+
+  /* ── 1. animated hero particle field (rising embers + drift) ── */
+  (function(){
+    const cv=document.getElementById('hero-canvas'); if(!cv||REDUCED) return;
+    const ctx=cv.getContext('2d'); const hero=cv.parentElement;
+    let w=0,h=0,dpr=Math.min(devicePixelRatio||1,2),parts=[],raf=0,vis=true;
+    function size(){ w=hero.clientWidth; h=hero.clientHeight;
+      cv.width=w*dpr; cv.height=h*dpr; cv.style.width=w+'px'; cv.style.height=h+'px';
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      const n=Math.round(Math.min(90, w/16));
+      parts=Array.from({length:n},()=>mk()); }
+    function mk(){ return { x:Math.random()*w, y:Math.random()*h,
+      r:Math.random()*1.8+.4, vy:-(Math.random()*.35+.08), vx:(Math.random()-.5)*.18,
+      a:Math.random()*.5+.15, tw:Math.random()*Math.PI*2 }; }
+    function tick(t){
+      raf=requestAnimationFrame(tick); if(!vis) return;
+      ctx.clearRect(0,0,w,h);
+      for(const p of parts){
+        p.y+=p.vy; p.x+=p.vx; p.tw+=.02;
+        if(p.y<-8){ p.y=h+8; p.x=Math.random()*w; }
+        const flick=p.a*(.6+.4*Math.sin(p.tw));
+        const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*4);
+        g.addColorStop(0,'rgba(255,138,74,'+flick+')');
+        g.addColorStop(1,'rgba(255,138,74,0)');
+        ctx.fillStyle=g; ctx.beginPath(); ctx.arc(p.x,p.y,p.r*4,0,6.283); ctx.fill();
+      }
+    }
+    addEventListener('resize',size,{passive:true});
+    document.addEventListener('visibilitychange',()=>{vis=!document.hidden;});
+    size(); raf=requestAnimationFrame(tick);
+  })();
+
+  /* ── 2. cursor spotlight (fine-pointer only) ── */
+  (function(){
+    const el=document.getElementById('spotlight');
+    if(!el||REDUCED||!matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+    let tx=innerWidth/2,ty=innerHeight/2,cx=tx,cy=ty,raf=0;
+    addEventListener('pointermove',e=>{ tx=e.clientX; ty=e.clientY;
+      if(!document.body.classList.contains('spot-on')) document.body.classList.add('spot-on');
+      if(!raf) raf=requestAnimationFrame(loop); },{passive:true});
+    addEventListener('pointerdown',e=>{ tx=e.clientX; ty=e.clientY; });
+    function loop(){ cx+=(tx-cx)*.18; cy+=(ty-cy)*.18;
+      el.style.transform='translate('+cx+'px,'+cy+'px)';
+      if(Math.abs(tx-cx)>.5||Math.abs(ty-cy)>.5){ raf=requestAnimationFrame(loop); } else { raf=0; } }
+  })();
+
+  /* ── 3. per-card glow follows the cursor ── */
+  (function(){
+    if(REDUCED) return;
+    document.querySelectorAll('.glow').forEach(card=>{
+      card.addEventListener('pointermove',e=>{
+        const r=card.getBoundingClientRect();
+        card.style.setProperty('--mx',(e.clientX-r.left)+'px');
+        card.style.setProperty('--my',(e.clientY-r.top)+'px');
+      },{passive:true});
+    });
+  })();
+
+  /* ── 4. hero parallax on scroll ── */
+  (function(){
+    if(REDUCED) return;
+    const hero=document.querySelector('.hero'); if(!hero) return;
+    const cv=document.getElementById('hero-canvas');
+    const term=hero.querySelector('.terminal');
+    let raf=0;
+    function upd(){ raf=0; const y=scrollY;
+      if(y>hero.offsetHeight+120) return;
+      if(cv) cv.style.transform='translateY('+(y*0.18)+'px)';
+      if(term && innerWidth>1000) term.style.transform=
+        'perspective(1400px) rotateY(-7deg) rotateX(1.5deg) translateY('+(y*-0.05)+'px)';
+    }
+    addEventListener('scroll',()=>{ if(!raf) raf=requestAnimationFrame(upd); },{passive:true});
+  })();
+
+  /* ── 5. directional scroll-reveal for .rv elements ── */
+  (function(){
+    const items=document.querySelectorAll('.rv');
+    if(!items.length) return;
+    if(REDUCED){ items.forEach(el=>el.classList.add('in')); return; }
+    const io=new IntersectionObserver(es=>es.forEach(en=>{
+      if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+    }),{threshold:.18});
+    items.forEach(el=>io.observe(el));
+  })();
+
+  /* ── 6. code-snippet tabs ── */
+  (function(){
+    const panel=document.querySelector('.code-panel'); if(!panel) return;
+    const tabs=panel.querySelectorAll('.code-tab');
+    const panes=panel.querySelectorAll('.code-pane');
+    const fileEl=panel.querySelector('[data-file]');
+    const copyBtn=panel.querySelector('[data-code-copy]');
+    const files={claude:'claude_desktop_config.json',cursor:'~/.cursor/mcp.json',cli:'terminal',ask:'your agent'};
+    function select(name){
+      tabs.forEach(t=>t.classList.toggle('on',t.dataset.tab===name));
+      panes.forEach(p=>p.classList.toggle('on',p.dataset.pane===name));
+      if(fileEl) fileEl.textContent=files[name]||'';
+    }
+    tabs.forEach(t=>t.addEventListener('click',()=>select(t.dataset.tab)));
+    if(copyBtn) copyBtn.addEventListener('click',()=>{
+      const active=panel.querySelector('.code-pane.on .code-body');
+      const txt=active?active.innerText:'';
+      if(navigator.clipboard) navigator.clipboard.writeText(txt).catch(()=>{});
+      copyBtn.textContent='copied'; setTimeout(()=>copyBtn.textContent='copy',1200);
+    });
   })();
 </script>
 </body>
