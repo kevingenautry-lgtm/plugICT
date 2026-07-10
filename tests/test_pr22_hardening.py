@@ -38,8 +38,8 @@ def test_embedding_metadata_stored():
         vc.VECTOR_SCHEMA_KEY,
     ):
         assert rows[key]
-    assert rows[vc.EMBEDDING_MODEL_KEY] == "BAAI/bge-large-en-v1.5"
-    assert rows[vc.EMBEDDING_DIM_KEY] == "1024"
+    assert rows[vc.EMBEDDING_MODEL_KEY] == "BAAI/bge-small-en-v1.5"
+    assert rows[vc.EMBEDDING_DIM_KEY] == "384"
 
 
 def test_embedding_validation_mismatch(monkeypatch):
@@ -57,7 +57,7 @@ def test_embedding_validation_mismatch(monkeypatch):
     with pytest.raises(vc.VaultError) as e:
         vc.validate_embedding_compatibility(db, require_metadata=True)
     assert str(e.value) == (
-        "This vault requires BAAI/bge-large-en-v1.5 (1024-dim). "
+        "This vault requires BAAI/bge-small-en-v1.5 (384-dim). "
         "Loaded: all-MiniLM-L6-v2 (384-dim). Please install the correct model."
     )
 
@@ -75,7 +75,7 @@ def test_no_silent_fallback(monkeypatch):
     monkeypatch.setattr(builtins, "__import__", guarded_import)
     with pytest.raises(vc.VaultError) as e:
         vc.get_embedding_function(vc.configured_embedding_metadata(), return_metadata=True)
-    assert "This vault requires BAAI/bge-large-en-v1.5 (1024-dim)" in str(e.value)
+    assert "This vault requires BAAI/bge-small-en-v1.5 (384-dim)" in str(e.value)
 
 
 def test_full_chunk_text_rerank(monkeypatch):

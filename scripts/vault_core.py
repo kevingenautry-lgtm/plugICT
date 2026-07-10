@@ -65,7 +65,7 @@ SNIPPET_DEFAULT_KEY = "snippet_default_chars"
 SNIPPET_MAX_KEY = "snippet_max_chars"
 CONTEXT_MAX_KEY = "context_max_chars"
 
-DEFAULT_EMBEDDING_MODEL = "BAAI/bge-large-en-v1.5"
+DEFAULT_EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
 DEFAULT_EMBEDDING_REVISION = "d4aa6901d3a41ba39fb536a557fa166f842b0e09"
 QUERY_INSTRUCTION_VERSION = "bge-v1.5-no-query-instruction-v1"
 VECTOR_SCHEMA_VERSION = "2"
@@ -73,9 +73,9 @@ CHUNK_SCHEMA_VERSION = "2"
 CHUNK_ID_STRATEGY = "sha1-source-file-chunk-index-start-ts-v1"
 
 EMBEDDING_SPECS = {
-    "BAAI/bge-large-en-v1.5": {
-        EMBEDDING_MODEL_KEY: "BAAI/bge-large-en-v1.5",
-        EMBEDDING_DIM_KEY: "1024",
+    "BAAI/bge-small-en-v1.5": {
+        EMBEDDING_MODEL_KEY: "BAAI/bge-small-en-v1.5",
+        EMBEDDING_DIM_KEY: "384",
         EMBEDDING_NORMALIZE_KEY: "true",
         EMBEDDING_REVISION_KEY: DEFAULT_EMBEDDING_REVISION,
         QUERY_INSTRUCTION_KEY: QUERY_INSTRUCTION_VERSION,
