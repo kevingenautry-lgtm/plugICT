@@ -40,6 +40,40 @@ _CHUNK = 4 * 1024 * 1024  # 4 MB streaming chunk
 MIN_RERANK_SCORE = -6.0
 MMR_LAMBDA = 0.7
 SEARCH_CACHE_MAX = 100
+SNIPPET_MAX_CHARS = 1000
+
+EMBEDDING_MODEL_KEY = "embedding_model_name"
+EMBEDDING_DIM_KEY = "embedding_dimension"
+EMBEDDING_NORMALIZE_KEY = "embedding_normalize"
+EMBEDDING_REVISION_KEY = "embedding_revision"
+QUERY_INSTRUCTION_KEY = "query_instruction_version"
+VECTOR_SCHEMA_KEY = "vector_schema_version"
+
+DEFAULT_EMBEDDING_MODEL = "BAAI/bge-large-en-v1.5"
+DEFAULT_EMBEDDING_REVISION = "d4aa6901d3a41ba39fb536a557fa166f842b0e09"
+QUERY_INSTRUCTION_VERSION = "bge-v1.5-no-query-instruction-v1"
+VECTOR_SCHEMA_VERSION = "2"
+
+EMBEDDING_SPECS = {
+    "BAAI/bge-large-en-v1.5": {
+        EMBEDDING_MODEL_KEY: "BAAI/bge-large-en-v1.5",
+        EMBEDDING_DIM_KEY: "1024",
+        EMBEDDING_NORMALIZE_KEY: "true",
+        EMBEDDING_REVISION_KEY: DEFAULT_EMBEDDING_REVISION,
+        QUERY_INSTRUCTION_KEY: QUERY_INSTRUCTION_VERSION,
+        VECTOR_SCHEMA_KEY: VECTOR_SCHEMA_VERSION,
+    },
+    "all-MiniLM-L6-v2": {
+        EMBEDDING_MODEL_KEY: "all-MiniLM-L6-v2",
+        EMBEDDING_DIM_KEY: "384",
+        EMBEDDING_NORMALIZE_KEY: "true",
+        EMBEDDING_REVISION_KEY: "chroma-onnx-all-MiniLM-L6-v2",
+        QUERY_INSTRUCTION_KEY: "none-v1",
+        VECTOR_SCHEMA_KEY: VECTOR_SCHEMA_VERSION,
+    },
+}
+
+CASE_INSENSITIVE_SHORTFORMS = {"FVG", "IFVG", "BISI", "SIBI"}
 
 # Vault format versions understood by this build.
 FORMAT_V1_RAW = 1   # [ver:4][db_size:8][chroma_size:8][db][chroma]
@@ -55,6 +89,7 @@ class VaultError(Exception):
 # ── Temp lifecycle ───────────────────────────────────────────────────────────
 _temp_dirs = []
 vault_hash = ""
+_vault_embedding_cache_fingerprint = ""
 _search_cache = OrderedDict()
 _search_cache_hits = 0
 _search_cache_misses = 0
@@ -315,22 +350,170 @@ def classify_playlist(name):
     return 'Other / Misc'
 
 
-def get_embedding_function():
-    """Return the best available embedding function for ChromaDB.
+class _SentenceTransformerEF:
+    def __init__(self, model_name, revision, normalize_embeddings):
+        try:
+            from sentence_transformers import SentenceTransformer
+            self._model = SentenceTransformer(model_name, revision=revision)
+        except Exception as e:
+            raise VaultError(
+                _embedding_error_message(model_name, EMBEDDING_SPECS[model_name][EMBEDDING_DIM_KEY],
+                                         "unavailable", "0") +
+                f" Install/compatibility detail: {e}"
+            )
+        self.model_name = model_name
+        self.revision = revision
+        self.normalize_embeddings = normalize_embeddings
 
-    Tries BGE-large first, falls back to MiniLM.
-    """
-    from chromadb.utils import embedding_functions
-    try:
-        from sentence_transformers import SentenceTransformer
-        # Force-load now so build and query paths use the same usable model.
-        SentenceTransformer('BAAI/bge-large-en-v1.5')
-        return embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name='BAAI/bge-large-en-v1.5',
-            normalize_embeddings=True,
+    def __call__(self, input):
+        texts = [input] if isinstance(input, str) else list(input)
+        embeddings = self._model.encode(
+            texts,
+            normalize_embeddings=self.normalize_embeddings,
         )
-    except Exception:
-        return embedding_functions.ONNXMiniLM_L6_V2()
+        return embeddings.tolist() if hasattr(embeddings, "tolist") else embeddings
+
+    def name(self):
+        return f"{self.model_name}@{self.revision}"
+
+
+def configured_embedding_metadata(model_name=None):
+    model_name = model_name or os.environ.get("ICT_EMBEDDING_MODEL", DEFAULT_EMBEDDING_MODEL)
+    if model_name not in EMBEDDING_SPECS:
+        raise VaultError(f"Unsupported embedding model for production: {model_name}")
+    meta = dict(EMBEDDING_SPECS[model_name])
+    if model_name == DEFAULT_EMBEDDING_MODEL:
+        meta[EMBEDDING_REVISION_KEY] = os.environ.get(
+            "ICT_EMBEDDING_REVISION", DEFAULT_EMBEDDING_REVISION)
+    return meta
+
+
+def embedding_metadata_rows(meta):
+    return [(k, str(meta[k])) for k in (
+        EMBEDDING_MODEL_KEY,
+        EMBEDDING_DIM_KEY,
+        EMBEDDING_NORMALIZE_KEY,
+        EMBEDDING_REVISION_KEY,
+        QUERY_INSTRUCTION_KEY,
+        VECTOR_SCHEMA_KEY,
+    )]
+
+
+def store_embedding_metadata(conn, meta):
+    conn.execute("CREATE TABLE IF NOT EXISTS vault_metadata (key TEXT PRIMARY KEY, value TEXT)")
+    conn.executemany(
+        "INSERT OR REPLACE INTO vault_metadata (key, value) VALUES (?, ?)",
+        embedding_metadata_rows(meta),
+    )
+
+
+def read_embedding_metadata(db):
+    try:
+        rows = dict(db.execute(
+            "SELECT key, value FROM vault_metadata WHERE key IN (?,?,?,?,?,?)",
+            (
+                EMBEDDING_MODEL_KEY,
+                EMBEDDING_DIM_KEY,
+                EMBEDDING_NORMALIZE_KEY,
+                EMBEDDING_REVISION_KEY,
+                QUERY_INSTRUCTION_KEY,
+                VECTOR_SCHEMA_KEY,
+            ),
+        ).fetchall())
+    except sqlite3.Error:
+        return {}
+    return rows
+
+
+def _embedding_error_message(required_model, required_dim, actual_model, actual_dim):
+    return (f"This vault requires {required_model} ({required_dim}-dim). "
+            f"Loaded: {actual_model} ({actual_dim}-dim). "
+            "Please install the correct model.")
+
+
+def _embedding_dim(embedding_function):
+    return len(embedding_function(["dimension check"])[0])
+
+
+def _normalize_bool(value):
+    return "true" if str(value).strip().lower() in ("1", "true", "yes") else "false"
+
+
+def get_embedding_function(required_metadata=None, return_metadata=False):
+    """Load exactly the requested embedding model. No dimensional fallback."""
+    required = dict(required_metadata or configured_embedding_metadata())
+    model_name = required.get(EMBEDDING_MODEL_KEY, DEFAULT_EMBEDDING_MODEL)
+    if model_name not in EMBEDDING_SPECS:
+        raise VaultError(f"Unsupported embedding model for this vault: {model_name}")
+
+    spec = dict(EMBEDDING_SPECS[model_name])
+    spec.update({k: str(v) for k, v in required.items() if v is not None})
+    normalize = _normalize_bool(spec.get(EMBEDDING_NORMALIZE_KEY)) == "true"
+
+    if model_name == DEFAULT_EMBEDDING_MODEL:
+        ef = _SentenceTransformerEF(
+            model_name,
+            spec.get(EMBEDDING_REVISION_KEY, DEFAULT_EMBEDDING_REVISION),
+            normalize,
+        )
+    else:
+        try:
+            from chromadb.utils import embedding_functions
+            ef = embedding_functions.ONNXMiniLM_L6_V2()
+        except Exception as e:
+            raise VaultError(
+                _embedding_error_message(model_name, spec[EMBEDDING_DIM_KEY], "unavailable", "0") +
+                f" Install/compatibility detail: {e}"
+            )
+
+    actual_dim = str(_embedding_dim(ef))
+    actual = dict(spec)
+    actual[EMBEDDING_DIM_KEY] = actual_dim
+    if actual.get(EMBEDDING_MODEL_KEY) != model_name:
+        actual[EMBEDDING_MODEL_KEY] = model_name
+
+    if return_metadata:
+        return ef, actual
+    return ef
+
+
+def _set_vault_embedding_cache_metadata(meta):
+    global _vault_embedding_cache_fingerprint
+    fingerprint = ""
+    if meta:
+        fingerprint = f"{meta.get(EMBEDDING_MODEL_KEY, '')}:{meta.get(EMBEDDING_DIM_KEY, '')}"
+    if fingerprint != _vault_embedding_cache_fingerprint:
+        clear_search_cache()
+        _vault_embedding_cache_fingerprint = fingerprint
+
+
+def validate_embedding_compatibility(db, chroma_dir=None, require_metadata=False):
+    """Load and validate the exact embedding model required by the vault."""
+    if chroma_dir is not None:
+        sqlite_path = Path(chroma_dir) / "chroma.sqlite3"
+        if sqlite_path.exists() and not chroma_store_usable(chroma_dir):
+            return None
+
+    required = read_embedding_metadata(db)
+    _set_vault_embedding_cache_metadata(required)
+    if not required:
+        if require_metadata:
+            raise VaultError(
+                "This vault is missing embedding compatibility metadata. "
+                "Rebuild it with the current ict_ingest.py."
+            )
+        return None
+
+    required_model = required.get(EMBEDDING_MODEL_KEY, "")
+    required_dim = str(required.get(EMBEDDING_DIM_KEY, ""))
+    ef, actual = get_embedding_function(required, return_metadata=True)
+    actual_model = actual.get(EMBEDDING_MODEL_KEY, "")
+    actual_dim = str(actual.get(EMBEDDING_DIM_KEY, ""))
+
+    if actual_model != required_model or actual_dim != required_dim:
+        raise VaultError(_embedding_error_message(
+            required_model, required_dim, actual_model, actual_dim))
+    return ef
 
 
 # Words that shouldn't constrain a keyword search (recall-oriented FTS).
@@ -412,11 +595,10 @@ def sanitize_fts(query, mode="or"):
 
 
 def expand_query(query):
-    """Expand user-typed uppercase ICT acronyms to their full term.
+    """Expand ICT acronyms to their full term.
 
-    Only expands tokens the user wrote in ALL CAPS that exactly match a
-    shortform key. This avoids false-expanding lowercase words like 'ms' or
-    'bs' that occur in ordinary sentences.  Returns (expanded, changed).
+    FVG/IFVG/BISI/SIBI are unambiguous, so case does not matter. Ambiguous
+    shortforms like MS/BS/CE still require the user's all-caps spelling.
     """
     if not query:
         return query, False
@@ -424,8 +606,14 @@ def expand_query(query):
     changed = False
     for tok in query.split():
         core = tok.strip('?!.,;:()')
-        if core and core == core.upper() and core in ICT_SHORTFORMS:
-            full = ICT_SHORTFORMS[core].split(' — ')[0].split(' / ')[0].strip()
+        lookup = core.upper() if core else ""
+        should_expand = (
+            lookup in CASE_INSENSITIVE_SHORTFORMS
+            or (core and core == core.upper() and core in ICT_SHORTFORMS)
+        )
+        key = lookup if lookup in CASE_INSENSITIVE_SHORTFORMS else core
+        if should_expand and key in ICT_SHORTFORMS:
+            full = ICT_SHORTFORMS[key].split(' — ')[0].split(' / ')[0].strip()
             out.append(tok)
             out.append(full)
             changed = True
@@ -433,6 +621,68 @@ def expand_query(query):
             out.append(tok)
     expanded = ' '.join(out)
     return expanded, changed
+
+
+_TIMESTAMP_LINE = re.compile(r'^(\d+:\d{2}(?::\d{2})?)\s+')
+
+
+def line_timestamp(line):
+    m = _TIMESTAMP_LINE.match((line or "").strip())
+    return m.group(1) if m else None
+
+
+def _first_timestamp(lines):
+    for line in lines:
+        ts = line_timestamp(line)
+        if ts:
+            return ts
+    return None
+
+
+def _overlap_lines(lines, max_chars):
+    if max_chars <= 0:
+        return []
+    out = []
+    total = 0
+    for line in reversed(lines):
+        if not line_timestamp(line):
+            continue
+        add = len(line) + (1 if out else 0)
+        if out and total + add > max_chars:
+            break
+        out.append(line)
+        total += add
+        if total >= max_chars:
+            break
+    return list(reversed(out))
+
+
+def chunk_transcript_body(body, chunk_size=900, overlap_chars=100):
+    """Split timestamped transcript text without inventing overlap timestamps."""
+    chunks = []
+    current = []
+    current_len = 0
+    for raw in (body or "").splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        ts = line_timestamp(line)
+        if ts and current and current_len > chunk_size:
+            chunks.append({
+                "text": "\n".join(current),
+                "start_ts": _first_timestamp(current) or "0:00",
+            })
+            current = _overlap_lines(current, overlap_chars) + [line]
+            current_len = len("\n".join(current))
+        else:
+            current.append(line)
+            current_len += len(line)
+    if current:
+        chunks.append({
+            "text": "\n".join(current),
+            "start_ts": _first_timestamp(current) or "0:00",
+        })
+    return chunks
 
 
 # ── Build-side packaging (used by build.py; keeps format symmetric) ──────────
@@ -667,6 +917,7 @@ def open_vault(vault_file=VAULT_FILE, license_file=LICENSE_FILE, on_progress=Non
         "INSERT OR REPLACE INTO vault_metadata (key, value) VALUES (?, ?)",
         ('buyer_id', license_id_hash),
     )
+    _set_vault_embedding_cache_metadata(read_embedding_metadata(db))
     db.commit()
     return db, chroma_dir, info.get('LICENSED_TO', 'unknown')
 
@@ -678,7 +929,7 @@ _reranker = None
 def _cand_text(c):
     """Text a candidate exposes for reranking — supports both the session path
     ('text') and the MCP path ('snippet'). Strips FTS highlight tags."""
-    t = c.get('text') or c.get('snippet') or ''
+    t = c.get('_full_text') or c.get('text') or c.get('snippet') or ''
     return t.replace('<b>', '').replace('</b>', '')
 
 
@@ -686,6 +937,9 @@ def _cand_key(c):
     """Identity of a chunk for dedup: its source video + timestamp (falls back
     to title when video_id is absent). Both search paths carry these fields
     (session uses start_ts, MCP uses timestamp)."""
+    chunk_id = c.get('chunk_id') or c.get('id')
+    if chunk_id:
+        return ('chunk_id', str(chunk_id))
     vid = c.get('video_id') or c.get('title') or ''
     ts = c.get('start_ts') or c.get('timestamp') or ''
     return (vid.strip().lower(), str(ts).strip())
@@ -749,7 +1003,13 @@ def clear_search_cache():
 
 
 def _cache_key(query, top_k, playlist=None):
-    return ((query or "").lower(), int(top_k), playlist or '', vault_hash)
+    return (
+        (query or "").lower(),
+        int(top_k),
+        playlist or '',
+        vault_hash,
+        _vault_embedding_cache_fingerprint,
+    )
 
 
 def get_cached_results(query, top_k, playlist=None):
@@ -773,6 +1033,54 @@ def put_cached_results(query, top_k, playlist, results):
         _search_cache.popitem(last=False)
 
 
+def _fts_columns(db):
+    try:
+        return [r[1] for r in db.execute("PRAGMA table_info(transcripts_fts)").fetchall()]
+    except sqlite3.Error:
+        return []
+
+
+def fts_candidates(db, query_text, limit, playlist=None, source='keyword', rrf_source=None):
+    out = []
+    fts_query = sanitize_fts(query_text)
+    if not fts_query:
+        return out
+    cols = _fts_columns(db)
+    has_chunk_id = 'chunk_id' in cols
+    try:
+        if has_chunk_id:
+            sql = ("SELECT chunk_id, title, video_id, start_ts, playlist, source_file, content "
+                   "FROM transcripts_fts WHERE content MATCH ?")
+        else:
+            sql = ("SELECT rowid, title, video_id, start_ts, playlist, source_file, content "
+                   "FROM transcripts_fts WHERE content MATCH ?")
+        params = [fts_query]
+        if playlist:
+            sql += " AND playlist = ?"
+            params.append(playlist)
+        sql += " ORDER BY rank LIMIT ?"
+        params.append(limit)
+        for i, r in enumerate(db.execute(sql, params).fetchall()):
+            chunk_id = str(r[0]) if has_chunk_id else f"{r[5]}:{r[3]}:{r[0]}"
+            out.append({
+                'source': source,
+                'method': source,
+                'chunk_id': chunk_id,
+                'title': r[1],
+                'video_id': r[2],
+                'start_ts': r[3],
+                'timestamp': r[3],
+                'playlist': r[4],
+                'source_file': r[5],
+                '_full_text': r[6],
+                '_rank_in_source': i,
+                '_rrf_source': rrf_source or source,
+            })
+    except sqlite3.Error as e:
+        print(f"(keyword search unavailable: {e})", file=sys.stderr)
+    return out
+
+
 def _word_set(text):
     return set(re.findall(r"[a-z0-9]+", (text or "").lower()))
 
@@ -784,21 +1092,69 @@ def _jaccard(a, b):
     return (len(a & b) / len(union)) if union else 0.0
 
 
+def timestamp_seconds(value):
+    if value is None:
+        return None
+    try:
+        parts = [int(p) for p in str(value).split(":")]
+    except ValueError:
+        return None
+    if len(parts) < 2 or len(parts) > 3:
+        return None
+    total = 0
+    for p in parts:
+        total = (total * 60) + p
+    return total
+
+
+def _same_video(a, b):
+    av = (a.get('video_id') or '').strip().lower()
+    bv = (b.get('video_id') or '').strip().lower()
+    return bool(av and bv and av == bv)
+
+
+def _diversity_penalty(c, s, word_sets):
+    penalty = _jaccard(word_sets[id(c)], word_sets[id(s)])
+    if _same_video(c, s):
+        penalty = max(penalty, 0.55)
+        ct = timestamp_seconds(c.get('start_ts') or c.get('timestamp'))
+        st = timestamp_seconds(s.get('start_ts') or s.get('timestamp'))
+        if ct is not None and st is not None and abs(ct - st) <= 30:
+            penalty = max(penalty, 0.85)
+    return min(1.0, penalty)
+
+
+def _normalized_relevance(candidates):
+    scores = [float(c.get('final_score', c.get('rerank_score', 0.0))) for c in candidates]
+    if not scores:
+        return {}
+    lo, hi = min(scores), max(scores)
+    if hi == lo:
+        return {id(c): 1.0 for c in candidates}
+    if lo < 0:
+        return {id(c): (float(c.get('final_score', c.get('rerank_score', 0.0))) - lo) / (hi - lo)
+                for c in candidates}
+    if hi <= 0:
+        return {id(c): 0.0 for c in candidates}
+    return {id(c): float(c.get('final_score', c.get('rerank_score', 0.0))) / hi
+            for c in candidates}
+
+
 def apply_mmr(candidates, top_k, lambda_=MMR_LAMBDA):
-    """Greedy MMR over reranked candidates using Jaccard text similarity."""
+    """Greedy MMR with normalized relevance and explicit video/time penalties."""
     remaining = list(candidates)
     selected = []
     word_sets = {id(c): _word_set(_cand_text(c)) for c in remaining}
+    relevance = _normalized_relevance(remaining)
     while remaining and len(selected) < top_k:
         best = None
         best_score = None
         for c in remaining:
             max_sim = max(
-                (_jaccard(word_sets[id(c)], word_sets[id(s)]) for s in selected),
+                (_diversity_penalty(c, s, word_sets) for s in selected),
                 default=0.0,
             )
-            relevance = c.get('final_score', c.get('rerank_score', 0.0))
-            mmr_score = (lambda_ * relevance) - ((1 - lambda_) * max_sim)
+            mmr_score = (lambda_ * relevance[id(c)]) - ((1 - lambda_) * max_sim)
             if best is None or mmr_score > best_score:
                 best = c
                 best_score = mmr_score
@@ -882,7 +1238,7 @@ def warm_reranker():
 def rerank(query, candidates, top_k):
     """Cross-encoder rerank; degrades gracefully if the model isn't available."""
     global _reranker
-    if len(candidates) <= 1:
+    if len(candidates) <= 1 and _reranker is None:
         return candidates[:top_k]
     rrf_norm = _normalized_rrf(candidates)
     try:
@@ -897,12 +1253,27 @@ def rerank(query, candidates, top_k):
         candidates.sort(key=lambda c: c.get('final_score', c.get('rerank_score', 0.0)), reverse=True)
         filtered = [c for c in candidates if c.get('rerank_score', 0.0) >= MIN_RERANK_SCORE]
         if not filtered:
-            return candidates[:1]
+            return []
         return apply_mmr(filtered, top_k)
     except Exception as e:
         print(f"(rerank skipped: {e})", file=sys.stderr)
         candidates.sort(key=lambda c: c.get('rrf_score', 0.0), reverse=True)
         return candidates[:top_k]
+
+
+def make_snippet(text, max_chars=SNIPPET_MAX_CHARS):
+    clean = (text or "").replace("<b>", "").replace("</b>", "").strip()
+    clean = re.sub(r"\s+", " ", clean)
+    return clean[:max_chars]
+
+
+def finalize_ranked_results(ranked):
+    out = []
+    for c in ranked:
+        item = dict(c)
+        item['snippet'] = make_snippet(_cand_text(c))
+        out.append(item)
+    return out
 
 
 class VaultSession:
@@ -925,36 +1296,17 @@ class VaultSession:
         if self._collection is None:
             import chromadb
             from chromadb.config import Settings
+            ef = validate_embedding_compatibility(self.db, self.chroma_dir, require_metadata=True)
             client = chromadb.PersistentClient(
                 path=self.chroma_dir, settings=Settings(anonymized_telemetry=False))
             self._collection = client.get_collection(
                 'ict_vault',
-                embedding_function=get_embedding_function(),
+                embedding_function=ef,
             )
         return self._collection
 
     def _fts_candidates(self, query_text, limit, playlist=None, source='keyword', rrf_source=None):
-        out = []
-        fts_query = sanitize_fts(query_text)
-        if not fts_query:
-            return out
-        try:
-            sql = ("SELECT title, video_id, start_ts, playlist, "
-                   "snippet(transcripts_fts, 5, '<b>', '</b>', '...', 60) "
-                   "FROM transcripts_fts WHERE content MATCH ?")
-            params = [fts_query]
-            if playlist:
-                sql += " AND playlist = ?"
-                params.append(playlist)
-            sql += " ORDER BY rank LIMIT ?"
-            params.append(limit)
-            for i, r in enumerate(self.db.execute(sql, params).fetchall()):
-                out.append({'source': source, 'title': r[0], 'video_id': r[1],
-                            'start_ts': r[2], 'playlist': r[3], 'text': r[4],
-                            '_rank_in_source': i, '_rrf_source': rrf_source or source})
-        except sqlite3.Error as e:
-            print(f"(keyword search unavailable: {e})", file=sys.stderr)
-        return out
+        return fts_candidates(self.db, query_text, limit, playlist, source, rrf_source)
 
     def search(self, query, playlist=None, session=None, top_k=5):
         """Return (ranked_candidates, expanded_query, expansion_changed)."""
@@ -972,13 +1324,17 @@ class VaultSession:
                 raise RuntimeError("chroma store is not a valid sqlite database")
             where = {'playlist': playlist} if playlist else None
             out = self._get_collection().query(query_texts=[query], n_results=pool, where=where)
+            ids = out.get('ids', [[]])[0]
             docs = out.get('documents', [[]])[0]
             metas = out.get('metadatas', [[]])[0]
             for i, doc in enumerate(docs):
                 m = metas[i] if i < len(metas) else {}
                 candidates.append({'source': 'semantic', 'title': m.get('title', ''),
+                                   'method': 'semantic',
+                                   'chunk_id': ids[i] if i < len(ids) else m.get('chunk_id', ''),
                                    'video_id': m.get('video_id', ''), 'start_ts': m.get('start_ts', ''),
-                                   'playlist': m.get('playlist', ''), 'text': doc[:500],
+                                   'timestamp': m.get('start_ts', ''),
+                                   'playlist': m.get('playlist', ''), '_full_text': doc,
                                    '_rank_in_source': i, '_rrf_source': 'semantic'})
         except ImportError:
             print("(semantic search unavailable — chromadb not installed)", file=sys.stderr)
@@ -995,6 +1351,7 @@ class VaultSession:
         candidates = apply_rrf_scores(candidates)
         candidates = dedup_candidates(candidates)
         ranked = rerank(query, candidates, top_k) if candidates else []
+        ranked = finalize_ranked_results(ranked)
         put_cached_results(query, top_k, playlist, ranked)
         return ranked, expanded, changed
 
@@ -1038,7 +1395,9 @@ def run_doctor(vault_file=VAULT_FILE, license_file=LICENSE_FILE):
           "Place ict-vault.kevin next to mcp_server.py")
     if license_file.exists() and vault_file.exists():
         try:
-            db, _, who = open_vault(vault_file=vault_file, license_file=license_file)
+            db, chroma_dir, who = open_vault(vault_file=vault_file, license_file=license_file)
+            if chroma_store_usable(chroma_dir):
+                validate_embedding_compatibility(db, chroma_dir, require_metadata=True)
             n = db.execute("SELECT COUNT(*) FROM transcript_files").fetchone()[0]
             db.close()
             check(f"vault opens & decrypts ({n} videos, licensed to {who})", True)

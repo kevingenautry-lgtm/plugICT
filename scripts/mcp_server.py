@@ -71,6 +71,8 @@ def ensure_vault():
                 log(f"   unlocking… {min(pct, 100)}%")
 
         _db, _chroma_dir, _licensed_to = vc.open_vault(on_progress=progress)
+        if vc.chroma_store_usable(_chroma_dir):
+            vc.validate_embedding_compatibility(_db, _chroma_dir, require_metadata=True)
         log(f"✅ Vault ready — licensed to {_licensed_to}. Answering queries now.")
     return _db
 
@@ -91,11 +93,12 @@ def _get_collection():
                     con.close()
         import chromadb
         from chromadb.config import Settings
+        ef = vc.validate_embedding_compatibility(_db, _chroma_dir, require_metadata=True)
         client = chromadb.PersistentClient(
             path=_chroma_dir, settings=Settings(anonymized_telemetry=False))
         _collection = client.get_collection(
             'ict_vault',
-            embedding_function=vc.get_embedding_function(),
+            embedding_function=ef,
         )
     return _collection
 
@@ -103,27 +106,7 @@ def _get_collection():
 # ── Search functions ─────────────────────────────────────────────────────────
 def _fts_candidates(query_text, limit, playlist=None, method='keyword', rrf_source=None):
     """Keyword (FTS5) candidates for a query string. Returns [] on any error."""
-    out = []
-    fts_query = vc.sanitize_fts(query_text)
-    if not fts_query:
-        return out
-    try:
-        sql = ("SELECT title, video_id, start_ts, playlist, "
-               "snippet(transcripts_fts, 5, '<b>', '</b>', '...', 80) "
-               "FROM transcripts_fts WHERE content MATCH ?")
-        params = [fts_query]
-        if playlist:
-            sql += " AND playlist = ?"
-            params.append(playlist)
-        sql += " ORDER BY rank LIMIT ?"
-        params.append(limit)
-        for i, r in enumerate(_db.execute(sql, params).fetchall()):
-            out.append({'method': method, 'title': r[0], 'video_id': r[1],
-                        'timestamp': r[2], 'playlist': r[3], 'snippet': r[4],
-                        '_rank_in_source': i, '_rrf_source': rrf_source or method})
-    except sqlite3.Error as e:
-        log(f"[warn] keyword search unavailable: {e}")
-    return out
+    return vc.fts_candidates(_db, query_text, limit, playlist, method, rrf_source)
 
 
 def search_vault(query, top_k=5, playlist=None, kg=True):
@@ -148,13 +131,17 @@ def search_vault(query, top_k=5, playlist=None, kg=True):
         where = {'playlist': playlist} if playlist else None
         with redirect_stdout(sys.stderr):
             out = _get_collection().query(query_texts=[query], n_results=pool, where=where)
+        ids = out.get('ids', [[]])[0]
         docs = out.get('documents', [[]])[0]
         metas = out.get('metadatas', [[]])[0]
         for i, doc in enumerate(docs):
             m = metas[i] if i < len(metas) else {}
             results.append({'method': 'semantic', 'title': m.get('title', 'Unknown'),
+                            'source': 'semantic',
+                            'chunk_id': ids[i] if i < len(ids) else m.get('chunk_id', ''),
                             'video_id': m.get('video_id', ''), 'timestamp': m.get('start_ts', ''),
-                            'playlist': m.get('playlist', ''), 'snippet': doc[:500],
+                            'start_ts': m.get('start_ts', ''),
+                            'playlist': m.get('playlist', ''), '_full_text': doc,
                             '_rank_in_source': i, '_rrf_source': 'semantic'})
     except ImportError:
         log("[warn] semantic search unavailable — chromadb not installed")
@@ -176,6 +163,7 @@ def search_vault(query, top_k=5, playlist=None, kg=True):
     results = vc.apply_rrf_scores(results)
     results = vc.dedup_candidates(results)
     ranked = vc.rerank(query, results, top_k)
+    ranked = vc.finalize_ranked_results(ranked)
     if kg:
         vc.put_cached_results(query, top_k, playlist, ranked)
     return ranked
@@ -309,7 +297,7 @@ async def call_tool(name, arguments):
                                    playlist=arguments.get('playlist'))
             if not results:
                 return [TextContent(type="text",
-                        text="No results found. Try different keywords or list_playlists.")]
+                        text="No relevant results found. Try different keywords or list_playlists.")]
             out = [f"Search results for: \"{arguments['query']}\"", f"Licensed to: {_licensed_to}", ""]
             demo = vc.demo_info(_db)
             if demo:
