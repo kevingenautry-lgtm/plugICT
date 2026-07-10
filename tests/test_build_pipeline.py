@@ -24,10 +24,11 @@ def _make_source_tree(src):
     # kg.db with the tables build.py expects to copy forward.
     kg = sqlite3.connect(src / "kg.db")
     kg.execute("CREATE VIRTUAL TABLE transcripts_fts USING fts5("
-               "title, video_id, playlist, start_ts, source_file, content, "
+               "chunk_id, chunk_index, title, video_id, playlist, start_ts, end_ts, source_file, content, "
                "tokenize='porter unicode61')")
-    kg.execute("INSERT INTO transcripts_fts VALUES (?,?,?,?,?,?)",
-               ("Order Blocks 101", "vid1", "2022 ICT Mentorship", "0:00", "a.md",
+    chunk_id = vc.stable_chunk_id("a.md", 0, "0:00")
+    kg.execute("INSERT INTO transcripts_fts VALUES (?,?,?,?,?,?,?,?,?)",
+               (chunk_id, 0, "Order Blocks 101", "vid1", "2022 ICT Mentorship", "0:00", "0:10", "a.md",
                 "An order block is where institutional orders rest."))
     kg.execute("CREATE TABLE entities (id INTEGER PRIMARY KEY, name TEXT UNIQUE, type TEXT,"
                " description TEXT, source_file TEXT, source_count INTEGER)")

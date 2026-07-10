@@ -1,0 +1,47 @@
+{
+  "cold_start_seconds": 0.15436129999579862,
+  "peak_ram_mb": 715.05078125,
+  "strategies": {
+    "single": {
+      "n": 47,
+      "recall_at_1": 0.44680851063829785,
+      "recall_at_5": 0.46808510638297873,
+      "mrr": 0.4574468085106383,
+      "ndcg_at_5": 0.448890916456395,
+      "timestamp_accuracy": null,
+      "no_answer_accuracy": null,
+      "duplicate_rate": 0.0,
+      "avg_latency_ms": 1482.3634319160346,
+      "p95_latency_ms": 1230.2913000021363
+    },
+    "multi": {
+      "n": 47,
+      "recall_at_1": 0.44680851063829785,
+      "recall_at_5": 0.46808510638297873,
+      "mrr": 0.4574468085106383,
+      "ndcg_at_5": 0.448890916456395,
+      "timestamp_accuracy": null,
+      "no_answer_accuracy": null,
+      "duplicate_rate": 0.0,
+      "avg_latency_ms": 898.1674425533051,
+      "p95_latency_ms": 1635.2390000101877
+    },
+    "multi_context": {
+      "n": 47,
+      "recall_at_1": 0.44680851063829785,
+      "recall_at_5": 0.46808510638297873,
+      "mrr": 0.4574468085106383,
+      "ndcg_at_5": 0.448890916456395,
+      "timestamp_accuracy": null,
+      "no_answer_accuracy": null,
+      "duplicate_rate": 0.0,
+      "avg_latency_ms": 895.2534446806122,
+      "p95_latency_ms": 1559.485300007509
+    }
+  },
+  "limitations": {
+    "timestamp_accuracy": "reported only for cases with expected_timestamp",
+    "no_answer_accuracy": "reported only for cases with no_answer=true",
+    "peak_ram_mb": "uses psutil RSS when available"
+  }
+}

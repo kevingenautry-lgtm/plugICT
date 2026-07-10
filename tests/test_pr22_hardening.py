@@ -94,8 +94,10 @@ def test_full_chunk_text_rerank(monkeypatch):
     assert len(fake.pairs[0][1]) > 500
 
 
-def test_snippet_capped_1000():
+def test_snippet_default_500_and_hard_capped_1000():
     out = vc.finalize_ranked_results([{"title": "T", "_full_text": "x" * 1500}])
+    assert len(out[0]["snippet"]) == 500
+    out = vc.finalize_ranked_results([{"title": "T", "_full_text": "x" * 1500}], snippet_chars=2000)
     assert len(out[0]["snippet"]) == 1000
 
 

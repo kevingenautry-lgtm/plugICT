@@ -11,6 +11,7 @@ import os
 import sys
 import asyncio
 import tempfile
+import json
 from pathlib import Path
 
 import pytest
@@ -46,8 +47,9 @@ async def _drive():
             tools = await session.list_tools()
             names = {t.name for t in tools.tools}
             assert {"search_ict", "list_playlists", "explore_concept",
-                    "vault_stats", "glossary_lookup"} <= names
-            assert len(tools.tools) == 5
+                    "vault_stats", "glossary_lookup",
+                    "multi_search_ict", "expand_result"} <= names
+            assert len(tools.tools) == 7
 
             stats = await session.call_tool("vault_stats", {})
             text = stats.content[0].text
@@ -58,6 +60,26 @@ async def _drive():
 
             gl = await session.call_tool("glossary_lookup", {"term": "FVG"})
             assert "Fair Value Gap" in gl.content[0].text
+
+            multi = await session.call_tool("multi_search_ict", {
+                "question": "what is a fair value gap",
+                "queries": ["fair value gap", "imbalance"],
+                "top_k": 1,
+            })
+            payload = json.loads(multi.content[0].text)
+            assert payload["results"]
+            result_ref = payload["results"][0]["result_ref"]
+            assert payload["results"][0]["matched_queries"]
+            assert payload["results"][0]["retrieval_sources"]
+
+            expanded = await session.call_tool("expand_result", {
+                "result_ref": result_ref,
+                "before": 0,
+                "after": 0,
+            })
+            context = json.loads(expanded.content[0].text)
+            assert context["sections"][0]["position"] == "current"
+            assert "Fair Value Gap" in context["sections"][0]["title"]
 
 
 def test_mcp_handshake_and_tools():
