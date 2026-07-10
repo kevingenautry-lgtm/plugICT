@@ -124,8 +124,9 @@ for fp in transcripts:
             })
             chunk_id += 1
             chunk_counter += 1
-            current_chunk = [line_clean]
-            current_len = len(line_clean)
+            overlap_text = chunk_text[-CHUNK_OVERLAP:] if CHUNK_OVERLAP > 0 else ''
+            current_chunk = ([overlap_text] if overlap_text else []) + [line_clean]
+            current_len = len('\n'.join(current_chunk))
             chunk_start_ts = ts_match.group(1)
         else:
             if chunk_start_ts is None and ts_match:

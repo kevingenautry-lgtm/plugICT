@@ -400,6 +400,7 @@ def expand_query(query):
         core = tok.strip('?!.,;:()')
         if core and core == core.upper() and core in ICT_SHORTFORMS:
             full = ICT_SHORTFORMS[core].split(' — ')[0].split(' / ')[0].strip()
+            out.append(tok)
             out.append(full)
             changed = True
         else:
@@ -564,7 +565,8 @@ def open_vault(vault_file=VAULT_FILE, license_file=LICENSE_FILE, on_progress=Non
 
     tmpdir = tempfile.mkdtemp(prefix=TEMP_PREFIX)
     _temp_dirs.append(tmpdir)
-    db_path = os.path.join(tmpdir, 'master.db')
+    db_fd, db_path = tempfile.mkstemp(prefix='sqlite_', suffix='.db', dir=tmpdir)
+    os.close(db_fd)
     chroma_dir = os.path.join(tmpdir, 'chroma')
     os.makedirs(chroma_dir, exist_ok=True)
     chroma_tar_path = os.path.join(tmpdir, 'chroma.tar')
@@ -587,7 +589,7 @@ def open_vault(vault_file=VAULT_FILE, license_file=LICENSE_FILE, on_progress=Non
             "  Please update to the latest ICT Vault release."
         )
 
-    # 2) Route the rest of the stream into master.db + chroma.tar.
+    # 2) Route the rest of the stream into a short-lived SQLite file + chroma.tar.
     sink = _SplitSink(db_path, chroma_tar_path, db_size, chroma_size)
     try:
         if version == FORMAT_V1_RAW:
@@ -618,8 +620,24 @@ def open_vault(vault_file=VAULT_FILE, license_file=LICENSE_FILE, on_progress=Non
     except OSError:
         pass
 
-    db = sqlite3.connect(db_path)
+    disk_db = sqlite3.connect(db_path)
+    db = sqlite3.connect(':memory:')
+    try:
+        disk_db.backup(db)
+    finally:
+        disk_db.close()
+        try:
+            os.remove(db_path)
+        except OSError:
+            pass
     db.execute("PRAGMA journal_mode=OFF")
+    license_id = info.get('LICENSE_ID', 'unknown')
+    license_id_hash = hashlib.sha256(license_id.encode('utf-8', errors='replace')).hexdigest()
+    db.execute(
+        "INSERT OR REPLACE INTO vault_metadata (key, value) VALUES (?, ?)",
+        ('buyer_id', license_id_hash),
+    )
+    db.commit()
     return db, chroma_dir, info.get('LICENSED_TO', 'unknown')
 
 
@@ -727,7 +745,7 @@ def rerank(query, candidates, top_k):
         if _reranker is None:
             from sentence_transformers import CrossEncoder
             _reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
-        scores = _reranker.predict([(query, _cand_text(c)[:512]) for c in candidates])
+        scores = _reranker.predict([(query, _cand_text(c)[:1500]) for c in candidates])
         for c, s in zip(candidates, scores):
             c['rerank_score'] = float(s)
         candidates.sort(key=lambda c: c.get('rerank_score', 0.0), reverse=True)

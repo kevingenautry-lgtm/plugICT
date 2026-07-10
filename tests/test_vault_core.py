@@ -146,7 +146,7 @@ def test_sanitize_fts_survives_punctuation():
 
 
 def test_expand_query_only_uppercase():
-    assert vc.expand_query("FVG entry")[0].startswith("Fair Value Gap")
+    assert vc.expand_query("FVG entry") == ("FVG Fair Value Gap entry", True)
     # lowercase 'ms'/'bs' must NOT expand (they occur in normal sentences)
     assert vc.expand_query("what does he say about ms")[1] is False
     assert vc.expand_query("bs on the chart")[1] is False

@@ -12,7 +12,10 @@ diagnostic here goes to stderr, never stdout.
 """
 
 import sys
+import os
 import sqlite3
+import time
+from collections import deque
 
 import vault_core as vc
 from vault_core import VaultError
@@ -28,6 +31,28 @@ _db = None
 _chroma_dir = None
 _collection = None
 _licensed_to = "unknown"
+_query_timestamps = deque()
+_RATE_LIMIT_PER_MINUTE = 60
+_MAX_TOP_K = 5
+
+
+def _rate_limit_exceeded():
+    now = time.time()
+    cutoff = now - 60
+    while _query_timestamps and _query_timestamps[0] < cutoff:
+        _query_timestamps.popleft()
+    if len(_query_timestamps) >= _RATE_LIMIT_PER_MINUTE:
+        return True
+    _query_timestamps.append(now)
+    return False
+
+
+def _clamp_top_k(value):
+    try:
+        value = int(value or _MAX_TOP_K)
+    except (TypeError, ValueError):
+        value = _MAX_TOP_K
+    return max(1, min(value, _MAX_TOP_K))
 
 
 def ensure_vault():
@@ -52,6 +77,17 @@ def ensure_vault():
 def _get_collection():
     global _collection
     if _collection is None:
+        sqlite_path = os.path.join(_chroma_dir, 'chroma.sqlite3')
+        if os.path.exists(sqlite_path):
+            con = None
+            try:
+                con = sqlite3.connect(sqlite_path)
+                con.execute("PRAGMA schema_version").fetchone()
+            except sqlite3.Error as e:
+                raise RuntimeError(f"invalid ChromaDB store: {e}") from e
+            finally:
+                if con:
+                    con.close()
         import chromadb
         from chromadb.config import Settings
         client = chromadb.PersistentClient(
@@ -87,6 +123,7 @@ def _fts_candidates(query_text, limit, playlist=None):
 
 def search_vault(query, top_k=5, playlist=None, kg=True):
     ensure_vault()
+    top_k = _clamp_top_k(top_k)
     results = []
     expanded, _ = vc.expand_query(query)
     # Over-fetch from each source so the reranker has real choice, then trim.
@@ -194,8 +231,8 @@ async def list_tools():
                 "properties": {
                     "query": {"type": "string",
                               "description": "What to search for, e.g. 'Fair Value Gap', 'Silver Bullet London'"},
-                    "top_k": {"type": "integer", "default": 5, "minimum": 1, "maximum": 10,
-                              "description": "Number of results (default 5, max 10)"},
+                    "top_k": {"type": "integer", "default": 5, "minimum": 1, "maximum": 5,
+                              "description": "Number of results (default 5, max 5)"},
                     "playlist": {"type": "string",
                                  "description": "Optional playlist filter, e.g. '2022 ICT Mentorship'"},
                 },
@@ -250,8 +287,10 @@ async def call_tool(name, arguments):
             return [TextContent(type="text", text=f"Vault unavailable: {e}")]
 
         if name == "search_ict":
+            if _rate_limit_exceeded():
+                return [TextContent(type="text", text="Rate limit exceeded. Please wait.")]
             results = search_vault(arguments.get('query', ''),
-                                   top_k=arguments.get('top_k', 5),
+                                   top_k=_clamp_top_k(arguments.get('top_k', 5)),
                                    playlist=arguments.get('playlist'))
             if not results:
                 return [TextContent(type="text",
