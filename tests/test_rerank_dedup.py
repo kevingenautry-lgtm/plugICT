@@ -18,6 +18,15 @@ class _FakeCE:
         return [sum(w in text.lower() for w in q) for (_, text) in pairs]
 
 
+class _CapturingCE:
+    def __init__(self):
+        self.pairs = None
+
+    def predict(self, pairs):
+        self.pairs = pairs
+        return [0 for _ in pairs]
+
+
 def test_cand_text_supports_both_shapes_and_strips_tags():
     assert vc._cand_text({"text": "<b>FVG</b> gap"}) == "FVG gap"
     assert vc._cand_text({"snippet": "order <b>block</b>"}) == "order block"
@@ -42,6 +51,15 @@ def test_rerank_handles_text_shape_too(monkeypatch):
     cands = [{"text": "liquidity sweep runs the stops"}, {"text": "unrelated"}]
     ranked = vc.rerank("liquidity", cands, top_k=1)
     assert "liquidity" in ranked[0]["text"]
+
+
+def test_rerank_uses_more_than_512_chars(monkeypatch):
+    fake = _CapturingCE()
+    monkeypatch.setattr(vc, "_reranker", fake)
+    long_text = "a" * 512 + " important tail " + ("b" * 1200)
+    vc.rerank("tail", [{"snippet": long_text}, {"snippet": "short"}], top_k=2)
+    assert len(fake.pairs[0][1]) == 1500
+    assert "important tail" in fake.pairs[0][1]
 
 
 def test_rerank_degrades_gracefully_without_model(monkeypatch):
