@@ -13,7 +13,6 @@ diagnostic here goes to stderr, never stdout.
 
 import sys
 import sqlite3
-from contextlib import redirect_stdout
 
 import vault_core as vc
 from vault_core import VaultError
@@ -62,7 +61,7 @@ def _get_collection():
 
 
 # ── Search functions ─────────────────────────────────────────────────────────
-def _fts_candidates(query_text, limit, playlist=None, method='keyword', rrf_source=None):
+def _fts_candidates(query_text, limit, playlist=None):
     """Keyword (FTS5) candidates for a query string. Returns [] on any error."""
     out = []
     fts_query = vc.sanitize_fts(query_text)
@@ -78,10 +77,9 @@ def _fts_candidates(query_text, limit, playlist=None, method='keyword', rrf_sour
             params.append(playlist)
         sql += " ORDER BY rank LIMIT ?"
         params.append(limit)
-        for i, r in enumerate(_db.execute(sql, params).fetchall()):
-            out.append({'method': method, 'title': r[0], 'video_id': r[1],
-                        'timestamp': r[2], 'playlist': r[3], 'snippet': r[4],
-                        '_rank_in_source': i, '_rrf_source': rrf_source or method})
+        for r in _db.execute(sql, params).fetchall():
+            out.append({'method': 'keyword', 'title': r[0], 'video_id': r[1],
+                        'timestamp': r[2], 'playlist': r[3], 'snippet': r[4]})
     except sqlite3.Error as e:
         log(f"[warn] keyword search unavailable: {e}")
     return out
@@ -99,19 +97,15 @@ def search_vault(query, top_k=5, playlist=None, kg=True):
 
     # 2) ChromaDB semantic on the original query.
     try:
-        if not vc.chroma_store_usable(_chroma_dir):
-            raise RuntimeError("chroma store is not a valid sqlite database")
         where = {'playlist': playlist} if playlist else None
-        with redirect_stdout(sys.stderr):
-            out = _get_collection().query(query_texts=[query], n_results=pool, where=where)
+        out = _get_collection().query(query_texts=[query], n_results=pool, where=where)
         docs = out.get('documents', [[]])[0]
         metas = out.get('metadatas', [[]])[0]
         for i, doc in enumerate(docs):
             m = metas[i] if i < len(metas) else {}
             results.append({'method': 'semantic', 'title': m.get('title', 'Unknown'),
                             'video_id': m.get('video_id', ''), 'timestamp': m.get('start_ts', ''),
-                            'playlist': m.get('playlist', ''), 'snippet': doc[:500],
-                            '_rank_in_source': i, '_rrf_source': 'semantic'})
+                            'playlist': m.get('playlist', ''), 'snippet': doc[:500]})
     except ImportError:
         log("[warn] semantic search unavailable — chromadb not installed")
     except Exception as e:
@@ -124,12 +118,13 @@ def search_vault(query, top_k=5, playlist=None, kg=True):
     if kg:
         try:
             for term in vc.kg_expand(_db, query + ' ' + expanded):
-                results.extend(_fts_candidates(term, 2, playlist, method='kg', rrf_source=f'kg:{term}'))
+                for c in _fts_candidates(term, 2, playlist):
+                    c['method'] = 'kg'
+                    results.append(c)
         except Exception as e:
             log(f"[warn] kg expansion skipped: {e}")
 
     # 4) Dedup (one chunk never fills two slots), then 5) cross-encoder rerank.
-    results = vc.apply_rrf_scores(results)
     results = vc.dedup_candidates(results)
     return vc.rerank(query, results, top_k)
 

@@ -656,44 +656,11 @@ def dedup_candidates(cands):
             order.append(k)
         else:
             kept = seen[k]
-            merged_rrf = max(kept.get('rrf_score', 0.0), c.get('rrf_score', 0.0))
-            kept['dual_hit'] = True
-            kept['rrf_score'] = merged_rrf
-            kept['_dup_of'] = c.get('source') or c.get('method')
             if len(_cand_text(c)) > len(_cand_text(kept)):
                 # keep the fuller text but remember it matched both retrievers
                 c['_dup_of'] = kept.get('source') or kept.get('method')
-                c['dual_hit'] = True
-                c['rrf_score'] = merged_rrf
                 seen[k] = c
     return [seen[k] for k in order]
-
-
-def apply_rrf_scores(cands):
-    """Attach Reciprocal Rank Fusion scores before dedup/rerank."""
-    ranks = {}
-    scores = {}
-    seen_sources = set()
-    for c in cands:
-        key = _cand_key(c)
-        source = c.get('_rrf_source') or c.get('source') or c.get('method') or 'unknown'
-        rank = c.get('_rank_in_source')
-        if rank is None:
-            rank = ranks.get(source, 0)
-            ranks[source] = rank + 1
-        if (key, source) not in seen_sources:
-            seen_sources.add((key, source))
-            scores[key] = scores.get(key, 0.0) + (1.0 / (60 + int(rank)))
-    for c in cands:
-        c['rrf_score'] = scores.get(_cand_key(c), 0.0)
-    return cands
-
-
-def _normalized_rrf(candidates):
-    best = max((c.get('rrf_score', 0.0) for c in candidates), default=0.0)
-    if best <= 0:
-        return {id(c): 0.0 for c in candidates}
-    return {id(c): c.get('rrf_score', 0.0) / best for c in candidates}
 
 
 def kg_expand(db, text, max_related=3):
@@ -736,23 +703,6 @@ def kg_expand(db, text, max_related=3):
     return related
 
 
-def chroma_store_usable(chroma_dir):
-    """Return False for fixture/corrupt Chroma sqlite stores before import/query."""
-    db_path = Path(chroma_dir) / "chroma.sqlite3"
-    if not db_path.exists():
-        return True
-    con = None
-    try:
-        con = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
-        con.execute("PRAGMA schema_version").fetchone()
-        return True
-    except sqlite3.DatabaseError:
-        return False
-    finally:
-        if con is not None:
-            con.close()
-
-
 def warm_reranker():
     """Best-effort preload of the cross-encoder so the buyer's FIRST real query
     isn't stalled by a model download. Called from run_doctor (setup). Returns
@@ -773,21 +723,17 @@ def rerank(query, candidates, top_k):
     global _reranker
     if len(candidates) <= 1:
         return candidates[:top_k]
-    rrf_norm = _normalized_rrf(candidates)
     try:
         if _reranker is None:
             from sentence_transformers import CrossEncoder
             _reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
         scores = _reranker.predict([(query, _cand_text(c)[:512]) for c in candidates])
         for c, s in zip(candidates, scores):
-            boosted = float(s) + (0.5 if c.get('dual_hit') else 0.0)
-            c['rerank_score'] = boosted
-            c['final_score'] = boosted + (0.1 * rrf_norm[id(c)])
-        candidates.sort(key=lambda c: c.get('final_score', c.get('rerank_score', 0.0)), reverse=True)
+            c['rerank_score'] = float(s)
+        candidates.sort(key=lambda c: c.get('rerank_score', 0.0), reverse=True)
         return candidates[:top_k]
     except Exception as e:
         print(f"(rerank skipped: {e})", file=sys.stderr)
-        candidates.sort(key=lambda c: c.get('rrf_score', 0.0), reverse=True)
         return candidates[:top_k]
 
 
@@ -816,63 +762,44 @@ class VaultSession:
             self._collection = client.get_collection('ict_vault')
         return self._collection
 
-    def _fts_candidates(self, query_text, limit, playlist=None, source='keyword', rrf_source=None):
-        out = []
-        fts_query = sanitize_fts(query_text)
-        if not fts_query:
-            return out
-        try:
-            sql = ("SELECT title, video_id, start_ts, playlist, "
-                   "snippet(transcripts_fts, 5, '<b>', '</b>', '...', 60) "
-                   "FROM transcripts_fts WHERE content MATCH ?")
-            params = [fts_query]
-            if playlist:
-                sql += " AND playlist = ?"
-                params.append(playlist)
-            sql += " ORDER BY rank LIMIT ?"
-            params.append(limit)
-            for i, r in enumerate(self.db.execute(sql, params).fetchall()):
-                out.append({'source': source, 'title': r[0], 'video_id': r[1],
-                            'start_ts': r[2], 'playlist': r[3], 'text': r[4],
-                            '_rank_in_source': i, '_rrf_source': rrf_source or source})
-        except sqlite3.Error as e:
-            print(f"(keyword search unavailable: {e})", file=sys.stderr)
-        return out
-
     def search(self, query, playlist=None, session=None, top_k=5):
         """Return (ranked_candidates, expanded_query, expansion_changed)."""
         expanded, changed = expand_query(query)
         candidates = []
-        pool = top_k + 5
 
-        candidates.extend(self._fts_candidates(expanded, pool, playlist))
+        fts_query = sanitize_fts(expanded)
+        if fts_query:
+            try:
+                sql = ("SELECT title, video_id, start_ts, playlist, "
+                       "snippet(transcripts_fts, 5, '<b>', '</b>', '...', 60) "
+                       "FROM transcripts_fts WHERE content MATCH ?")
+                params = [fts_query]
+                if playlist:
+                    sql += " AND playlist = ?"
+                    params.append(playlist)
+                sql += " ORDER BY rank LIMIT ?"
+                params.append(top_k + 5)
+                for r in self.db.execute(sql, params).fetchall():
+                    candidates.append({'source': 'keyword', 'title': r[0], 'video_id': r[1],
+                                       'start_ts': r[2], 'playlist': r[3], 'text': r[4]})
+            except sqlite3.Error as e:
+                print(f"(keyword search unavailable: {e})", file=sys.stderr)
 
         try:
-            if not chroma_store_usable(self.chroma_dir):
-                raise RuntimeError("chroma store is not a valid sqlite database")
             where = {'playlist': playlist} if playlist else None
-            out = self._get_collection().query(query_texts=[query], n_results=pool, where=where)
+            out = self._get_collection().query(query_texts=[query], n_results=top_k + 5, where=where)
             docs = out.get('documents', [[]])[0]
             metas = out.get('metadatas', [[]])[0]
             for i, doc in enumerate(docs):
                 m = metas[i] if i < len(metas) else {}
                 candidates.append({'source': 'semantic', 'title': m.get('title', ''),
                                    'video_id': m.get('video_id', ''), 'start_ts': m.get('start_ts', ''),
-                                   'playlist': m.get('playlist', ''), 'text': doc[:500],
-                                   '_rank_in_source': i, '_rrf_source': 'semantic'})
+                                   'playlist': m.get('playlist', ''), 'text': doc[:500]})
         except ImportError:
             print("(semantic search unavailable — chromadb not installed)", file=sys.stderr)
         except Exception as e:
             print(f"(semantic search unavailable: {e})", file=sys.stderr)
 
-        try:
-            for term in kg_expand(self.db, query + ' ' + expanded):
-                candidates.extend(self._fts_candidates(
-                    term, 2, playlist, source='kg', rrf_source=f'kg:{term}'))
-        except Exception as e:
-            print(f"(kg expansion skipped: {e})", file=sys.stderr)
-
-        candidates = apply_rrf_scores(candidates)
         candidates = dedup_candidates(candidates)
         ranked = rerank(query, candidates, top_k) if candidates else []
         return ranked, expanded, changed

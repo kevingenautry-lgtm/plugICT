@@ -54,6 +54,7 @@ def test_dedup_collapses_same_chunk_keeps_longer_text():
     assert len(out) == 2
     v1 = next(c for c in out if c.get("video_id") == "v1")
     assert "longer version" in vc._cand_text(v1)
+    assert v1["dual_hit"]
 
 
 # ── KG auto-expansion ────────────────────────────────────────────────────────

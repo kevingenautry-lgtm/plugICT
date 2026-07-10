@@ -44,6 +44,16 @@ def test_rerank_handles_text_shape_too(monkeypatch):
     assert "liquidity" in ranked[0]["text"]
 
 
+def test_rerank_boosts_dual_hits(monkeypatch):
+    monkeypatch.setattr(vc, "_reranker", _FakeCE())
+    cands = [
+        {"title": "single", "snippet": "fair value gap"},
+        {"title": "dual", "snippet": "fair value gap", "dual_hit": True},
+    ]
+    ranked = vc.rerank("fair value gap", cands, top_k=2)
+    assert ranked[0]["title"] == "dual"
+
+
 def test_rerank_degrades_gracefully_without_model(monkeypatch):
     monkeypatch.setattr(vc, "_reranker", None)
     real_import = builtins.__import__
@@ -56,6 +66,23 @@ def test_rerank_degrades_gracefully_without_model(monkeypatch):
     monkeypatch.setattr(builtins, "__import__", boom)
     out = vc.rerank("x", [{"snippet": "1"}, {"snippet": "2"}, {"snippet": "3"}], top_k=2)
     assert len(out) == 2                        # never worse than pre-rerank: still returns top_k
+
+
+def test_rerank_fallback_orders_by_rrf(monkeypatch):
+    monkeypatch.setattr(vc, "_reranker", None)
+    real_import = builtins.__import__
+
+    def boom(name, *a, **k):
+        if name == "sentence_transformers":
+            raise ImportError("simulated missing model")
+        return real_import(name, *a, **k)
+
+    monkeypatch.setattr(builtins, "__import__", boom)
+    out = vc.rerank("x", [
+        {"title": "low", "snippet": "1", "rrf_score": 0.01},
+        {"title": "high", "snippet": "2", "rrf_score": 0.03},
+    ], top_k=1)
+    assert out[0]["title"] == "high"
 
 
 def test_single_candidate_shortcircuits(monkeypatch):
