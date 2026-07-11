@@ -84,16 +84,15 @@ window.PLUGICT = {
 };
 </script>
 <style>
-/* Hallmark · macrostructure: Workbench · genre: atmospheric */
-/* Hallmark · pre-emit critique: P5 H4 E4 S5 R4 V5 */
   :root{
     --paper:#070605; --paper-alt:#0C0A08; --card:#131009;
     --dark:#050403; --dark-line:rgba(244,239,228,.1);
     --ink:#F4EEDF; --ink-soft:#B8AC96; --ink-mut:#8F8470;
     --line:rgba(242,234,217,.11); --line-soft:rgba(242,234,217,.06);
     --terracotta:#E8622C; --terracotta-bright:#FF8A4A; --terracotta-deep:#B9440F;
-    --ember-glow:rgba(232,98,44,.22);
+    --ember-glow:rgba(232,98,44,.35);
     --maxw:1180px;
+    --spot:rgba(232,98,44,.10);
     --serif:'Newsreader',Georgia,serif;
     --sans:'Instrument Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -109,22 +108,23 @@ window.PLUGICT = {
   a{color:inherit}
   ::selection{background:rgba(232,98,44,.3)}
   .wrap{max-width:var(--maxw); margin:0 auto; padding:0 28px}
-  em{font-style:normal; color:var(--terracotta)}
-  .accent-text{color:var(--terracotta-bright); font-style:normal}
+  em{font-style:italic; color:var(--terracotta)}
 
-  /* ── nav · N9 edge-minimal for atmospheric product ───────── */
-  nav{position:absolute; top:0; left:0; right:0; z-index:20; background:transparent}
-  nav .wrap{display:flex; align-items:center; justify-content:space-between; min-height:88px}
-  .brand{display:flex; align-items:center; gap:10px; font:500 20px var(--serif); font-style:normal; letter-spacing:-.01em}
+  /* ── nav ────────────────────────────────────────────────── */
+  nav{position:sticky; top:0; z-index:20; backdrop-filter:blur(10px);
+      background:rgba(13,11,8,.82); border-bottom:1px solid var(--line-soft)}
+  nav .wrap{display:flex; align-items:center; justify-content:space-between; height:76px}
+  .brand{display:flex; align-items:center; gap:10px; font:500 20px var(--serif); font-style:italic; letter-spacing:-.01em}
   .brand .mark{width:21px;height:21px;flex-shrink:0;color:var(--terracotta)}
-  .navlinks{display:flex; gap:14px; align-items:center; font-size:14px}
-  .navlinks a{color:var(--ink-soft); text-decoration:none; transition:color .2s; white-space:nowrap}
+  .navlinks{display:flex; gap:28px; align-items:center; font-size:14px}
+  .navlinks a{color:var(--ink-soft); text-decoration:none; transition:color .2s}
   .navlinks a:hover{color:var(--ink)}
-  .btn{display:inline-flex; align-items:center; gap:9px; text-decoration:none; cursor:pointer; white-space:nowrap;
+  .btn{display:inline-flex; align-items:center; gap:9px; text-decoration:none; cursor:pointer;
     font:500 15.5px var(--sans); padding:16px 30px; border-radius:999px; border:none;
-    transition:transform .15s cubic-bezier(.16,1,.3,1), background .2s cubic-bezier(.16,1,.3,1);}
-  .btn.primary{background:var(--terracotta); color:#fff}
-  .btn.primary:hover{transform:translateY(-1px); background:var(--terracotta-bright)}
+    transition:transform .15s ease, background .2s;}
+  .btn.primary{background:linear-gradient(180deg,var(--terracotta-bright),var(--terracotta)); color:#fff;
+    box-shadow:0 8px 28px -10px var(--ember-glow), inset 0 1px 0 rgba(255,255,255,.18)}
+  .btn.primary:hover{transform:translateY(-2px); box-shadow:0 14px 36px -10px var(--ember-glow), inset 0 1px 0 rgba(255,255,255,.18)}
   .btn.small{padding:10px 22px; font-size:13.5px; font-weight:500}
   .btn.ghost{background:none; color:var(--ink); border:1.5px solid rgba(232,98,44,.55);
     font:500 13px var(--mono); letter-spacing:.06em; padding:14px 26px;
@@ -135,31 +135,37 @@ window.PLUGICT = {
   .link-arrow{font:500 12.5px var(--mono); letter-spacing:.08em; color:var(--ink); text-decoration:none;
     border-bottom:1px solid rgba(242,234,217,.35); padding-bottom:3px; transition:color .2s}
   .link-arrow:hover{color:var(--terracotta)}
-  @media(max-width:760px){ .navlinks a:not(.btn){display:none} nav .wrap{min-height:72px} }
+  @media(max-width:760px){ .navlinks a:not(.btn){display:none} }
 
   /* ── hero ───────────────────────────────────────────────── */
   .hero{position:relative; overflow:hidden}
-  .hero::before{content:""; position:absolute; top:116px; right:8vw; width:14px; height:14px; pointer-events:none; z-index:1;
-    background:var(--terracotta); border-radius:999px; box-shadow:0 0 0 1px rgba(232,98,44,.35)}
+  .hero::before{content:""; position:absolute; top:-30%; right:-15%; width:70%; height:130%; pointer-events:none; z-index:1;
+    background:radial-gradient(50% 50% at 60% 40%, rgba(232,98,44,.18), transparent 70%)}
+  /* x.ai-style animated particle field behind the hero */
+  #hero-canvas{position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; opacity:.9}
+  /* faint engineering grid, masked to fade toward the edges (x.ai motif) */
   .hero::after{content:""; position:absolute; inset:0; pointer-events:none; z-index:0; opacity:.5;
     background:
-      repeating-linear-gradient(0deg, rgba(242,234,217,.035) 0 1px, transparent 1px 64px),
-      repeating-linear-gradient(90deg, rgba(242,234,217,.025) 0 1px, transparent 1px 64px);
+      repeating-linear-gradient(0deg, rgba(242,234,217,.045) 0 1px, transparent 1px 64px),
+      repeating-linear-gradient(90deg, rgba(242,234,217,.045) 0 1px, transparent 1px 64px);
     -webkit-mask-image:radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 78%);
     mask-image:radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 78%)}
-  .hero .wrap{display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr); gap:52px; align-items:end; padding:154px 28px 84px; position:relative; z-index:2}
+  .hero .wrap{display:grid; grid-template-columns:1.05fr .95fr; gap:52px; align-items:center; padding:96px 28px 84px; position:relative; z-index:2}
   @media(max-width:1000px){ .hero .wrap{grid-template-columns:1fr} }
   .eyebrow{font:500 11.5px var(--mono); letter-spacing:.18em; color:var(--terracotta); text-transform:uppercase}
-  .hero h1{font:400 clamp(40px,5.8vw,78px)/1.04 var(--serif); letter-spacing:-.025em; margin-top:24px; overflow-wrap:anywhere}
+  .hero h1{font:400 clamp(42px,6.3vw,86px)/1.03 var(--serif); letter-spacing:-.025em; margin-top:24px}
   .hero .sub{font-size:17px; line-height:1.7; color:var(--ink-soft); max-width:460px; margin-top:24px}
   .hero .cta{display:flex; align-items:center; gap:22px; flex-wrap:wrap; margin-top:34px}
   .hero .fine{font:400 12px var(--mono); letter-spacing:.05em; color:var(--ink-mut); margin-top:18px}
 
   /* terminal panel */
-  .terminal{background:var(--dark); border-radius:8px; border:1px solid rgba(232,98,44,.32); overflow:hidden}
-  .term-head{display:flex; align-items:center; padding:12px 18px; border-bottom:1px solid var(--dark-line)}
-  .term-head i{display:none}
-  .term-head span{font:400 11.5px var(--mono); color:rgba(244,239,228,.55)}
+  .terminal{background:var(--dark); border-radius:18px; border:1px solid rgba(232,98,44,.35); overflow:hidden;
+    box-shadow:0 0 70px -18px var(--ember-glow), 0 40px 80px -40px rgba(0,0,0,.9);
+    transform:perspective(1400px) rotateY(-7deg) rotateX(1.5deg)}
+  @media(max-width:1000px){ .terminal{transform:none} }
+  .term-head{display:flex; align-items:center; gap:7px; padding:14px 18px; border-bottom:1px solid var(--dark-line)}
+  .term-head i{width:10px;height:10px;border-radius:50%;background:rgba(244,239,228,.18);display:block}
+  .term-head span{margin-left:8px; font:400 11.5px var(--mono); color:rgba(244,239,228,.45)}
   .term-body{padding:26px 26px 30px; font:400 13.5px/1.95 var(--mono); min-height:252px; color:#F4EFE4}
   .t-prompt{color:var(--terracotta-bright)} .t-cmd{color:#F4EFE4} .t-dim{color:rgba(244,239,228,.4)}
   .t-warm{color:var(--terracotta-bright)}
@@ -180,8 +186,8 @@ window.PLUGICT = {
     background:var(--card); border:1px solid var(--line); border-radius:999px; padding:9px 16px;
     transition:border-color .2s, color .2s, transform .15s}
   .demo-chip:hover{border-color:var(--terracotta); color:var(--ink); transform:translateY(-1px)}
-  .demo-console{margin:26px auto 0; background:var(--dark); border:1px solid rgba(232,98,44,.32); border-radius:12px;
-    overflow:hidden}
+  .demo-console{margin:26px auto 0; background:var(--dark); border:1px solid rgba(232,98,44,.32); border-radius:16px;
+    overflow:hidden; box-shadow:0 0 60px -22px var(--ember-glow), 0 30px 70px -40px rgba(0,0,0,.9)}
   .demo-bar{display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid var(--dark-line)}
   .demo-bar .t-prompt{font:500 13px var(--mono); flex-shrink:0}
   .demo-input{flex:1; background:none; border:none; outline:none; color:#F4EFE4;
@@ -209,7 +215,7 @@ window.PLUGICT = {
     background:var(--terracotta-bright); vertical-align:-2px; animation:blink 1s steps(1) infinite}
   .demo-cur{display:inline-block; width:7px; height:15px; background:var(--terracotta-bright);
     vertical-align:-2px; margin-left:1px; animation:blink 1s steps(1) infinite}
-  .demo-hit.rin{opacity:0; transform:translateY(8px); animation:demo-rise .34s cubic-bezier(.16,1,.3,1) forwards}
+  .demo-hit.rin{opacity:0; transform:translateY(8px); animation:demo-rise .34s ease forwards}
   @keyframes demo-rise{to{opacity:1; transform:none}}
   .demo-again{margin-top:16px; font:500 12px var(--mono); letter-spacing:.04em;
     color:var(--ink-mut); background:none; border:none; cursor:pointer; padding:0}
@@ -217,17 +223,24 @@ window.PLUGICT = {
 
   /* ── video placeholder ─────────────────────────────────── */
   .video-slot{margin:0 28px; position:relative}
-  .video-slot::before{display:none}
+  .video-slot::before{content:""; position:absolute; left:-10%; right:-10%; top:30%; bottom:-90px; pointer-events:none;
+    background:
+      radial-gradient(60% 55% at 50% 100%, rgba(232,98,44,.14), transparent 70%),
+      repeating-linear-gradient(90deg, rgba(232,98,44,.10) 0 1px, transparent 1px 72px),
+      repeating-linear-gradient(0deg, rgba(232,98,44,.10) 0 1px, transparent 1px 46px);
+    transform:perspective(700px) rotateX(58deg); transform-origin:50% 100%;
+    -webkit-mask-image:radial-gradient(65% 80% at 50% 90%, #000 30%, transparent 75%);
+    mask-image:radial-gradient(65% 80% at 50% 90%, #000 30%, transparent 75%)}
   .video-box{max-width:calc(var(--maxw) - 56px); margin:0 auto; aspect-ratio:16/9;
     border:1px solid var(--line); border-radius:20px; background:rgba(10,8,6,.88); position:relative;
-    overflow:hidden}
+    overflow:hidden; box-shadow:0 30px 80px -30px rgba(0,0,0,.9)}
   .video-box iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
   .video-cap{font:400 12px var(--mono); color:var(--ink-mut); max-width:var(--maxw); margin:12px auto 0; padding:0 28px}
 
   /* ── stats strip ────────────────────────────────────────── */
   .stats{display:flex; gap:14px; flex-wrap:wrap; justify-content:space-between; align-items:center;
     padding:22px 28px; margin:56px auto 0; max-width:calc(var(--maxw) - 56px);
-    background:var(--card); border:1px solid var(--line); border-radius:8px;
+    background:var(--card); border:1px solid var(--line); border-radius:18px;
     font:500 12px var(--mono); letter-spacing:.1em; color:var(--ink-mut); position:relative; z-index:1}
   .stats span{display:flex; align-items:center; gap:12px}
   .stats span b{display:block; font:500 23px var(--mono); letter-spacing:.02em; color:var(--ink); white-space:nowrap}
@@ -301,26 +314,12 @@ window.PLUGICT = {
   .answer .cite .ts{color:var(--terracotta-bright); font-weight:600; font-family:var(--mono)}
 
   /* ── capability cards ───────────────────────────────────── */
-  .cap-list{margin-top:52px; display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:14px; align-items:stretch}
-  .cap-row{display:grid; grid-template-columns:44px minmax(0,1fr); gap:14px 22px; align-content:start; padding:26px 28px;
+  .cap-list{margin-top:52px; display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  .cap-row{display:grid; grid-template-columns:56px 1fr; gap:18px 24px; align-content:start; padding:28px 30px;
     background:var(--card); border:1px solid var(--line); border-radius:18px;
     transition:border-color .25s, transform .2s ease}
   .cap-row:hover{border-color:rgba(232,98,44,.4); transform:translateY(-2px)}
-  .cap-row:nth-child(1){grid-column:span 5}
-  .cap-row:nth-child(2){grid-column:span 7}
-  .cap-row:nth-child(3){grid-column:span 4}
-  .cap-row:nth-child(4){grid-column:1/-1; grid-template-columns:minmax(0,.32fr) minmax(0,.68fr)}
-  .cap-row:nth-child(4) .cap-num{grid-column:1}
-  .cap-row:nth-child(4) .cap-text{grid-column:1}
-  .cap-row:nth-child(4) .cap-visual{grid-column:2; grid-row:1 / span 2}
-  .cap-row:nth-child(5){grid-column:span 7}
-  .cap-row:nth-child(6){grid-column:span 5}
-  @media(max-width:1000px){
-    .cap-list{grid-template-columns:1fr}
-    .cap-row,.cap-row:nth-child(n){grid-column:1; grid-template-columns:44px minmax(0,1fr)}
-    .cap-row:nth-child(4) .cap-num,.cap-row:nth-child(4) .cap-text,.cap-row:nth-child(4) .cap-visual{grid-column:auto; grid-row:auto}
-    .cap-row:nth-child(4) .cap-visual{grid-column:1/-1}
-  }
+  @media(max-width:1000px){ .cap-list{grid-template-columns:1fr} }
   .cap-num{width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; align-self:start;
     font:500 18px var(--mono); color:var(--terracotta); background:rgba(232,98,44,.1); border:1px solid rgba(232,98,44,.32)}
   .cap-text h3{font:500 27px var(--serif); letter-spacing:-.01em; margin-bottom:8px}
@@ -499,15 +498,12 @@ window.PLUGICT = {
   .cv-license .note{font-size:12.5px; color:var(--ink-soft); margin-top:4px}
 
   /* ── three moves ────────────────────────────────────────── */
-  .moves{display:flex; flex-direction:column; gap:0; margin-top:36px; max-width:720px; border-left:1px solid var(--line)}
-  .moves{display:flex; flex-direction:column; gap:0; margin-top:36px; max-width:720px; border-left:1px solid var(--line); padding-left:0}
-  .move-card{display:grid; grid-template-columns:64px 1fr; gap:14px 18px; padding:22px 8px 22px 28px; border:none; background:transparent; border-radius:0; position:relative; box-shadow:none}
-  .move-card::before{content:""; position:absolute; left:-5px; top:30px; width:9px; height:9px; border-radius:50%; background:var(--terracotta); box-shadow:0 0 0 4px rgba(232,98,44,.15)}
-  .move-card .num{font:500 12px var(--mono); color:var(--terracotta); letter-spacing:.12em; margin:0}
-  .move-card h3{font-weight:600; font-size:16.5px; margin:0; grid-column:2}
-  .move-card p{margin:0; font-size:14px; line-height:1.6; color:var(--ink-soft); grid-column:2}
-  .move-card .move-chips,.move-card .move-cmd{grid-column:2; margin-top:4px}
-  @media(max-width:820px){ .move-card{grid-template-columns:48px 1fr; padding-left:22px} }
+  .moves{display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-top:44px}
+  @media(max-width:820px){ .moves{grid-template-columns:1fr} }
+  .move-card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:26px}
+  .move-card .num{font:500 12px var(--mono); color:var(--terracotta)}
+  .move-card h3{font-weight:600; font-size:16.5px; margin-top:10px}
+  .move-card p{margin-top:6px; font-size:14px; line-height:1.6; color:var(--ink-soft)}
   .move-cmd{margin-top:16px; background:var(--dark); border-radius:8px; padding:11px 14px;
     display:flex; justify-content:space-between; align-items:center; gap:10px}
   .move-cmd span:first-child{font:400 12px var(--mono); color:#F4EFE4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
@@ -668,6 +664,14 @@ window.PLUGICT = {
   .rv.in{opacity:1; transform:none}
   html:not(.js) .rv{opacity:1; transform:none}
 
+  /* ── cursor spotlight (x.ai signature) ──────────────────── */
+  #spotlight{position:fixed; top:0; left:0; width:640px; height:640px; margin:-320px 0 0 -320px;
+    border-radius:50%; pointer-events:none; z-index:5; opacity:0; transition:opacity .5s ease;
+    background:radial-gradient(circle, rgba(232,98,44,.09), rgba(232,98,44,.03) 40%, transparent 66%);
+    mix-blend-mode:screen; will-change:transform}
+  body.spot-on #spotlight{opacity:1}
+  @media(hover:none){ #spotlight{display:none} }
+
   /* glow-on-hover for interactive cards */
   .glow{position:relative}
   .glow::before{content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
@@ -708,11 +712,13 @@ window.PLUGICT = {
   @media (prefers-reduced-motion: reduce){
     *,*::before,*::after{animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important}
     .fadeup{opacity:1 !important; transform:none !important}
-    .rv{opacity:1 !important; transform:none !important} #spotlight{display:none !important}
+    .rv{opacity:1 !important; transform:none !important}
+    #hero-canvas{display:none} #spotlight{display:none !important}
   }
 </style>
 </head>
 <body>
+<div id="spotlight" aria-hidden="true"></div>
 
 <nav aria-label="Main">
   <div class="wrap">
@@ -732,10 +738,11 @@ window.PLUGICT = {
 
 <!-- ═══ HERO ═══ -->
 <header class="hero">
+  <canvas id="hero-canvas" aria-hidden="true"></canvas>
   <div class="wrap">
     <div>
       <div class="eyebrow fadeup">The ICT knowledge engine</div>
-      <h1 class="fadeup" data-delay=".08">Years of ICT lessons — one instant answer.</h1>
+      <h1 class="fadeup" data-delay=".08">Years of ICT lessons — <em>one instant answer.</em></h1>
       <p class="sub fadeup" data-delay=".16">576 videos transcribed, indexed and connected to your AI — every answer cited to the exact video and timestamp.</p>
       <div class="cta fadeup" data-delay=".24">
         <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access</a>
@@ -754,7 +761,7 @@ window.PLUGICT = {
 <section class="trydemo fadeup" id="trydemo" hidden>
   <div class="inner">
     <div class="eyebrow">Try it — no download, no signup</div>
-    <h2>Ask the vault right here.</h2>
+    <h2>Ask the vault <em>right here.</em></h2>
     <p class="sub">A live sample of 5 videos from the 2022 Mentorship. Type a question, or tap one:</p>
     <div class="demo-chips" id="demo-chips"></div>
     <div class="demo-console">
@@ -789,7 +796,7 @@ window.PLUGICT = {
 <section id="problem">
   <div class="inner">
     <div class="eyebrow fadeup">The problem</div>
-    <h2 class="fadeup" data-delay=".05">Hundreds of hours of knowledge. Zero ways to search it.</h2>
+    <h2 class="fadeup" data-delay=".05">Hundreds of hours of knowledge. <em>Zero ways to search it.</em></h2>
     <p class="sub fadeup" data-delay=".1">The exact lesson you need is buried in nearly a decade of long videos. Scrubbing timelines kills momentum — and generic AI models guess, because they never watched them.</p>
 
     <div class="story">
@@ -904,7 +911,7 @@ window.PLUGICT = {
 <!-- ═══ CAPABILITIES ═══ -->
 <section id="capabilities" class="alt">
   <div class="inner">
-    <h2 class="fadeup">What the vault does that a playlist can't.</h2>
+    <h2 class="fadeup">What the vault does <em>that a playlist can't.</em></h2>
 
     <div class="cap-list">
 
@@ -1020,7 +1027,7 @@ window.PLUGICT = {
     <h2 class="fadeup">Three moves to set up.</h2>
     <p class="sub fadeup" data-delay=".05" style="margin-top:14px"><span style="font:500 12px var(--mono);letter-spacing:.1em;color:var(--terracotta);border:1px solid rgba(232,98,44,.4);border-radius:999px;padding:6px 14px">≈ 3 MINUTES · NO CODE</span></p>
     <div class="moves">
-      <div class="move-card fadeup">
+      <div class="move-card fadeup glow">
         <div class="num">01</div>
         <h3>Unlock the vault</h3>
         <p>Download the vault, drop in your license key, double-click the setup file. That's it.</p>
@@ -1030,7 +1037,7 @@ window.PLUGICT = {
           <span>▶ double-click setup</span>
         </div>
       </div>
-      <div class="move-card fadeup" data-delay=".08">
+      <div class="move-card fadeup glow" data-delay=".08">
         <div class="num">02</div>
         <h3>Connect your agent</h3>
         <p>Open your AI agent's settings and paste the PlugICT config — copy-paste, no code.</p>
@@ -1039,7 +1046,7 @@ window.PLUGICT = {
           <button class="copy-btn" type="button" data-cmd='"ict-vault": { "command": "ict-vault-mcp" }'>copy</button>
         </div>
       </div>
-      <div class="move-card fadeup" data-delay=".16">
+      <div class="move-card fadeup glow" data-delay=".16">
         <div class="num">03</div>
         <h3>Ask your AI</h3>
         <p>It searches, walks the graph, and answers with cited timestamps.</p>
@@ -1060,7 +1067,7 @@ window.PLUGICT = {
     <div class="eyebrow rv rv-up">Connect your agent</div>
     <div class="codeblock">
       <div class="lead rv rv-left">
-        <h3>One config. Any MCP agent.</h3>
+        <h3>One config. <em>Any MCP agent.</em></h3>
         <p>Paste the vault into your agent and every answer comes back cited to the exact video and timestamp — no glue code, no cloud round-trip. Copy the snippet for your tool and you're live.</p>
         <div class="code-langs">
           <span class="code-lang"><i></i>Claude Desktop</span>
@@ -1123,7 +1130,7 @@ window.PLUGICT = {
   <div class="price-wrap">
     <div class="fadeup">
       <div class="eyebrow">Pricing</div>
-      <h2 style="margin-top:20px">Own it forever.</h2>
+      <h2 style="margin-top:20px">Own it <em>forever.</em></h2>
       <p class="sub" style="margin-left:0">No subscription. One license, tied to you, that unlocks the vault on your machine for life.</p>
       <div class="price-feats">
         <div><span class="tick">✓</span>&nbsp; 576 videos, fully searchable</div>
@@ -1136,6 +1143,7 @@ window.PLUGICT = {
     </div>
     <div class="price-card fadeup glow" data-delay=".1">
       <div class="tag">LIFETIME LICENSE · LAUNCH PRICING</div>
+      <div class="was">Normal price <s>$49.99</s><span class="save-badge">52% OFF AT LAUNCH</span></div>
       <div class="now">$1.00</div>
       <div class="onetime">one-time payment</div>
       <div class="countdown" id="countdown" role="timer" aria-live="off"></div>
@@ -1153,7 +1161,7 @@ window.PLUGICT = {
 <!-- ═══ FAQ ═══ -->
 <section id="faq">
   <div class="inner">
-    <h2 class="fadeup">Questions, answered.</h2>
+    <h2 class="fadeup">Questions, <em>answered.</em></h2>
     <div class="faq">
       <details class="fadeup"><summary>Do I need to be technical to set this up? <span class="chev">+</span></summary>
         <div class="faq-body"><div><p>No. You download, drop in your license key, and double-click the setup file — it handles everything. Then you paste one small config into your AI agent (copy-paste, no code). If anything's off, a built-in doctor check tells you exactly what to fix, in plain English.</p></div></div></details>
@@ -1182,7 +1190,7 @@ window.PLUGICT = {
 <!-- ═══ FINAL CTA ═══ -->
 <section id="get-access" class="final-cta center">
   <div class="inner">
-    <h2 class="fadeup">Stop scrubbing timelines. Start asking.</h2>
+    <h2 class="fadeup">Stop scrubbing timelines. <em>Start asking.</em></h2>
     <p class="sub fadeup" data-delay=".08">576 videos, one license, yours for life. Set up in three minutes.</p>
     <div class="fadeup" data-delay=".16" style="margin-top:34px">
       <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access — $1.00</a>
@@ -1671,10 +1679,56 @@ window.PLUGICT = {
   })();
 
   /* ══════════════════════════════════════════════════════════════
-     MOTION (restrained)
-     — scroll-reveal + code tabs only.
+     x.ai-INSPIRED MOTION LAYER
+     — animated hero particle field, cursor spotlight, parallax,
+       directional scroll-reveal, and the code-snippet tabs.
      All gated on prefers-reduced-motion and pointer capability.
      ══════════════════════════════════════════════════════════════ */
+
+  /* ── 1. animated hero particle field (rising embers + drift) ── */
+  (function(){
+    const cv=document.getElementById('hero-canvas'); if(!cv||REDUCED) return;
+    const ctx=cv.getContext('2d'); const hero=cv.parentElement;
+    let w=0,h=0,dpr=Math.min(devicePixelRatio||1,2),parts=[],raf=0,vis=true;
+    function size(){ w=hero.clientWidth; h=hero.clientHeight;
+      cv.width=w*dpr; cv.height=h*dpr; cv.style.width=w+'px'; cv.style.height=h+'px';
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      const n=Math.round(Math.min(90, w/16));
+      parts=Array.from({length:n},()=>mk()); }
+    function mk(){ return { x:Math.random()*w, y:Math.random()*h,
+      r:Math.random()*1.8+.4, vy:-(Math.random()*.35+.08), vx:(Math.random()-.5)*.18,
+      a:Math.random()*.5+.15, tw:Math.random()*Math.PI*2 }; }
+    function tick(t){
+      raf=requestAnimationFrame(tick); if(!vis) return;
+      ctx.clearRect(0,0,w,h);
+      for(const p of parts){
+        p.y+=p.vy; p.x+=p.vx; p.tw+=.02;
+        if(p.y<-8){ p.y=h+8; p.x=Math.random()*w; }
+        const flick=p.a*(.6+.4*Math.sin(p.tw));
+        const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*4);
+        g.addColorStop(0,'rgba(255,138,74,'+flick+')');
+        g.addColorStop(1,'rgba(255,138,74,0)');
+        ctx.fillStyle=g; ctx.beginPath(); ctx.arc(p.x,p.y,p.r*4,0,6.283); ctx.fill();
+      }
+    }
+    addEventListener('resize',size,{passive:true});
+    document.addEventListener('visibilitychange',()=>{vis=!document.hidden;});
+    size(); raf=requestAnimationFrame(tick);
+  })();
+
+  /* ── 2. cursor spotlight (fine-pointer only) ── */
+  (function(){
+    const el=document.getElementById('spotlight');
+    if(!el||REDUCED||!matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+    let tx=innerWidth/2,ty=innerHeight/2,cx=tx,cy=ty,raf=0;
+    addEventListener('pointermove',e=>{ tx=e.clientX; ty=e.clientY;
+      if(!document.body.classList.contains('spot-on')) document.body.classList.add('spot-on');
+      if(!raf) raf=requestAnimationFrame(loop); },{passive:true});
+    addEventListener('pointerdown',e=>{ tx=e.clientX; ty=e.clientY; });
+    function loop(){ cx+=(tx-cx)*.18; cy+=(ty-cy)*.18;
+      el.style.transform='translate('+cx+'px,'+cy+'px)';
+      if(Math.abs(tx-cx)>.5||Math.abs(ty-cy)>.5){ raf=requestAnimationFrame(loop); } else { raf=0; } }
+  })();
 
   /* ── 3. per-card glow follows the cursor ── */
   (function(){
@@ -1686,6 +1740,22 @@ window.PLUGICT = {
         card.style.setProperty('--my',(e.clientY-r.top)+'px');
       },{passive:true});
     });
+  })();
+
+  /* ── 4. hero parallax on scroll ── */
+  (function(){
+    if(REDUCED) return;
+    const hero=document.querySelector('.hero'); if(!hero) return;
+    const cv=document.getElementById('hero-canvas');
+    const term=hero.querySelector('.terminal');
+    let raf=0;
+    function upd(){ raf=0; const y=scrollY;
+      if(y>hero.offsetHeight+120) return;
+      if(cv) cv.style.transform='translateY('+(y*0.18)+'px)';
+      if(term && innerWidth>1000) term.style.transform=
+        'perspective(1400px) rotateY(-7deg) rotateX(1.5deg) translateY('+(y*-0.05)+'px)';
+    }
+    addEventListener('scroll',()=>{ if(!raf) raf=requestAnimationFrame(upd); },{passive:true});
   })();
 
   /* ── 5. directional scroll-reveal for .rv elements ── */
