@@ -43,5 +43,7 @@
     "timestamp_accuracy": "reported only for cases with expected_timestamp",
     "no_answer_accuracy": "reported only for cases with no_answer=true",
     "peak_ram_mb": "uses psutil RSS when available"
-  }
+  },
+  "_label": "DEMO_ONLY",
+  "_warning": "Not production quality proof. Identical single/multi metrics may not reflect Agent Layer planning gains. Use benchmarks/golden + run_golden_eval.py on a full vault (e.g. D:\\PlugICT)."
 }

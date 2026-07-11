@@ -1,0 +1,73 @@
+{
+  "id": "sb-001",
+  "title": "ICT Silver Bullet multi-facet (permanent golden)",
+  "question": "What is the ICT Silver Bullet strategy and how do you trade it? Include time windows (NY), entry (FVG), targets, and key rules.",
+  "queries": [
+    "ICT Silver Bullet time based trading model",
+    "Silver Bullet 10am to 11am New York",
+    "Silver Bullet fair value gap entry",
+    "Silver Bullet rules handles pips killzone"
+  ],
+  "top_k": 5,
+  "facets": {
+    "definition": {
+      "required": true,
+      "accept_video_ids": ["tRq1hyGGtl4"],
+      "match_any": [
+        {"video_id": "tRq1hyGGtl4"},
+        {"snippet_regex": "(?i)silver bullet"}
+      ]
+    },
+    "time_am": {
+      "required": true,
+      "match_any": [
+        {"snippet_regex": "(?i)10\\s*(a\\.?m\\.?|am|:00).{0,40}11"},
+        {"snippet_regex": "(?i)10 a\\.m\\. to 11 a\\.m"},
+        {"snippet_regex": "(?i)10am to 11am"},
+        {"snippet_regex": "(?i)am session silver bullet"},
+        {"snippet_regex": "(?i)1005|10:05"}
+      ]
+    },
+    "entry_fvg": {
+      "required": true,
+      "match_any": [
+        {"snippet_regex": "(?i)fair value gap"},
+        {"snippet_regex": "(?i)\\bFVG\\b"},
+        {"snippet_regex": "(?i)inside that fair value gap"}
+      ]
+    },
+    "targets": {
+      "required": false,
+      "match_any": [
+        {"snippet_regex": "(?i)handles?"},
+        {"snippet_regex": "(?i)\\bpips?\\b"},
+        {"snippet_regex": "(?i)10 handles|5 handles"}
+      ]
+    },
+    "rules_invalidation": {
+      "required": true,
+      "match_any": [
+        {"video_id": "hcSGlyfgKgA"},
+        {"snippet_regex": "(?i)does not meet the criteria|doesn't meet the criteria"},
+        {"snippet_regex": "(?i)not be a silver bullet"},
+        {"snippet_regex": "(?i)consolidat"}
+      ]
+    },
+    "forex_or_pm": {
+      "required": false,
+      "match_any": [
+        {"snippet_regex": "(?i)forex|fx\\b"},
+        {"snippet_regex": "(?i)2\\s*(p\\.?m\\.?|pm).{0,20}3"},
+        {"snippet_regex": "(?i)14:00|2 o.clock|two o.clock"}
+      ]
+    }
+  },
+  "acceptance": {
+    "min_unique_videos": 3,
+    "max_per_video": 2,
+    "require_core_video_id": "tRq1hyGGtl4",
+    "min_required_facet_coverage": 1.0,
+    "min_timestamp_presence": 1.0
+  },
+  "notes": "Permanent golden from Agent Layer v1.1 SPEC §4.4 / §7.4. Run on full vault (D:\\\\PlugICT), not demo-only."
+}
