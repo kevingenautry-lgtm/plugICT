@@ -87,35 +87,48 @@ window.PLUGICT = {
 </script>
 <style>
   /* x-ai design system + centered product showcase composition */
-  /* Design system: x-ai (nexu-io/open-design design-systems/x-ai)
-     Canvas #1f2228 · pure white ink · Geist Mono display · no chromatic accent */
+  /* Exact x.ai / open-design x-ai tokens — monochrome only */
   :root{
     --bg:#1f2228;
-    --paper:#1f2228; --paper-alt:#191c22; --card:rgba(255,255,255,.05);
-    --dark:#171a1f; --dark-line:rgba(255,255,255,.1);
-    --ink:#ffffff; --ink-soft:rgba(255,255,255,.7); --ink-mut:rgba(255,255,255,.5);
-    --line:rgba(255,255,255,.1); --line-soft:rgba(255,255,255,.05);
-    --terracotta:#ffffff; --terracotta-bright:#ffffff; --terracotta-deep:rgba(255,255,255,.7);
+    --paper:#1f2228;
+    --paper-alt:#1f2228;
+    --card:rgba(255,255,255,.03);
+    --surface:rgba(255,255,255,.03);
+    --surface-warm:rgba(255,255,255,.05);
+    --dark:#1f2228;
+    --dark-line:rgba(255,255,255,.1);
+    --ink:#ffffff;
+    --fg:#ffffff;
+    --ink-soft:rgba(255,255,255,.7);
+    --fg-2:rgba(255,255,255,.7);
+    --ink-mut:rgba(255,255,255,.5);
+    --muted:rgba(255,255,255,.5);
+    --meta:rgba(255,255,255,.3);
+    --line:rgba(255,255,255,.1);
+    --border:rgba(255,255,255,.1);
+    --line-soft:rgba(255,255,255,.05);
+    --border-soft:rgba(255,255,255,.05);
+    --terracotta:#ffffff;
+    --terracotta-bright:#ffffff;
+    --terracotta-deep:rgba(255,255,255,.7);
     --ember-glow:rgba(255,255,255,.08);
-    --maxw:1180px;
+    --accent:#ffffff;
+    --accent-on:#1f2228;
+    --accent-hover:rgba(255,255,255,.9);
     --spot:rgba(255,255,255,.06);
-    --accent:#ffffff; --accent-on:#1f2228;
-    --focus-ring:rgb(59 130 246 / .5);
+    --focus-ring:0 0 0 3px rgba(59,130,246,.5);
+    --maxw:1180px;
     --radius:0px;
-    --serif:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-    --sans:Inter,universalSans,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --serif:Inter,system-ui,-apple-system,sans-serif;
+    --sans:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box; margin:0}
   html{scroll-behavior:smooth}
   html{overflow-x:clip}
-  body{
-    background:var(--paper); color:var(--ink);
-    font:400 16px/1.5 var(--sans);
-    -webkit-font-smoothing:antialiased; overflow-x:clip;
-  }
+  body{background:#1f2228; color:#ffffff; font:400 16px/1.5 var(--sans); -webkit-font-smoothing:antialiased; overflow-x:clip;}
   a{color:inherit}
-  ::selection{background:rgba(255,255,255,.18)}
+  ::selection{background:rgba(255,255,255,.18); color:#ffffff}
   .wrap{max-width:var(--maxw); margin:0 auto; padding:0 28px}
   em{font-style:normal; color:var(--ink); font-weight:500}
 
@@ -135,8 +148,8 @@ window.PLUGICT = {
     font:500 15px/1.2 var(--sans); letter-spacing:0; text-transform:none;
     min-height:54px; padding:0 30px; border-radius:999px; border:none;
     transition:background .15s ease, color .15s ease, border-color .15s ease, opacity .15s, transform .15s;}
-  .btn.primary{background:#fff; color:#1f2228; box-shadow:none}
-  .btn.primary:hover{background:rgba(255,255,255,.92); transform:translateY(-1px)}
+  .btn.primary{background:#ffffff; color:#1f2228; box-shadow:none}
+  .btn.primary:hover{background:rgba(255,255,255,.9); transform:translateY(-1px); box-shadow:none}
   .btn.small{min-height:40px; padding:0 18px; font-size:13.5px}
   .btn.ghost{background:transparent; color:#fff; border:1px solid rgba(255,255,255,.22);
     font:500 15px/1.2 var(--sans); letter-spacing:0; text-transform:none; min-height:54px; padding:0 30px}
@@ -208,7 +221,7 @@ window.PLUGICT = {
     .hero-demo{margin-top:48px; border-radius:22px}
   }
 
-  .t-prompt{color:var(--terracotta-bright)} .t-cmd{color:#ffffff} .t-dim{color:rgba(244,239,228,.4)}
+  .t-prompt{color:var(--terracotta-bright)} .t-cmd{color:#ffffff} .t-dim{color:rgba(255,255,255,.4)}
   .t-warm{color:var(--terracotta-bright)}
   .t-cursor{display:inline-block; width:7px; height:14px; background:var(--terracotta-bright); vertical-align:-2px; animation:blink 1s steps(1) infinite}
   @keyframes blink{50%{opacity:0}}
@@ -232,25 +245,25 @@ window.PLUGICT = {
   .demo-bar .t-prompt{font:500 13px var(--mono); flex-shrink:0}
   .demo-input{flex:1; background:none; border:none; outline:none; color:#ffffff;
     font:400 13.5px var(--mono); caret-color:var(--terracotta-bright)}
-  .demo-input::placeholder{color:rgba(244,239,228,.35)}
+  .demo-input::placeholder{color:rgba(255,255,255,.35)}
   .demo-go{background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.4); color:var(--terracotta-bright);
     font:500 12px var(--mono); border-radius:0; padding:7px 14px; cursor:pointer; flex-shrink:0; transition:background .2s}
   .demo-go:hover{background:rgba(255,255,255,.24)}
   .demo-out{padding:22px 24px 26px; font:400 13.5px/1.8 var(--mono); color:#ffffff; min-height:150px}
-  .demo-out .status{color:rgba(244,239,228,.45)}
-  .demo-answer{color:rgba(244,239,228,.92); font:400 14.5px/1.7 var(--sans); white-space:pre-wrap; margin-bottom:8px}
+  .demo-out .status{color:rgba(255,255,255,.45)}
+  .demo-answer{color:rgba(255,255,255,.92); font:400 14.5px/1.7 var(--sans); white-space:pre-wrap; margin-bottom:8px}
   .demo-hit{margin-top:14px; border-left:2px solid var(--terracotta-bright); padding-left:14px}
   .demo-hit .title{color:#ffffff; font-weight:600; font-size:13.5px}
-  .demo-hit .snip{color:rgba(244,239,228,.7); font-size:12.5px; margin-top:3px}
+  .demo-hit .snip{color:rgba(255,255,255,.7); font-size:12.5px; margin-top:3px}
   .demo-hit .snip b{color:var(--terracotta-bright); font-weight:600}
   .demo-hit a.play{display:inline-flex; align-items:center; gap:6px; margin-top:6px;
     color:var(--terracotta-bright); text-decoration:none; font:500 12px var(--mono)}
   .demo-hit a.play:hover{text-decoration:underline}
   .demo-note{max-width:640px; margin:20px auto 0; text-align:center; font-size:13px; line-height:1.6; color:var(--ink-mut)}
   .demo-note b{color:var(--terracotta)}
-  .demo-empty{color:rgba(244,239,228,.5)}
+  .demo-empty{color:rgba(255,255,255,.5)}
   /* streaming demo: idle hint, typing caret, staggered card reveal */
-  .demo-idle{color:rgba(244,239,228,.42); font:400 13.5px/1.7 var(--mono)}
+  .demo-idle{color:rgba(255,255,255,.42); font:400 13.5px/1.7 var(--mono)}
   .demo-idle .cur{display:inline-block; width:7px; height:15px; margin-left:2px;
     background:var(--terracotta-bright); vertical-align:-2px; animation:blink 1s steps(1) infinite}
   .demo-cur{display:inline-block; width:7px; height:15px; background:var(--terracotta-bright);
@@ -291,7 +304,7 @@ window.PLUGICT = {
 
   /* ── sections ───────────────────────────────────────────── */
   section{padding:110px 28px}
-  section.alt{background:var(--paper-alt); border-top:1px solid var(--line-soft)}
+  section.alt{background:#1f2228; border-top:1px solid var(--line-soft)}
   section h2{font:300 clamp(28px,4vw,44px)/1.12 var(--sans); letter-spacing:-.03em; max-width:760px; color:#fff; margin-left:auto; margin-right:auto; text-align:center; text-wrap:balance}
   .sub{color:rgba(255,255,255,.62); font-size:17px; max-width:640px; margin:18px auto 0; line-height:1.65; text-align:center}
   .center{text-align:center}
@@ -310,7 +323,7 @@ window.PLUGICT = {
   .panel{background:var(--card); border:1px solid var(--line); border-radius:0; padding:28px; min-height:280px; position:relative}
   .panel-label{position:absolute; top:14px; right:16px; font:500 11px var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-mut)}
   .chaos .vid{display:inline-block; font-size:12px; font-weight:500; color:var(--ink-soft);
-    border:1px solid var(--line); background:rgba(242,234,217,.04); border-radius:0; padding:7px 11px; margin:5px 3px}
+    border:1px solid var(--line); background:rgba(255,255,255,.04); border-radius:0; padding:7px 11px; margin:5px 3px}
   .chaos .vid.r1{transform:rotate(-3deg)} .chaos .vid.r2{transform:rotate(2.5deg)} .chaos .vid.r3{transform:rotate(-1.5deg)}
   .chaos .searchbar{margin-top:18px; border:1px solid var(--line); border-radius:10px; padding:12px 16px;
     color:var(--ink-mut); font-size:14px; display:flex; justify-content:space-between; background:rgba(0,0,0,.35)}
@@ -350,9 +363,9 @@ window.PLUGICT = {
     }
   .answer{background:var(--dark); color:#ffffff; border-color:rgba(255,255,255,.3);
     box-shadow:none; font-size:14px; font-weight:600; margin-bottom:14px}
-  .answer .a{font-size:15px; line-height:1.7; color:rgba(244,239,228,.85)}
+  .answer .a{font-size:15px; line-height:1.7; color:rgba(255,255,255,.85)}
   .answer .cite{margin-top:18px; display:flex; align-items:center; gap:10px; border-left:2px solid var(--terracotta-bright);
-    padding-left:14px; font-size:13px; color:rgba(244,239,228,.6)}
+    padding-left:14px; font-size:13px; color:rgba(255,255,255,.6)}
   .answer .cite b{color:#ffffff}
   .answer .cite .ts{color:var(--terracotta-bright); font-weight:600; font-family:var(--mono)}
 
@@ -377,7 +390,7 @@ window.PLUGICT = {
   .cv-cite .title{font-size:13.5px; font-weight:600}
   .cv-cite .ts{font:500 12.5px var(--mono); color:var(--terracotta); margin-top:4px}
   .cv-cite .note{font-size:12px; color:var(--ink-mut); margin-top:4px}
-  .cv-code{background:var(--dark); border-radius:0; padding:16px; font:400 12px/1.8 var(--mono); color:rgba(244,239,228,.75)}
+  .cv-code{background:var(--dark); border-radius:0; padding:16px; font:400 12px/1.8 var(--mono); color:rgba(255,255,255,.75)}
   .cv-code .k{color:var(--terracotta-bright)} .cv-code .v{color:#ffffff}
   /* ── knowledge graph visual (capability #4) ──────────────── */
   .cap-visual.cv-graph{grid-column:1/-1; max-width:100%; margin-top:2px}
@@ -387,54 +400,54 @@ window.PLUGICT = {
       radial-gradient(ellipse 86% 70% at 50% 93%, rgba(105,48,21,.16), transparent 72%),
       linear-gradient(180deg,#1f2228 0%,#1f2228 52%,#1f2228 100%);
     border:1px solid rgba(255,255,255,.42);
-    box-shadow:inset 0 1px 0 rgba(255,231,205,.08), inset 0 0 0 1px rgba(242,234,217,.035), inset 0 -38px 70px rgba(0,0,0,.44), 0 18px 48px -34px rgba(255,255,255,.42);
+    box-shadow:inset 0 1px 0 rgba(255,231,205,.08), inset 0 0 0 1px rgba(255,255,255,.035), inset 0 -38px 70px rgba(0,0,0,.44), 0 18px 48px -34px rgba(255,255,255,.42);
     min-height:520px}
   .cv-graph .kg-surface{position:relative; width:100%; height:520px; isolation:isolate; overflow:hidden; border-radius:inherit}
   .kg-surface:before{content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
     background:
-      linear-gradient(rgba(244,239,228,.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(244,239,228,.02) 1px, transparent 1px),
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px),
       radial-gradient(circle at 50% 50%, rgba(255,255,255,.11), transparent 30%);
     background-size:38px 38px,38px 38px,100% 100%;
     -webkit-mask-image:radial-gradient(ellipse 90% 78% at 50% 51%,#000 18%,transparent 86%);
     mask-image:radial-gradient(ellipse 90% 78% at 50% 51%,#000 18%,transparent 86%)}
   .kg-surface:after{content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
     background:
-      radial-gradient(circle at 50% 50%, transparent 0 19%, rgba(255,255,255,.12) 19.4%, transparent 20% 32%, rgba(244,239,228,.07) 32.4%, transparent 33% 45%, rgba(244,239,228,.045) 45.4%, transparent 46% 58%, rgba(255,255,255,.06) 58.4%, transparent 59%),
-      linear-gradient(90deg, transparent 49.9%, rgba(244,239,228,.045) 50%, transparent 50.1%),
-      linear-gradient(0deg, transparent 49.9%, rgba(244,239,228,.04) 50%, transparent 50.1%);
+      radial-gradient(circle at 50% 50%, transparent 0 19%, rgba(255,255,255,.12) 19.4%, transparent 20% 32%, rgba(255,255,255,.07) 32.4%, transparent 33% 45%, rgba(255,255,255,.045) 45.4%, transparent 46% 58%, rgba(255,255,255,.06) 58.4%, transparent 59%),
+      linear-gradient(90deg, transparent 49.9%, rgba(255,255,255,.045) 50%, transparent 50.1%),
+      linear-gradient(0deg, transparent 49.9%, rgba(255,255,255,.04) 50%, transparent 50.1%);
     opacity:.52; transform:scaleX(1.08)}
   .kg-grid{position:absolute; inset:0; pointer-events:none; z-index:1; opacity:.22;
-    background-image:radial-gradient(circle, rgba(244,239,228,.16) 1px, transparent 1.4px);
+    background-image:radial-gradient(circle, rgba(255,255,255,.16) 1px, transparent 1.4px);
     background-size:26px 26px;
     -webkit-mask-image:radial-gradient(ellipse 74% 66% at 50% 50%, #000 18%, transparent 83%);
     mask-image:radial-gradient(ellipse 74% 66% at 50% 50%, #000 18%, transparent 83%)}
   .kg-depth{position:absolute; inset:18px; pointer-events:none; z-index:2; opacity:.42;
     background:
-      radial-gradient(circle at 6% 60%, rgba(244,239,228,.2) 0 1px, transparent 1.6px),
-      radial-gradient(circle at 94% 24%, rgba(244,239,228,.17) 0 1px, transparent 1.6px),
+      radial-gradient(circle at 6% 60%, rgba(255,255,255,.2) 0 1px, transparent 1.6px),
+      radial-gradient(circle at 94% 24%, rgba(255,255,255,.17) 0 1px, transparent 1.6px),
       radial-gradient(circle at 50% 50%, rgba(255,255,255,.3) 0 1px, transparent 1.5px)}
   .kg-radar{position:absolute; left:50%; top:50%; width:270px; aspect-ratio:1; transform:translate(-50%,-50%); z-index:1; pointer-events:none;
     border-radius:50%; opacity:.34;
     background:
-      repeating-radial-gradient(circle, transparent 0 38px, rgba(244,239,228,.09) 39px 40px, transparent 41px 75px),
-      conic-gradient(from -15deg, rgba(255,255,255,.14), transparent 18%, transparent 72%, rgba(244,239,228,.06));
+      repeating-radial-gradient(circle, transparent 0 38px, rgba(255,255,255,.09) 39px 40px, transparent 41px 75px),
+      conic-gradient(from -15deg, rgba(255,255,255,.14), transparent 18%, transparent 72%, rgba(255,255,255,.06));
     filter:blur(.1px)}
   .kg-radar:after{content:""; position:absolute; inset:47%; border-radius:50%; background:rgba(255,255,255,.55); box-shadow:0 0 42px 24px rgba(255,255,255,.2)}
   .kg-cross{position:absolute; width:28px; height:28px; z-index:3; pointer-events:none; opacity:.34}
-  .kg-cross:before,.kg-cross:after{content:""; position:absolute; background:rgba(244,239,228,.28)}
+  .kg-cross:before,.kg-cross:after{content:""; position:absolute; background:rgba(255,255,255,.28)}
   .kg-cross:before{left:50%; top:0; width:1px; height:100%; transform:translateX(-50%)}
   .kg-cross:after{top:50%; left:0; width:100%; height:1px; transform:translateY(-50%)}
   .kg-cross i{position:absolute; inset:8px; border:1px solid rgba(255,255,255,.28); border-radius:50%}
   .kg-cross.tl{left:22px; top:58%}
   .kg-cross.tr{right:22px; top:22%}
   .kg-coords{position:absolute; inset:16px 20px auto; pointer-events:none; font:500 9px var(--mono);
-    color:rgba(244,239,228,.37); letter-spacing:.2em; display:flex; justify-content:space-between; z-index:6; text-transform:uppercase}
+    color:rgba(255,255,255,.37); letter-spacing:.2em; display:flex; justify-content:space-between; z-index:6; text-transform:uppercase}
   .kg-edges{position:absolute; inset:0; z-index:3; width:100%; height:100%; overflow:visible}
-  .kg-edge{fill:none; stroke:rgba(244,239,228,.18); stroke-width:1.25; stroke-linecap:round; stroke-linejoin:round;
+  .kg-edge{fill:none; stroke:rgba(255,255,255,.18); stroke-width:1.25; stroke-linecap:round; stroke-linejoin:round;
     vector-effect:non-scaling-stroke; transition:stroke .32s ease, opacity .32s ease, filter .32s ease}
   .kg-edge.primary{stroke:rgba(255,255,255,.78); stroke-width:1.9; filter:drop-shadow(0 0 5px rgba(255,255,255,.3))}
-  .kg-edge.support{stroke:rgba(244,239,228,.24); stroke-width:1.1; stroke-dasharray:2.5 3.8; opacity:.48}
+  .kg-edge.support{stroke:rgba(255,255,255,.24); stroke-width:1.1; stroke-dasharray:2.5 3.8; opacity:.48}
   .kg-edge.draw{stroke-dasharray:1; stroke-dashoffset:1; animation:kg-draw 1.15s cubic-bezier(.22,1,.36,1) forwards}
   .kg-edge.support.draw{stroke-dasharray:2.5 3.8; stroke-dashoffset:0; animation:none}
   .kg-edge.active{stroke:rgba(255,255,255,.98); opacity:1; filter:drop-shadow(0 0 7px rgba(255,255,255,.58))}
@@ -443,14 +456,14 @@ window.PLUGICT = {
   .kg-route-glow{fill:none; stroke:rgba(255,255,255,.16); stroke-width:13; stroke-linecap:round; opacity:0; transition:opacity .35s ease; vector-effect:non-scaling-stroke}
   .kg-route-glow.on{opacity:1}
   .kg-edge-label{font:600 2.6px var(--mono); fill:rgba(255,153,96,.82); letter-spacing:.04em; text-shadow:0 0 5px rgba(255,255,255,.48); pointer-events:none}
-  .kg-edge-label.support{fill:rgba(244,239,228,.44)}
+  .kg-edge-label.support{fill:rgba(255,255,255,.44)}
   @keyframes kg-draw{to{stroke-dashoffset:0}}
   .kg-nodes{position:absolute; inset:0; z-index:5}
   .kg-node{position:absolute; transform:translate(-50%,-50%) scale(.97);
     display:grid; grid-template-columns:24px minmax(0,1fr) auto; align-items:center; column-gap:10px; row-gap:2px;
     width:max-content; max-width:180px; min-height:50px; border:1px solid rgba(255,255,255,.38); border-radius:0;
     background:linear-gradient(180deg, rgba(28,21,15,.96), rgba(10,8,6,.97));
-    color:rgba(244,239,228,.92); font:500 11px/1.15 var(--mono); letter-spacing:0;
+    color:rgba(255,255,255,.92); font:500 11px/1.15 var(--mono); letter-spacing:0;
     padding:9px 11px; cursor:pointer; text-align:left;
     transition:border-color .28s ease, box-shadow .28s ease, opacity .28s ease, transform .24s ease, color .28s ease, background .28s ease;
     box-shadow:inset 0 1px 0 rgba(255,231,205,.07), inset 0 -12px 18px rgba(0,0,0,.24), 0 10px 22px -18px #000}
@@ -460,17 +473,17 @@ window.PLUGICT = {
   .kg-node .icon{grid-row:1 / span 2; display:grid; place-items:center; width:24px; height:24px; color:rgba(255,255,255,.88)}
   .kg-node .icon svg{width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:1.5}
   .kg-node .label{grid-column:2; min-width:0; overflow:visible; text-overflow:clip; white-space:normal; font-family:var(--serif); font-size:17px; line-height:1.06; color:#ffffff}
-  .kg-node .sub{grid-column:2 / span 2; min-width:0; overflow:visible; text-overflow:clip; white-space:normal; font-size:8.5px; line-height:1.15; color:rgba(244,239,228,.48)}
+  .kg-node .sub{grid-column:2 / span 2; min-width:0; overflow:visible; text-overflow:clip; white-space:normal; font-size:8.5px; line-height:1.15; color:rgba(255,255,255,.48)}
   .kg-node .idx{grid-column:3; grid-row:1; align-self:start; font-size:9px; color:rgba(255,255,255,.86); letter-spacing:.1em}
   .kg-node.primary{min-width:166px; max-width:180px; min-height:62px; padding:11px 13px; border-color:rgba(255,255,255,.62)}
-  .kg-node.primary[data-id="ob"]{min-width:0; width:196px; max-width:196px; min-height:82px; color:#ffffff; border-color:rgba(255,111,48,.9);
+  .kg-node.primary[data-id="ob"]{min-width:0; width:196px; max-width:196px; min-height:82px; color:#ffffff; border-color:rgba(255,255,255,.9);
     box-shadow:0 0 0 1px rgba(255,255,255,.28), 0 0 42px -10px rgba(255,255,255,.9), inset 0 1px 0 rgba(255,255,255,.16), inset 0 -14px 24px rgba(0,0,0,.26)}
   .kg-node.primary[data-id="ob"] .label{font-size:24px; line-height:.98}
   .kg-node.primary[data-id="ob"] .icon{display:none}
   .kg-node.primary[data-id="ob"] .idx{grid-column:1; justify-self:start}
   .kg-node.primary[data-id="ob"] .sub{grid-column:2 / span 2; font-size:9px}
   .kg-node.secondary{min-height:46px; width:132px; max-width:132px; padding:8px 10px; opacity:.68; border-color:rgba(255,255,255,.25);
-    background:linear-gradient(180deg, rgba(20,16,12,.9), rgba(9,8,6,.92)); color:rgba(244,239,228,.68)}
+    background:linear-gradient(180deg, rgba(20,16,12,.9), rgba(9,8,6,.92)); color:rgba(255,255,255,.68)}
   .kg-node.secondary .label{font-size:12.5px; max-width:86px; white-space:normal; overflow-wrap:anywhere}
   .kg-node.secondary .icon{width:18px; height:18px}
   .kg-node.secondary .icon svg{width:17px; height:17px; opacity:.8}
@@ -482,21 +495,21 @@ window.PLUGICT = {
     box-shadow:0 0 0 1px rgba(255,255,255,.42), 0 0 34px -6px rgba(255,255,255,.74), inset 0 1px 0 rgba(255,255,255,.14)}
   .kg-node.active:focus-visible{box-shadow:0 0 0 2px rgba(12,11,8,.9), 0 0 0 4px rgba(255,255,255,.72), 0 0 28px -6px rgba(255,255,255,.64), inset 0 1px 0 rgba(255,255,255,.14)}
   .kg-node.active .port{background:var(--terracotta-bright); box-shadow:0 0 12px 3px rgba(255,255,255,.65)}
-  .kg-node.related{opacity:.92; border-color:rgba(255,255,255,.38); color:rgba(244,239,228,.86)}
+  .kg-node.related{opacity:.92; border-color:rgba(255,255,255,.38); color:rgba(255,255,255,.86)}
   .kg-node.dim{opacity:.24}
   .kg-caption{position:absolute; left:50%; bottom:14px; z-index:6; transform:translateX(-50%); max-width:calc(100% - 190px); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; pointer-events:none;
-    font:500 10px var(--mono); letter-spacing:.04em; color:rgba(244,239,228,.88);
+    font:500 10px var(--mono); letter-spacing:.04em; color:rgba(255,255,255,.88);
     background:linear-gradient(180deg, rgba(36,22,14,.88), rgba(12,9,7,.88)); border:1px solid rgba(255,255,255,.24); border-radius:0;
     padding:7px 15px; opacity:1; box-shadow:0 0 20px -8px rgba(255,255,255,.72), inset 0 1px 0 rgba(255,255,255,.11); transition:opacity .28s ease, transform .28s ease}
   .kg-caption:before{content:""; display:inline-block; width:6px; height:6px; margin-right:8px; border-radius:50%; background:var(--terracotta-bright); box-shadow:0 0 8px rgba(255,255,255,.8)}
   .kg-caption:not(.on){opacity:.78}
-  .kg-badge{position:absolute; left:20px; bottom:20px; z-index:6; pointer-events:none; font:600 9px var(--mono); letter-spacing:.16em; color:rgba(244,239,228,.45); text-transform:uppercase}
+  .kg-badge{position:absolute; left:20px; bottom:20px; z-index:6; pointer-events:none; font:600 9px var(--mono); letter-spacing:.16em; color:rgba(255,255,255,.45); text-transform:uppercase}
   .kg-badge:before{content:""; display:inline-block; width:5px; height:5px; border-radius:50%; margin-right:8px; border:1px solid var(--terracotta-bright); box-shadow:0 0 8px rgba(255,255,255,.5)}
   .kg-badge .live{color:var(--terracotta-bright)}
-  .kg-legend{position:absolute; right:20px; bottom:16px; z-index:6; pointer-events:none; display:grid; gap:6px; font:500 8.5px var(--mono); color:rgba(244,239,228,.46); letter-spacing:.06em}
+  .kg-legend{position:absolute; right:20px; bottom:16px; z-index:6; pointer-events:none; display:grid; gap:6px; font:500 8.5px var(--mono); color:rgba(255,255,255,.46); letter-spacing:.06em}
   .kg-legend span{display:flex; align-items:center; gap:8px; white-space:nowrap}
   .kg-legend i{display:block; width:24px; height:0; border-top:2px solid var(--terracotta-bright); box-shadow:0 0 8px rgba(255,255,255,.65)}
-  .kg-legend .dash i{border-top:1px dashed rgba(244,239,228,.46); box-shadow:none}
+  .kg-legend .dash i{border-top:1px dashed rgba(255,255,255,.46); box-shadow:none}
   @media(max-width:1000px){
     .cv-graph{min-height:520px}
     .cv-graph .kg-surface{height:520px}
@@ -550,7 +563,7 @@ window.PLUGICT = {
   .move-cmd{margin-top:16px; background:var(--dark); border-radius:0; padding:11px 14px;
     display:flex; justify-content:space-between; align-items:center; gap:10px}
   .move-cmd span:first-child{font:400 12px var(--mono); color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .copy-btn{font:500 10.5px var(--mono); color:rgba(244,239,228,.5); border:1px solid rgba(244,239,228,.2);
+  .copy-btn{font:500 10.5px var(--mono); color:rgba(255,255,255,.5); border:1px solid rgba(255,255,255,.2);
     border-radius:5px; padding:4px 9px; cursor:pointer; background:none; flex-shrink:0; transition:color .2s,border-color .2s}
   .copy-btn:hover{color:var(--terracotta-bright); border-color:var(--terracotta-bright)}
   .move-chips{display:flex; gap:6px; margin-top:16px; flex-wrap:wrap}
@@ -653,23 +666,23 @@ window.PLUGICT = {
     background:radial-gradient(50% 50% at 50% 50%, rgba(255,255,255,.14), transparent 70%)}
   .final-cta h2{color:#ffffff}
   .final-cta h2 em{color:var(--terracotta-bright)}
-  .final-cta .sub{color:rgba(244,239,228,.6)}
+  .final-cta .sub{color:rgba(255,255,255,.6)}
   .final-cta .inner{position:relative}
-  .final-cta .fine{font:400 12px var(--mono); letter-spacing:.05em; color:rgba(244,239,228,.45); margin-top:18px}
+  .final-cta .fine{font:400 12px var(--mono); letter-spacing:.05em; color:rgba(255,255,255,.45); margin-top:18px}
   .capture{max-width:440px; margin:44px auto 0; padding-top:34px; border-top:1px solid var(--dark-line)}
-  .capture .cap-lbl{font:500 11.5px var(--mono); letter-spacing:.14em; color:rgba(244,239,228,.5)}
+  .capture .cap-lbl{font:500 11.5px var(--mono); letter-spacing:.14em; color:rgba(255,255,255,.5)}
   .capture form{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap}
-  .capture input{flex:1; min-width:200px; background:rgba(244,239,228,.06); border:1px solid var(--dark-line);
+  .capture input{flex:1; min-width:200px; background:rgba(255,255,255,.06); border:1px solid var(--dark-line);
     border-radius:0; padding:13px 20px; font:400 14px var(--sans); color:#ffffff; outline:none}
-  .capture input::placeholder{color:rgba(244,239,228,.35)}
+  .capture input::placeholder{color:rgba(255,255,255,.35)}
   .capture input:focus{border-color:var(--terracotta-bright)}
-  .capture button{background:none; border:1px solid rgba(244,239,228,.25); border-radius:0; padding:13px 24px;
+  .capture button{background:none; border:1px solid rgba(255,255,255,.25); border-radius:0; padding:13px 24px;
     font:500 14px var(--sans); color:#ffffff; cursor:pointer; transition:border-color .2s}
   .capture button:hover{border-color:var(--terracotta-bright); color:var(--terracotta-bright)}
   .capture .cap-done{display:none; margin-top:14px; font-size:14px; color:var(--terracotta-bright)}
 
   /* ── FAQ ────────────────────────────────────────────────── */
-  .faq{max-width:720px; margin:36px 0 0; background:#0F0D0A; border:1px solid var(--line);
+  .faq{max-width:720px; margin:36px 0 0; background:#1f2228; border:1px solid var(--line);
     border-radius:0; padding:6px 26px}
   .faq details:last-of-type{border-bottom:none}
   .faq-more{max-width:720px; margin:20px 0 0; font-size:14px; color:var(--ink-mut); padding-left:4px}
@@ -685,7 +698,7 @@ window.PLUGICT = {
   details[open] .faq-body{grid-template-rows:1fr}
   .faq-body > div{overflow:hidden}
   .faq-body p{color:var(--ink-soft); font-size:15px; padding:0 4px 22px; line-height:1.7}
-  code{font-family:var(--mono); font-size:.9em; background:rgba(242,234,217,.07);
+  code{font-family:var(--mono); font-size:.9em; background:rgba(255,255,255,.07);
     border:1px solid var(--line); border-radius:0; padding:2px 7px}
 
   /* ── footer ─────────────────────────────────────────────── */
@@ -737,13 +750,13 @@ window.PLUGICT = {
   .code-tab.on::after{content:""; position:absolute; left:12px; right:12px; bottom:-1px; height:2px; background:var(--terracotta-bright); border-radius:2px}
   .code-head{display:flex; align-items:center; justify-content:space-between; padding:12px 18px 4px}
   .code-file{font:400 11.5px var(--mono); color:var(--ink-mut)}
-  .code-copy{font:500 11px var(--mono); color:rgba(244,239,228,.5); border:1px solid rgba(244,239,228,.18);
+  .code-copy{font:500 11px var(--mono); color:rgba(255,255,255,.5); border:1px solid rgba(255,255,255,.18);
     border-radius:0; padding:5px 11px; cursor:pointer; background:none; transition:color .2s,border-color .2s}
   .code-copy:hover{color:var(--terracotta-bright); border-color:var(--terracotta-bright)}
-  .code-body{margin:0; padding:8px 20px 24px; font:400 13px/1.85 var(--mono); color:rgba(244,239,228,.86);
+  .code-body{margin:0; padding:8px 20px 24px; font:400 13px/1.85 var(--mono); color:rgba(255,255,255,.86);
     overflow-x:auto; white-space:pre; scrollbar-width:thin}
   .code-body .cm{color:var(--ink-mut)} .code-body .ky{color:var(--terracotta-bright)}
-  .code-body .st{color:#9BD39B} .code-body .fn{color:#7FB8FF}
+  .code-body .st{color:rgba(255,255,255,0.85)} .code-body .fn{color:rgba(255,255,255,0.75)}
   .code-pane{display:none} .code-pane.on{display:block; animation:code-fade .3s ease}
   @keyframes code-fade{from{opacity:0; transform:translateY(6px)}}
 
@@ -766,6 +779,33 @@ window.PLUGICT = {
   .demo-chip,.code-tab,.code-lang,.demo-go{border-radius:999px !important}
   .demo-input,.demo-bar{border-radius:18px !important}
   .stats{justify-content:center; text-align:center}
+
+
+  /* ── x.ai exact color lock ─────────────────────────────── */
+  html,body{background:#1f2228 !important; color:#ffffff !important}
+  nav{background:rgba(31,34,40,.85) !important}
+  .hero,section,section.alt,footer{background:#1f2228 !important}
+  section.alt{border-top-color:rgba(255,255,255,.05) !important}
+  footer{border-top:1px solid rgba(255,255,255,.08)}
+  .sub,.fine,.navlinks a,.announce,.demo-note,.disc,.cap-lbl,
+  .panel-label,.b-sub,.faq-more,.t-dim,.kg-node .sub,.term-head span,
+  .hero .sub,.hero .fine{color:rgba(255,255,255,.7) !important}
+  .eyebrow,.meta,.ink-mut{color:rgba(255,255,255,.5) !important}
+  h1,h2,h3,.brand,.btn.ghost,.kg-node .label{color:#ffffff !important}
+  .btn.primary{background:#ffffff !important; color:#1f2228 !important}
+  .btn.ghost{border-color:rgba(255,255,255,.2) !important; color:#ffffff !important}
+  .code-body .st,.code-body .fn,.code-body .ky{color:rgba(255,255,255,.85) !important}
+  .code-body .cm{color:rgba(255,255,255,.4) !important}
+  .kg-node{border-color:rgba(255,255,255,.14) !important; color:#fff !important}
+  .kg-node.primary.active,.kg-node.active{border-color:rgba(255,255,255,.55) !important;
+    box-shadow:0 0 0 1px rgba(255,255,255,.2) !important}
+  .kg-edge,.kg-edge path{stroke:rgba(255,255,255,.2) !important}
+  .kg-edge.active,.kg-edge.active path{stroke:#ffffff !important}
+  ::selection{background:rgba(255,255,255,.18); color:#fff}
+  .panel,.cap-row,.price-card,.code-panel,.demo-console,.band-card,.hero-demo{
+    background:rgba(255,255,255,.03) !important;
+    border-color:rgba(255,255,255,.1) !important;
+  }
 
 </style>
 </head>
