@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" data-bg="xai-black" style="background:#000!important">
+<html lang="en" data-bg="xai-black" style="background:#1f2228!important">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#1f2228">
 <!-- Inline SVG favicon (the plug mark) — self-contained, no extra request, no 404 -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 2v5'/><path d='M15 2v5'/><path d='M7 7h10v4a5 5 0 0 1-10 0V7z'/><path d='M12 16v3a3 3 0 0 1-3 3'/></svg>">
 <title>PlugICT — Years of ICT Lessons. One Instant Answer.</title>
@@ -11,7 +11,7 @@
 <!-- x-ai design system: Geist Mono (display/buttons) + Inter (body / universalSans stand-in) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
 <script type="application/ld+json">
 {
@@ -21,7 +21,7 @@
   "description": "AI knowledge base of 576 ICT videos — transcribed, indexed, searchable by any MCP-compatible AI agent with exact video sources and timestamps.",
   "offers": {
     "@type": "Offer",
-    "price": "1.00",
+    "price": "23.99",
     "priceCurrency": "USD",
     "availability": "https://schema.org/InStock"
   }
@@ -32,12 +32,12 @@
    Backend reference: store/README.md (payment methods) and
    store/webhook_server.py (automated license delivery for billplz/stripe). */
 window.PLUGICT = {
-  priceUsd: '$1.00',
+  priceUsd: '$23.99',
   priceMyr: '',            // optional MYR shown on DuitNow QR pane, e.g. 'RM 105'
 
   /* Automated checkout (webhook issues the license, buyer gets email instantly) */
   billplzUrl: '',          // Billplz payment form URL — FPX + DuitNow, Malaysia
-  stripeUrl: 'https://buy.stripe.com/7sY14oeiC06QdVX9Hm6Ri01',           // Stripe Payment Link — international cards
+  stripeUrl: 'https://buy.stripe.com/9B64gA3DY1aUbNPcTy6Ri00',           // Stripe Payment Link — international cards
 
   /* Manual methods (you confirm payment, then run store/issue_license.py) */
   duitnowQrImg: '',        // path to your DuitNow QR image, e.g. 'assets/duitnow-qr.png'
@@ -87,18 +87,18 @@ window.PLUGICT = {
 </script>
 <style>
 /* BLACK_CANVAS_v3 */
-html,body,main,#__bg{background:#000000 !important;}
+html,body,main,#__bg{background:#1f2228 !important;}
 
   /* x-ai design system + centered product showcase composition */
   /* Exact x.ai / open-design x-ai tokens — monochrome only */
   :root{
-    --bg:#000000;
-    --paper:#000000;
-    --paper-alt:#000000;
+    --bg:#1f2228;
+    --paper:#1f2228;
+    --paper-alt:#1f2228;
     --card:rgba(255,255,255,.03);
     --surface:rgba(255,255,255,.03);
     --surface-warm:rgba(255,255,255,.05);
-    --dark:#000000;
+    --dark:#1f2228;
     --dark-line:rgba(255,255,255,.1);
     --ink:#ffffff;
     --fg:#ffffff;
@@ -116,7 +116,7 @@ html,body,main,#__bg{background:#000000 !important;}
     --terracotta-deep:rgba(255,255,255,.7);
     --ember-glow:rgba(255,255,255,.08);
     --accent:#ffffff;
-    --accent-on:#000000;
+    --accent-on:#1f2228;
     --accent-hover:rgba(255,255,255,.9);
     --spot:rgba(255,255,255,.06);
     --focus-ring:0 0 0 3px rgba(59,130,246,.5);
@@ -129,7 +129,7 @@ html,body,main,#__bg{background:#000000 !important;}
   *{box-sizing:border-box; margin:0}
   html{scroll-behavior:smooth}
   html{overflow-x:clip}
-  body{background:#000000; color:#ffffff; font:400 16px/1.5 var(--sans); -webkit-font-smoothing:antialiased; overflow-x:clip;}
+  body{background:#1f2228; color:#ffffff; font:400 16px/1.5 var(--sans); -webkit-font-smoothing:antialiased; overflow-x:clip;}
   a{color:inherit}
   ::selection{background:rgba(255,255,255,.18); color:#ffffff}
   .wrap{max-width:var(--maxw); margin:0 auto; padding:0 28px}
@@ -148,23 +148,23 @@ html,body,main,#__bg{background:#000000 !important;}
   .navlinks a.btn:hover{color:var(--accent-on)}
   /* Pill CTAs — product, not terminal */
   .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; cursor:pointer;
-    font:500 15px/1.2 var(--sans); letter-spacing:0; text-transform:none;
-    min-height:54px; padding:0 30px; border-radius:999px; border:none;
+    font:400 14px/1.43 var(--mono); letter-spacing:1.4px; text-transform:uppercase;
+    min-height:54px; padding:0 30px; border-radius:0; border:none;
     transition:background .15s ease, color .15s ease, border-color .15s ease, opacity .15s, transform .15s;}
-  .btn.primary{background:#ffffff; color:#000000; box-shadow:none}
-  .btn.primary:hover{background:rgba(255,255,255,.9); transform:translateY(-1px); box-shadow:none}
+  .btn.primary{background:#ffffff; color:#1f2228; box-shadow:none}
+  .btn.primary:hover{background:rgba(255,255,255,.9); box-shadow:none}
   .btn.small{min-height:40px; padding:0 18px; font-size:13.5px}
   .btn.ghost{background:transparent; color:#fff; border:1px solid rgba(255,255,255,.22);
-    font:500 15px/1.2 var(--sans); letter-spacing:0; text-transform:none; min-height:54px; padding:0 30px}
+    font:400 14px/1.43 var(--mono); letter-spacing:1.4px; text-transform:uppercase; min-height:54px; padding:0 30px}
   .btn.ghost:hover{background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.4); color:#fff}
   .btn:focus-visible{outline:3px solid var(--focus-ring); outline-offset:2px}
   .link-arrow{font:500 14px var(--sans); color:var(--ink); text-decoration:none;
     border-bottom:1px solid rgba(255,255,255,.28); padding-bottom:2px}
   .link-arrow:hover{color:var(--ink-mut)}
-  .nav-menu{display:none; width:48px; height:48px; border-radius:999px; border:1px solid rgba(255,255,255,.18);
+  .nav-menu{display:none; width:48px; height:48px; border-radius:0; border:1px solid rgba(255,255,255,.18);
     background:rgba(255,255,255,.04); color:#fff; cursor:pointer; align-items:center; justify-content:center}
   .nav-menu svg{width:20px; height:20px}
-  .nav-drawer{display:none; position:fixed; inset:72px 16px auto; z-index:50; background:rgba(25,28,34,.96);
+  .nav-drawer{display:none; position:fixed; inset:72px 16px auto; z-index:50; background:rgba(31,34,40,.96);
     border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:16px; backdrop-filter:blur(16px)}
   .nav-drawer.open{display:flex; flex-direction:column; gap:4px}
   .nav-drawer a{color:#fff; text-decoration:none; padding:14px 16px; border-radius:12px; font:500 15px var(--sans)}
@@ -185,16 +185,16 @@ html,body,main,#__bg{background:#000000 !important;}
   .hero .wrap{display:flex; flex-direction:column; align-items:center; text-align:center;
     max-width:900px; margin:0 auto; padding:150px 24px 40px; position:relative; z-index:2}
   .announce{display:inline-flex; align-items:center; gap:10px; margin:0 auto 28px; padding:8px 14px 8px 8px;
-    border-radius:999px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04);
+    border-radius:0; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04);
     color:rgba(255,255,255,.72); font:400 13px/1.2 var(--sans); text-decoration:none;
     transition:background .15s, border-color .15s, color .15s}
   .announce:hover{background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.22); color:#fff}
   .announce .new{font:600 10px var(--sans); letter-spacing:.08em; text-transform:uppercase;
-    border:1px solid rgba(255,255,255,.28); border-radius:999px; padding:4px 8px; color:#fff}
+    border:1px solid rgba(255,255,255,.28); border-radius:0; padding:4px 8px; color:#fff}
   .announce .go{opacity:.55; margin-left:2px}
   .eyebrow{font:500 12px var(--sans); letter-spacing:.12em; color:rgba(255,255,255,.5); text-transform:uppercase}
-  .hero h1{max-width:780px; margin:0 auto; font:300 clamp(48px,8vw,96px)/.98 Inter,var(--sans),system-ui,sans-serif;
-    letter-spacing:-.045em; color:#fff; text-wrap:balance}
+  .hero h1{max-width:840px; margin:0 auto; font:300 clamp(40px,7vw,88px)/1.02 var(--mono);
+    letter-spacing:-.015em; color:#fff; text-wrap:balance}
   .hero .sub{max-width:660px; margin:30px auto 0; text-align:center; font-size:18px; line-height:1.6;
     color:rgba(255,255,255,.62); font-family:var(--sans)}
   .hero .cta{display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; margin-top:34px}
@@ -207,7 +207,7 @@ html,body,main,#__bg{background:#000000 !important;}
   .hero-demo .term-head i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.18);display:block}
   .hero-demo .term-head span{margin-left:6px; font:500 12px var(--sans); color:rgba(255,255,255,.45)}
   .hero-demo .demo-nav{display:flex; gap:8px; margin-left:auto; font:500 11px var(--sans); color:rgba(255,255,255,.4)}
-  .hero-demo .demo-nav span{padding:6px 10px; border-radius:999px; border:1px solid transparent}
+  .hero-demo .demo-nav span{padding:6px 10px; border-radius:0; border:1px solid transparent}
   .hero-demo .demo-nav span.on{border-color:rgba(255,255,255,.12); color:rgba(255,255,255,.75); background:rgba(255,255,255,.04)}
   /* chat-like surface; keep #term for existing typing JS */
   .terminal{background:transparent; border:none; border-radius:28px; overflow:hidden; box-shadow:none; transform:none}
@@ -242,15 +242,15 @@ html,body,main,#__bg{background:#000000 !important;}
   .demo-chip{font:500 13px var(--sans); color:var(--ink-soft); cursor:pointer;
     background:var(--card); border:1px solid var(--line); border-radius:0; padding:9px 16px;
     transition:border-color .2s, color .2s, transform .15s}
-  .demo-chip:hover{border-color:var(--terracotta); color:var(--ink); transform:translateY(-1px)}
+  .demo-chip:hover{border-color:var(--terracotta); color:var(--ink);}
   .demo-console{margin:26px auto 0; background:var(--dark); border:1px solid rgba(255,255,255,.32); border-radius:0;
     overflow:hidden; box-shadow:none; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid var(--dark-line)}
   .demo-bar .t-prompt{font:500 13px var(--mono); flex-shrink:0}
   .demo-input{flex:1; background:none; border:none; outline:none; color:#ffffff;
     font:400 13.5px var(--mono); caret-color:var(--terracotta-bright)}
   .demo-input::placeholder{color:rgba(255,255,255,.35)}
-  .demo-go{background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.4); color:var(--terracotta-bright);
-    font:500 12px var(--mono); border-radius:0; padding:7px 14px; cursor:pointer; flex-shrink:0; transition:background .2s}
+  .demo-go{background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.4); color:#ffffff;
+    font:400 12px var(--mono); letter-spacing:1.2px; text-transform:uppercase; border-radius:0; padding:7px 14px; cursor:pointer; flex-shrink:0; transition:background .2s}
   .demo-go:hover{background:rgba(255,255,255,.24)}
   .demo-out{padding:22px 24px 26px; font:400 13.5px/1.8 var(--mono); color:#ffffff; min-height:150px}
   .demo-out .status{color:rgba(255,255,255,.45)}
@@ -288,7 +288,7 @@ html,body,main,#__bg{background:#000000 !important;}
     -webkit-mask-image:radial-gradient(65% 80% at 50% 90%, #000 30%, transparent 75%);
     mask-image:radial-gradient(65% 80% at 50% 90%, #000 30%, transparent 75%)}
   .video-box{max-width:calc(var(--maxw) - 56px); margin:0 auto; aspect-ratio:16/9;
-    border:1px solid var(--line); border-radius:0; background:rgba(10,8,6,.88); position:relative;
+    border:1px solid var(--line); border-radius:0; background:rgba(31,34,40,.88); position:relative;
     overflow:hidden; box-shadow:none; inset:0; width:100%; height:100%; border:0}
   .video-cap{font:400 12px var(--mono); color:var(--ink-mut); max-width:var(--maxw); margin:12px auto 0; padding:0 28px}
 
@@ -307,7 +307,7 @@ html,body,main,#__bg{background:#000000 !important;}
 
   /* ── sections ───────────────────────────────────────────── */
   section{padding:110px 28px}
-  section.alt{background:#000000; border-top:1px solid var(--line-soft)}
+  section.alt{background:#1f2228; border-top:1px solid var(--line-soft)}
   section h2{font:300 clamp(28px,4vw,44px)/1.12 var(--sans); letter-spacing:-.03em; max-width:760px; color:#fff; margin-left:auto; margin-right:auto; text-align:center; text-wrap:balance}
   .sub{color:rgba(255,255,255,.62); font-size:17px; max-width:640px; margin:18px auto 0; line-height:1.65; text-align:center}
   .center{text-align:center}
@@ -333,7 +333,7 @@ html,body,main,#__bg{background:#000000 !important;}
   /* Before→After connector = neuron string (SVG).
          Horizontal on desktop, vertical on mobile. */
     .story .arrow{display:flex; align-items:center; justify-content:center; color:var(--terracotta); padding:4px 0}
-    .neuron-svg{display:block; overflow:visible; filter:drop-shadow(0 0 8px rgba(255,255,255,.45))}
+    .neuron-svg{display:block; overflow:visible; filter:none}
     .neuron-svg .axon{fill:none; stroke:rgba(255,255,255,.55); stroke-width:2; stroke-linecap:round}
     .neuron-svg .axon-glow{fill:none; stroke:rgba(255,255,255,.22); stroke-width:6; stroke-linecap:round}
     .neuron-svg .twig{fill:none; stroke:rgba(255,255,255,.4); stroke-width:1.4; stroke-linecap:round}
@@ -377,7 +377,7 @@ html,body,main,#__bg{background:#000000 !important;}
   .cap-row{display:grid; grid-template-columns:56px 1fr; gap:18px 24px; align-content:start; padding:28px 30px;
     background:var(--card); border:1px solid var(--line); border-radius:0;
     transition:border-color .25s, transform .2s ease}
-  .cap-row:hover{border-color:rgba(255,255,255,.4); transform:translateY(-2px)}
+  .cap-row:hover{border-color:rgba(255,255,255,.4);}
   @media(max-width:1000px){ .cap-list{grid-template-columns:1fr} }
   .cap-num{width:46px; height:46px; border-radius:0; display:flex; align-items:center; justify-content:center; align-self:start;
     font:500 18px var(--mono); color:var(--terracotta); background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.32)}
@@ -400,10 +400,10 @@ html,body,main,#__bg{background:#000000 !important;}
   .cv-graph{position:relative; border-radius:0; padding:0; overflow:hidden;
     background:
       radial-gradient(ellipse 54% 46% at 50% 49%, rgba(255,255,255,.20), transparent 64%),
-      radial-gradient(ellipse 86% 70% at 50% 93%, rgba(105,48,21,.16), transparent 72%),
-      linear-gradient(180deg,#000000 0%,#000000 52%,#000000 100%);
+      radial-gradient(ellipse 86% 70% at 50% 93%, rgba(31,34,40,.16), transparent 72%),
+      linear-gradient(180deg,#1f2228 0%,#1f2228 52%,#1f2228 100%);
     border:1px solid rgba(255,255,255,.42);
-    box-shadow:inset 0 1px 0 rgba(255,231,205,.08), inset 0 0 0 1px rgba(255,255,255,.035), inset 0 -38px 70px rgba(0,0,0,.44), 0 18px 48px -34px rgba(255,255,255,.42);
+    box-shadow:none;
     min-height:520px}
   .cv-graph .kg-surface{position:relative; width:100%; height:520px; isolation:isolate; overflow:hidden; border-radius:inherit}
   .kg-surface:before{content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
@@ -436,7 +436,7 @@ html,body,main,#__bg{background:#000000 !important;}
       repeating-radial-gradient(circle, transparent 0 38px, rgba(255,255,255,.09) 39px 40px, transparent 41px 75px),
       conic-gradient(from -15deg, rgba(255,255,255,.14), transparent 18%, transparent 72%, rgba(255,255,255,.06));
     filter:blur(.1px)}
-  .kg-radar:after{content:""; position:absolute; inset:47%; border-radius:50%; background:rgba(255,255,255,.55); box-shadow:0 0 42px 24px rgba(255,255,255,.2)}
+  .kg-radar:after{content:""; position:absolute; inset:47%; border-radius:50%; background:rgba(255,255,255,.55); box-shadow:none}
   .kg-cross{position:absolute; width:28px; height:28px; z-index:3; pointer-events:none; opacity:.34}
   .kg-cross:before,.kg-cross:after{content:""; position:absolute; background:rgba(255,255,255,.28)}
   .kg-cross:before{left:50%; top:0; width:1px; height:100%; transform:translateX(-50%)}
@@ -449,30 +449,30 @@ html,body,main,#__bg{background:#000000 !important;}
   .kg-edges{position:absolute; inset:0; z-index:3; width:100%; height:100%; overflow:visible}
   .kg-edge{fill:none; stroke:rgba(255,255,255,.18); stroke-width:1.25; stroke-linecap:round; stroke-linejoin:round;
     vector-effect:non-scaling-stroke; transition:stroke .32s ease, opacity .32s ease, filter .32s ease}
-  .kg-edge.primary{stroke:rgba(255,255,255,.78); stroke-width:1.9; filter:drop-shadow(0 0 5px rgba(255,255,255,.3))}
+  .kg-edge.primary{stroke:rgba(255,255,255,.78); stroke-width:1.9; filter:none}
   .kg-edge.support{stroke:rgba(255,255,255,.24); stroke-width:1.1; stroke-dasharray:2.5 3.8; opacity:.48}
   .kg-edge.draw{stroke-dasharray:1; stroke-dashoffset:1; animation:kg-draw 1.15s cubic-bezier(.22,1,.36,1) forwards}
   .kg-edge.support.draw{stroke-dasharray:2.5 3.8; stroke-dashoffset:0; animation:none}
-  .kg-edge.active{stroke:rgba(255,255,255,.98); opacity:1; filter:drop-shadow(0 0 7px rgba(255,255,255,.58))}
+  .kg-edge.active{stroke:rgba(255,255,255,.98); opacity:1; filter:none}
   .kg-edge.dim{opacity:.18}
-  .kg-pulse{fill:#ffffff; opacity:0; filter:drop-shadow(0 0 9px rgba(255,255,255,.9))}
+  .kg-pulse{fill:#ffffff; opacity:0; filter:none}
   .kg-route-glow{fill:none; stroke:rgba(255,255,255,.16); stroke-width:13; stroke-linecap:round; opacity:0; transition:opacity .35s ease; vector-effect:non-scaling-stroke}
   .kg-route-glow.on{opacity:1}
-  .kg-edge-label{font:600 2.6px var(--mono); fill:rgba(255,153,96,.82); letter-spacing:.04em; text-shadow:0 0 5px rgba(255,255,255,.48); pointer-events:none}
+  .kg-edge-label{font:600 2.6px var(--mono); fill:rgba(255,255,255,.82); letter-spacing:.04em; text-shadow:none; pointer-events:none}
   .kg-edge-label.support{fill:rgba(255,255,255,.44)}
   @keyframes kg-draw{to{stroke-dashoffset:0}}
   .kg-nodes{position:absolute; inset:0; z-index:5}
   .kg-node{position:absolute; transform:translate(-50%,-50%) scale(.97);
     display:grid; grid-template-columns:24px minmax(0,1fr) auto; align-items:center; column-gap:10px; row-gap:2px;
     width:max-content; max-width:180px; min-height:50px; border:1px solid rgba(255,255,255,.38); border-radius:0;
-    background:linear-gradient(180deg, rgba(28,21,15,.96), rgba(10,8,6,.97));
+    background:linear-gradient(180deg, rgba(31,34,40,.96), rgba(31,34,40,.97));
     color:rgba(255,255,255,.92); font:500 11px/1.15 var(--mono); letter-spacing:0;
     padding:9px 11px; cursor:pointer; text-align:left;
     transition:border-color .28s ease, box-shadow .28s ease, opacity .28s ease, transform .24s ease, color .28s ease, background .28s ease;
-    box-shadow:inset 0 1px 0 rgba(255,231,205,.07), inset 0 -12px 18px rgba(0,0,0,.24), 0 10px 22px -18px #000}
+    box-shadow:none}
   .kg-node.is-ready{transform:translate(-50%,-50%) scale(1)}
   .kg-node .port{position:absolute; width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.7); right:-4px; top:50%; transform:translateY(-50%);
-    box-shadow:0 0 0 3px rgba(255,255,255,.08), 0 0 12px rgba(255,255,255,.45)}
+    box-shadow:none}
   .kg-node .icon{grid-row:1 / span 2; display:grid; place-items:center; width:24px; height:24px; color:rgba(255,255,255,.88)}
   .kg-node .icon svg{width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:1.5}
   .kg-node .label{grid-column:2; min-width:0; overflow:visible; text-overflow:clip; white-space:normal; font-family:var(--serif); font-size:17px; line-height:1.06; color:#ffffff}
@@ -480,38 +480,38 @@ html,body,main,#__bg{background:#000000 !important;}
   .kg-node .idx{grid-column:3; grid-row:1; align-self:start; font-size:9px; color:rgba(255,255,255,.86); letter-spacing:.1em}
   .kg-node.primary{min-width:166px; max-width:180px; min-height:62px; padding:11px 13px; border-color:rgba(255,255,255,.62)}
   .kg-node.primary[data-id="ob"]{min-width:0; width:196px; max-width:196px; min-height:82px; color:#ffffff; border-color:rgba(255,255,255,.9);
-    box-shadow:0 0 0 1px rgba(255,255,255,.28), 0 0 42px -10px rgba(255,255,255,.9), inset 0 1px 0 rgba(255,255,255,.16), inset 0 -14px 24px rgba(0,0,0,.26)}
+    box-shadow:none}
   .kg-node.primary[data-id="ob"] .label{font-size:24px; line-height:.98}
   .kg-node.primary[data-id="ob"] .icon{display:none}
   .kg-node.primary[data-id="ob"] .idx{grid-column:1; justify-self:start}
   .kg-node.primary[data-id="ob"] .sub{grid-column:2 / span 2; font-size:9px}
   .kg-node.secondary{min-height:46px; width:132px; max-width:132px; padding:8px 10px; opacity:.68; border-color:rgba(255,255,255,.25);
-    background:linear-gradient(180deg, rgba(20,16,12,.9), rgba(9,8,6,.92)); color:rgba(255,255,255,.68)}
+    background:linear-gradient(180deg, rgba(31,34,40,.9), rgba(31,34,40,.92)); color:rgba(255,255,255,.68)}
   .kg-node.secondary .label{font-size:12.5px; max-width:86px; white-space:normal; overflow-wrap:anywhere}
   .kg-node.secondary .icon{width:18px; height:18px}
   .kg-node.secondary .icon svg{width:17px; height:17px; opacity:.8}
   .kg-node.secondary .sub{font-size:7.5px}
   .kg-node:hover, .kg-node:focus-visible{outline:none; border-color:rgba(255,255,255,.82);
     transform:translate(-50%, calc(-50% - 2px)) scale(1); color:#ffffff}
-  .kg-node:focus-visible{box-shadow:0 0 0 2px rgba(12,11,8,.9), 0 0 0 4px rgba(255,255,255,.68), inset 0 1px 0 rgba(255,255,255,.12)}
+  .kg-node:focus-visible{box-shadow:0 0 0 3px rgba(59,130,246,.5)}
   .kg-node.active{opacity:1; border-color:var(--terracotta-bright); color:#ffffff;
-    box-shadow:0 0 0 1px rgba(255,255,255,.42), 0 0 34px -6px rgba(255,255,255,.74), inset 0 1px 0 rgba(255,255,255,.14)}
-  .kg-node.active:focus-visible{box-shadow:0 0 0 2px rgba(12,11,8,.9), 0 0 0 4px rgba(255,255,255,.72), 0 0 28px -6px rgba(255,255,255,.64), inset 0 1px 0 rgba(255,255,255,.14)}
-  .kg-node.active .port{background:var(--terracotta-bright); box-shadow:0 0 12px 3px rgba(255,255,255,.65)}
+    box-shadow:none}
+  .kg-node.active:focus-visible{box-shadow:0 0 0 3px rgba(59,130,246,.5)}
+  .kg-node.active .port{background:var(--terracotta-bright); box-shadow:none}
   .kg-node.related{opacity:.92; border-color:rgba(255,255,255,.38); color:rgba(255,255,255,.86)}
   .kg-node.dim{opacity:.24}
   .kg-caption{position:absolute; left:50%; bottom:14px; z-index:6; transform:translateX(-50%); max-width:calc(100% - 190px); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; pointer-events:none;
     font:500 10px var(--mono); letter-spacing:.04em; color:rgba(255,255,255,.88);
-    background:linear-gradient(180deg, rgba(36,22,14,.88), rgba(12,9,7,.88)); border:1px solid rgba(255,255,255,.24); border-radius:0;
-    padding:7px 15px; opacity:1; box-shadow:0 0 20px -8px rgba(255,255,255,.72), inset 0 1px 0 rgba(255,255,255,.11); transition:opacity .28s ease, transform .28s ease}
-  .kg-caption:before{content:""; display:inline-block; width:6px; height:6px; margin-right:8px; border-radius:50%; background:var(--terracotta-bright); box-shadow:0 0 8px rgba(255,255,255,.8)}
+    background:linear-gradient(180deg, rgba(31,34,40,.88), rgba(31,34,40,.88)); border:1px solid rgba(255,255,255,.24); border-radius:0;
+    padding:7px 15px; opacity:1; box-shadow:none; transition:opacity .28s ease, transform .28s ease}
+  .kg-caption:before{content:""; display:inline-block; width:6px; height:6px; margin-right:8px; border-radius:50%; background:var(--terracotta-bright); box-shadow:none}
   .kg-caption:not(.on){opacity:.78}
   .kg-badge{position:absolute; left:20px; bottom:20px; z-index:6; pointer-events:none; font:600 9px var(--mono); letter-spacing:.16em; color:rgba(255,255,255,.45); text-transform:uppercase}
-  .kg-badge:before{content:""; display:inline-block; width:5px; height:5px; border-radius:50%; margin-right:8px; border:1px solid var(--terracotta-bright); box-shadow:0 0 8px rgba(255,255,255,.5)}
+  .kg-badge:before{content:""; display:inline-block; width:5px; height:5px; border-radius:50%; margin-right:8px; border:1px solid var(--terracotta-bright); box-shadow:none}
   .kg-badge .live{color:var(--terracotta-bright)}
   .kg-legend{position:absolute; right:20px; bottom:16px; z-index:6; pointer-events:none; display:grid; gap:6px; font:500 8.5px var(--mono); color:rgba(255,255,255,.46); letter-spacing:.06em}
   .kg-legend span{display:flex; align-items:center; gap:8px; white-space:nowrap}
-  .kg-legend i{display:block; width:24px; height:0; border-top:2px solid var(--terracotta-bright); box-shadow:0 0 8px rgba(255,255,255,.65)}
+  .kg-legend i{display:block; width:24px; height:0; border-top:2px solid var(--terracotta-bright); box-shadow:none}
   .kg-legend .dash i{border-top:1px dashed rgba(255,255,255,.46); box-shadow:none}
   @media(max-width:1000px){
     .cv-graph{min-height:520px}
@@ -575,7 +575,7 @@ html,body,main,#__bg{background:#000000 !important;}
   /* ── trust banner ───────────────────────────────────────── */
   .banner-band{padding:10px 28px 74px}
   .band-card{max-width:var(--maxw); margin:0 auto; display:flex; align-items:center; gap:22px; flex-wrap:wrap;
-    background:linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03)), var(--card);
+    background:var(--card);
     border:1px solid rgba(255,255,255,.3); border-radius:0; padding:26px 32px;
     box-shadow:none; height:46px; flex-shrink:0; border-radius:50%; display:flex; align-items:center; justify-content:center;
     color:var(--terracotta); border:1.5px solid var(--terracotta); background:rgba(255,255,255,.08)}
@@ -597,7 +597,7 @@ html,body,main,#__bg{background:#000000 !important;}
   .price-feats div span.tick{color:var(--terracotta); font-weight:600}
   .price-card{border:1px solid rgba(255,255,255,.35); border-radius:0; background:var(--card); padding:42px 40px; text-align:center;
     box-shadow:none; transition:transform .25s ease, box-shadow .25s ease}
-  .price-card:hover{transform:translateY(-3px); box-shadow:none; letter-spacing:.18em; color:var(--terracotta)}
+  .price-card:hover{ box-shadow:none; letter-spacing:.18em; color:var(--terracotta)}
   .price-card .was{font-size:18px; color:var(--ink-soft); margin-top:20px}
   .price-card .was s{color:var(--ink-soft); text-decoration-color:rgba(255,255,255,.75); text-decoration-thickness:2px}
   .price-card .save-badge{display:inline-block; margin-left:10px; vertical-align:2px;
@@ -607,7 +607,7 @@ html,body,main,#__bg{background:#000000 !important;}
   .price-card .onetime{font:400 12.5px var(--mono); color:var(--ink-mut); margin-top:8px}
   .price-card .btn{width:100%; justify-content:center; font-size:16px; padding:17px; margin-top:30px}
   .price-card .demo-line{font-size:13px; color:var(--ink-mut); margin-top:14px}
-  .price-card .demo-line a{color:var(--terracotta); cursor:pointer; border-bottom:1px solid rgba(188,75,34,.4); text-decoration:none}
+  .price-card .demo-line a{color:var(--terracotta); cursor:pointer; border-bottom:1px solid rgba(255,255,255,.4); text-decoration:none}
   .pay-row{display:flex; gap:8px; justify-content:center; margin-top:20px; flex-wrap:wrap}
   .pay-chip{font:400 11px var(--mono); color:var(--ink-mut); border:1px solid var(--line); border-radius:0; padding:6px 12px}
 
@@ -633,11 +633,11 @@ html,body,main,#__bg{background:#000000 !important;}
   .pay-method{display:flex; align-items:center; justify-content:space-between; gap:14px; text-align:left;
     width:100%; background:var(--paper); border:1px solid var(--line); border-radius:0; padding:16px 18px;
     cursor:pointer; font-family:var(--sans); transition:border-color .2s, transform .15s}
-  .pay-method:hover{border-color:var(--terracotta); transform:translateY(-1px)}
+  .pay-method:hover{border-color:var(--terracotta);}
   .pay-method .pm-name{font-weight:600; font-size:15px; color:var(--ink)}
   .pay-method .pm-desc{font-size:12.5px; color:var(--ink-mut); margin-top:2px}
   .pay-method .pm-tag{font:500 10.5px var(--mono); letter-spacing:.08em; color:var(--terracotta);
-    border:1px solid rgba(188,75,34,.35); border-radius:0; padding:4px 10px; flex-shrink:0}
+    border:1px solid rgba(255,255,255,.35); border-radius:0; padding:4px 10px; flex-shrink:0}
   .pay-method .pm-tag.soon{color:var(--ink-mut); border-color:var(--line)}
   .pay-pane{display:none; margin-top:22px}
   .pay-pane.open{display:block}
@@ -680,12 +680,12 @@ html,body,main,#__bg{background:#000000 !important;}
   .capture input::placeholder{color:rgba(255,255,255,.35)}
   .capture input:focus{border-color:var(--terracotta-bright)}
   .capture button{background:none; border:1px solid rgba(255,255,255,.25); border-radius:0; padding:13px 24px;
-    font:500 14px var(--sans); color:#ffffff; cursor:pointer; transition:border-color .2s}
+    font:400 14px var(--mono); letter-spacing:1.4px; text-transform:uppercase; color:#ffffff; cursor:pointer; transition:border-color .2s}
   .capture button:hover{border-color:var(--terracotta-bright); color:var(--terracotta-bright)}
   .capture .cap-done{display:none; margin-top:14px; font-size:14px; color:var(--terracotta-bright)}
 
   /* ── FAQ ────────────────────────────────────────────────── */
-  .faq{max-width:720px; margin:36px 0 0; background:#000000; border:1px solid var(--line);
+  .faq{max-width:720px; margin:36px 0 0; background:#1f2228; border:1px solid var(--line);
     border-radius:0; padding:6px 26px}
   .faq details:last-of-type{border-bottom:none}
   .faq-more{max-width:720px; margin:20px 0 0; font-size:14px; color:var(--ink-mut); padding-left:4px}
@@ -779,15 +779,15 @@ html,body,main,#__bg{background:#000000 !important;}
     background:rgba(255,255,255,.035) !important;
     border:1px solid rgba(255,255,255,.08) !important;
   }
-  .demo-chip,.code-tab,.code-lang,.demo-go{border-radius:999px !important}
+  .demo-chip,.code-tab,.code-lang,.demo-go{border-radius:0 !important}
   .demo-input,.demo-bar{border-radius:18px !important}
   .stats{justify-content:center; text-align:center}
 
 
   /* ── x.ai exact color lock ─────────────────────────────── */
-  html,body{background:#000000 !important; color:#ffffff !important}
+  html,body{background:#1f2228 !important; color:#ffffff !important}
   nav{background:rgba(0,0,0,.75) !important}
-  .hero,section,section.alt,footer{background:#000000 !important}
+  .hero,section,section.alt,footer{background:#1f2228 !important}
   section.alt{border-top-color:rgba(255,255,255,.05) !important}
   footer{border-top:1px solid rgba(255,255,255,.08)}
   .sub,.fine,.navlinks a,.announce,.demo-note,.disc,.cap-lbl,
@@ -795,13 +795,13 @@ html,body,main,#__bg{background:#000000 !important;}
   .hero .sub,.hero .fine{color:rgba(255,255,255,.7) !important}
   .eyebrow,.meta,.ink-mut{color:rgba(255,255,255,.5) !important}
   h1,h2,h3,.brand,.btn.ghost,.kg-node .label{color:#ffffff !important}
-  .btn.primary{background:#ffffff !important; color:#000000 !important}
+  .btn.primary{background:#ffffff !important; color:#1f2228 !important}
   .btn.ghost{border-color:rgba(255,255,255,.2) !important; color:#ffffff !important}
   .code-body .st,.code-body .fn,.code-body .ky{color:rgba(255,255,255,.85) !important}
   .code-body .cm{color:rgba(255,255,255,.4) !important}
   .kg-node{border-color:rgba(255,255,255,.14) !important; color:#fff !important}
   .kg-node.primary.active,.kg-node.active{border-color:rgba(255,255,255,.55) !important;
-    box-shadow:0 0 0 1px rgba(255,255,255,.2) !important}
+    box-shadow:none}
   .kg-edge,.kg-edge path{stroke:rgba(255,255,255,.2) !important}
   .kg-edge.active,.kg-edge.active path{stroke:#ffffff !important}
   ::selection{background:rgba(255,255,255,.18); color:#fff}
@@ -812,9 +812,9 @@ html,body,main,#__bg{background:#000000 !important;}
 
 
   /* Force pure black canvas (live x.ai feel) */
-  html,body,.hero,section,section.alt,footer,main{background:#000000 !important}
+  html,body,.hero,section,section.alt,footer,main{background:#1f2228 !important}
   nav{background:rgba(0,0,0,.7) !important; border-bottom:1px solid rgba(255,255,255,.06) !important}
-  .btn.primary{background:#ffffff !important; color:#000000 !important}
+  .btn.primary{background:#ffffff !important; color:#1f2228 !important}
   /* reduce gray lift from surfaces */
   .panel,.cap-row,.price-card,.code-panel,.demo-console,.band-card,.hero-demo{
     background:rgba(255,255,255,.04) !important;
@@ -823,7 +823,7 @@ html,body,main,#__bg{background:#000000 !important;}
 
 </style>
 </head>
-<body style="background:#000!important;color:#fff!important;margin:0">
+<body style="background:#1f2228!important;color:#fff!important;margin:0">
 <div id="spotlight" aria-hidden="true"></div>
 
 <nav aria-label="Main">
@@ -866,7 +866,7 @@ html,body,main,#__bg{background:#000000 !important;}
       <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access</a>
       <a class="btn ghost" href="https://github.com/godzillacode0000/plugICT/releases/download/v1.0-demo/ict-vault-demo.zip" data-demo-link>Try Free Demo</a>
     </div>
-    <div class="fine fadeup" data-delay=".3">$1.00 one-time · runs locally · use your own AI agent</div>
+    <div class="fine fadeup" data-delay=".3">$23.99 one-time · runs locally · use your own AI agent</div>
   </div>
   <div class="hero-demo terminal fadeup" data-delay=".32" role="img" aria-label="PlugICT interactive demo">
     <div class="term-head">
@@ -1114,7 +1114,7 @@ html,body,main,#__bg{background:#000000 !important;}
         <div class="cap-visual cv-license">
           <span class="cv-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8.5 8.5C5.5 8.5 3.5 10 3.5 12s2 3.5 5 3.5c3.5 0 4.5-7 8-7 3 0 5 1.5 5 3.5s-2 3.5-5 3.5c-3.5 0-4.5-7-8-7z" transform="scale(.86) translate(2 2)"/></svg></span>
           <div class="lbl">LICENSE.KEY</div>
-          <div class="price">$1.00 · one-time</div>
+          <div class="price">$23.99 · one-time</div>
           <div class="note">lifetime access · always works</div>
         </div>
       </div>
@@ -1264,7 +1264,7 @@ html,body,main,#__bg{background:#000000 !important;}
     </div>
     <div class="price-card fadeup glow" data-delay=".1">
       <div class="tag">LIFETIME LICENSE · LAUNCH PRICING</div>
-<div class="now">$1.00</div>
+<div class="now">$23.99</div>
       <div class="onetime">one-time payment</div>
       <div class="countdown" id="countdown" role="timer" aria-live="off"></div>
       <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access</a>
@@ -1292,7 +1292,7 @@ html,body,main,#__bg{background:#000000 !important;}
       <details class="fadeup"><summary>What exactly do I download? <span class="chev">+</span></summary>
         <div class="faq-body"><div><p>Three things: an encrypted knowledge vault file, a setup file that handles everything automatically, and your personal <code>license.key</code> (emailed to you). No app, no installer, no bloat. The license is tied to you and traceable, so please don't share it.</p></div></div></details>
       <details class="fadeup"><summary>Do I need to pay for anything else? <span class="chev">+</span></summary>
-        <div class="faq-body"><div><p>The vault is one-time $1.00 with zero ongoing fees. Your AI agent needs its own API key — free options include Google Gemini (1,500 queries/day free), and DeepSeek runs about $2/month. Claude Desktop's free plan works too.</p></div></div></details>
+        <div class="faq-body"><div><p>The vault is one-time $23.99 with zero ongoing fees. Your AI agent needs its own API key — free options include Google Gemini (1,500 queries/day free), and DeepSeek runs about $2/month. Claude Desktop's free plan works too.</p></div></div></details>
       <details class="fadeup"><summary>How can I pay? <span class="chev">+</span></summary>
         <div class="faq-body"><div><p>DuitNow QR and FPX online banking for Malaysia, international cards via Stripe, or USDT (Solana / TRC20) for crypto. However you pay, your license is emailed to you and the product works exactly the same.</p></div></div></details>
       <details class="fadeup"><summary>What are the system requirements? <span class="chev">+</span></summary>
@@ -1313,7 +1313,7 @@ html,body,main,#__bg{background:#000000 !important;}
     <h2 class="fadeup">Stop scrubbing timelines. Start asking.</h2>
     <p class="sub fadeup" data-delay=".08">576 videos, one license, yours for life. Set up in three minutes.</p>
     <div class="fadeup" data-delay=".16" style="margin-top:34px">
-      <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access — $1.00</a>
+      <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access — $23.99</a>
     </div>
     <div class="fine fadeup" data-delay=".22">ONE-TIME · NO SUBSCRIPTION · NO ONGOING FEES</div>
 
@@ -1449,7 +1449,7 @@ html,body,main,#__bg{background:#000000 !important;}
     const panes={duitnow:'pane-duitnow',usdt:'pane-usdt',fallback:'pane-fallback'};
 
     document.getElementById('pay-price').textContent=
-      (cfg.priceUsd||'$1.00')+' one-time'+(cfg.priceMyr?' · '+cfg.priceMyr:'');
+      (cfg.priceUsd||'$23.99')+' one-time'+(cfg.priceMyr?' · '+cfg.priceMyr:'');
 
     /* demo walkthrough video — appears only when a real URL is configured */
     if(cfg.demoVideoUrl){
@@ -1479,8 +1479,8 @@ html,body,main,#__bg{background:#000000 !important;}
     }
     document.querySelectorAll('.support-mail').forEach(a=>{
       a.href='mailto:'+(cfg.supportEmail||'');a.textContent=cfg.supportEmail||'us';});
-    document.querySelectorAll('.usd-amt').forEach(e=>e.textContent=cfg.priceUsd||'$1.00');
-    document.getElementById('duitnow-amt').textContent=cfg.priceMyr||('the equivalent of '+(cfg.priceUsd||'$1.00')+' in MYR');
+    document.querySelectorAll('.usd-amt').forEach(e=>e.textContent=cfg.priceUsd||'$23.99');
+    document.getElementById('duitnow-amt').textContent=cfg.priceMyr||('the equivalent of '+(cfg.priceUsd||'$23.99')+' in MYR');
     if(cfg.duitnowQrImg){const img=document.getElementById('duitnow-qr');img.src=cfg.duitnowQrImg;img.hidden=false;}
     const solRow=document.getElementById('usdt-sol-row'),trcRow=document.getElementById('usdt-trc-row');
     if(cfg.usdtSol){solRow.hidden=false;document.getElementById('usdt-sol').textContent=cfg.usdtSol;
