@@ -337,7 +337,7 @@ window.PLUGICT = {
   .cv-code{background:var(--dark); border-radius:12px; padding:16px; font:400 12px/1.8 var(--mono); color:rgba(244,239,228,.75)}
   .cv-code .k{color:var(--terracotta-bright)} .cv-code .v{color:#F4EFE4}
   /* ── knowledge graph visual (capability #4) ──────────────── */
-  .cap-visual.cv-graph{max-width:min(100%,620px); margin-top:2px}
+  .cap-visual.cv-graph{grid-column:1/-1; max-width:100%; margin-top:2px}
   .cv-graph{position:relative; border-radius:18px; padding:0; overflow:hidden;
     background:
       radial-gradient(ellipse 54% 46% at 50% 49%, rgba(232,98,44,.20), transparent 64%),
@@ -345,8 +345,8 @@ window.PLUGICT = {
       linear-gradient(180deg,#14100c 0%,#0b0907 52%,#060504 100%);
     border:1px solid rgba(210,129,88,.42);
     box-shadow:inset 0 1px 0 rgba(255,231,205,.08), inset 0 0 0 1px rgba(242,234,217,.035), inset 0 -38px 70px rgba(0,0,0,.44), 0 18px 48px -34px rgba(232,98,44,.42);
-    min-height:360px}
-  .cv-graph .kg-surface{position:relative; width:100%; height:360px; isolation:isolate; overflow:hidden; border-radius:inherit}
+    min-height:520px}
+  .cv-graph .kg-surface{position:relative; width:100%; height:520px; isolation:isolate; overflow:hidden; border-radius:inherit}
   .kg-surface:before{content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
     background:
       linear-gradient(rgba(244,239,228,.025) 1px, transparent 1px),
@@ -405,7 +405,7 @@ window.PLUGICT = {
   .kg-nodes{position:absolute; inset:0; z-index:5}
   .kg-node{position:absolute; transform:translate(-50%,-50%) scale(.97);
     display:grid; grid-template-columns:24px minmax(0,1fr) auto; align-items:center; column-gap:10px; row-gap:2px;
-    width:max-content; max-width:182px; min-height:50px; border:1px solid rgba(210,129,88,.38); border-radius:8px;
+    width:max-content; max-width:180px; min-height:50px; border:1px solid rgba(210,129,88,.38); border-radius:8px;
     background:linear-gradient(180deg, rgba(28,21,15,.96), rgba(10,8,6,.97));
     color:rgba(244,239,228,.92); font:500 11px/1.15 var(--mono); letter-spacing:0;
     padding:9px 11px; cursor:pointer; text-align:left;
@@ -419,17 +419,16 @@ window.PLUGICT = {
   .kg-node .label{grid-column:2; min-width:0; overflow:visible; text-overflow:clip; white-space:normal; font-family:var(--serif); font-size:17px; line-height:1.06; color:#f6ecdc}
   .kg-node .sub{grid-column:2 / span 2; min-width:0; overflow:visible; text-overflow:clip; white-space:normal; font-size:8.5px; line-height:1.15; color:rgba(244,239,228,.48)}
   .kg-node .idx{grid-column:3; grid-row:1; align-self:start; font-size:9px; color:rgba(255,138,74,.86); letter-spacing:.1em}
-  .kg-node.primary{min-width:166px; max-width:180px; min-height:58px; padding:11px 13px; border-color:rgba(232,98,44,.62)}
-  .kg-node.primary .label{white-space:nowrap}
-  .kg-node.primary[data-id="ob"]{min-width:190px; max-width:190px; min-height:76px; color:#f7ead9; border-color:rgba(255,111,48,.9);
+  .kg-node.primary{min-width:166px; max-width:180px; min-height:62px; padding:11px 13px; border-color:rgba(232,98,44,.62)}
+  .kg-node.primary[data-id="ob"]{min-width:0; width:196px; max-width:196px; min-height:82px; color:#f7ead9; border-color:rgba(255,111,48,.9);
     box-shadow:0 0 0 1px rgba(232,98,44,.28), 0 0 42px -10px rgba(232,98,44,.9), inset 0 1px 0 rgba(255,176,122,.16), inset 0 -14px 24px rgba(0,0,0,.26)}
-  .kg-node.primary[data-id="ob"] .label{font-size:25px; line-height:1}
+  .kg-node.primary[data-id="ob"] .label{font-size:24px; line-height:.98}
   .kg-node.primary[data-id="ob"] .icon{display:none}
   .kg-node.primary[data-id="ob"] .idx{grid-column:1; justify-self:start}
   .kg-node.primary[data-id="ob"] .sub{grid-column:2 / span 2; font-size:9px}
-  .kg-node.secondary{min-height:46px; max-width:168px; padding:8px 10px; opacity:.68; border-color:rgba(210,129,88,.25);
+  .kg-node.secondary{min-height:46px; width:132px; max-width:132px; padding:8px 10px; opacity:.68; border-color:rgba(210,129,88,.25);
     background:linear-gradient(180deg, rgba(20,16,12,.9), rgba(9,8,6,.92)); color:rgba(244,239,228,.68)}
-  .kg-node.secondary .label{font-size:12.5px; max-width:none; white-space:normal}
+  .kg-node.secondary .label{font-size:12.5px; max-width:86px; white-space:normal; overflow-wrap:anywhere}
   .kg-node.secondary .icon{width:18px; height:18px}
   .kg-node.secondary .icon svg{width:17px; height:17px; opacity:.8}
   .kg-node.secondary .sub{font-size:7.5px}
@@ -456,14 +455,14 @@ window.PLUGICT = {
   .kg-legend i{display:block; width:24px; height:0; border-top:2px solid var(--terracotta-bright); box-shadow:0 0 8px rgba(232,98,44,.65)}
   .kg-legend .dash i{border-top:1px dashed rgba(244,239,228,.46); box-shadow:none}
   @media(max-width:1000px){
-    .cv-graph{min-height:320px}
-    .cv-graph .kg-surface{height:320px}
+    .cv-graph{min-height:520px}
+    .cv-graph .kg-surface{height:520px}
     .kg-radar{width:230px}
   }
-  @media(max-width:560px){
+  @media(max-width:680px){
     .cap-visual.cv-graph{max-width:100%; margin-top:6px}
-    .cv-graph{min-height:348px; border-radius:14px}
-    .cv-graph .kg-surface{height:348px}
+    .cv-graph{min-height:390px; border-radius:14px}
+    .cv-graph .kg-surface{height:390px}
     .kg-coords{inset:12px 13px auto; font-size:7px; letter-spacing:.15em}
     .kg-radar{width:178px}
     .kg-cross{display:none}
@@ -473,12 +472,13 @@ window.PLUGICT = {
     .kg-node .idx{font-size:7px}
     .kg-node .icon,.kg-node.secondary .icon{width:17px; height:17px}
     .kg-node .icon svg,.kg-node.secondary .icon svg{width:16px; height:16px}
-    .kg-node.primary{min-width:112px; max-width:138px; min-height:48px; padding:8px 9px}
-    .kg-node.primary[data-id="ob"]{min-width:152px; max-width:152px; min-height:64px}
-    .kg-node.primary[data-id="ob"] .label{font-size:19px}
+    .kg-node.primary{min-width:0; width:120px; max-width:120px; min-height:50px; padding:8px 9px}
+    .kg-node.primary[data-id="ob"]{width:146px; max-width:146px; min-height:72px}
+    .kg-node.primary[data-id="ob"] .label{font-size:18px; line-height:1}
     .kg-node.primary[data-id="ob"] .sub{font-size:7.5px}
-    .kg-node.secondary{max-width:126px; min-height:42px; padding:7px 8px}
-    .kg-node.secondary .label{font-size:10px; max-width:none; white-space:normal; line-height:1.1}
+    .kg-node.secondary{width:116px; max-width:116px; min-height:44px; padding:7px 8px}
+    .kg-node.secondary .label{font-size:10px; max-width:68px; white-space:normal; line-height:1.1}
+    .kg-node.secondary .sub{display:none}
     .kg-node.mobile-hidden{display:none}
     .kg-badge,.kg-legend{display:none}
     .kg-caption{bottom:7px; font-size:7.5px; max-width:calc(100% - 24px); padding:5px 8px}
@@ -1803,27 +1803,27 @@ window.PLUGICT = {
     const caption=root.querySelector('[data-kg-caption]');
     if(!surface || !nodeLayer || !edgeLayer) return;
     const nodeData=[
-      {id:'fvg', label:'FVG', sub:'Fair Value Gap', icon:'target', idx:'01', type:'primary', mobile:true, x:24, y:26, mx:22, my:20, aria:'FVG, Fair Value Gap, connected to Order Block.'},
-      {id:'liq', label:'Liquidity', sub:'Liquidity Pools', icon:'drop', idx:'02', type:'primary', mobile:true, x:76, y:26, mx:78, my:20, aria:'Liquidity, Liquidity Pools, connected to Order Block.'},
-      {id:'ob', label:'Order Block', sub:'Institutional Footprint', icon:'block', idx:'00', type:'primary', mobile:true, x:50, y:49, mx:50, my:46, aria:'Order Block, Institutional Footprint, central hub connected to FVG, Liquidity and supporting concepts.'},
-      {id:'bb', label:'Breaker Block', sub:'Structure Shift Area', icon:'shield', idx:'03', type:'secondary', mobile:true, x:24, y:68, mx:22, my:69, aria:'Breaker Block, Structure Shift Area, related to Order Block.'},
-      {id:'ms', label:'Market Structure', sub:'Trend & Structure Logic', icon:'structure', idx:'04', type:'secondary', mobile:true, x:50, y:80, mx:50, my:81, aria:'Market Structure, Trend and Structure Logic, related to Order Block.'},
-      {id:'disp', label:'Displacement', sub:'Momentum Engine', icon:'arrow', idx:'05', type:'secondary', mobile:true, x:76, y:68, mx:78, my:69, aria:'Displacement, Momentum Engine, related to Order Block.'},
-      {id:'pd', label:'Premium / Discount', sub:'Price Relative Value', icon:'scale', idx:'06', type:'secondary', mobile:false, x:36, y:88, aria:'Premium Discount, Price Relative Value, related to Market Structure.'},
-      {id:'bisi', label:'BISI', sub:'Buyside Inducement', icon:'grid', idx:'07', type:'secondary', mobile:false, x:12, y:50, aria:'BISI, Buyside Inducement, related to Order Block.'},
-      {id:'sibi', label:'SIBI', sub:'Sellside Inducement', icon:'ring', idx:'08', type:'secondary', mobile:false, x:88, y:50, aria:'SIBI, Sellside Inducement, related to Order Block.'},
-      {id:'ict', label:'ICT Concepts', sub:'Related Knowledge', icon:'nodes', idx:'09', type:'secondary', mobile:false, x:64, y:88, aria:'ICT Concepts, Related Knowledge, connected to Market Structure.'}
+      {id:'fvg', label:'FVG', sub:'Fair Value Gap', icon:'target', idx:'01', type:'primary', mobile:true, x:26, y:13, mx:24, my:18, aria:'FVG, Fair Value Gap, connected to Order Block.'},
+      {id:'liq', label:'Liquidity', sub:'Liquidity Pools', icon:'drop', idx:'02', type:'primary', mobile:true, x:74, y:13, mx:76, my:18, aria:'Liquidity, Liquidity Pools, connected to Order Block.'},
+      {id:'ob', label:'Order Block', sub:'Institutional Footprint', icon:'block', idx:'00', type:'primary', mobile:true, x:50, y:36, mx:50, my:42, aria:'Order Block, Institutional Footprint, central hub connected to FVG, Liquidity and supporting concepts.'},
+      {id:'bb', label:'Breaker', sub:'Block / Shift', icon:'shield', idx:'03', type:'secondary', mobile:true, x:23, y:66, mx:20, my:66, aria:'Breaker, Block and Structure Shift Area, related to Order Block.'},
+      {id:'ms', label:'Market Structure', sub:'Trend Logic', icon:'structure', idx:'04', type:'secondary', mobile:true, x:50, y:78, mx:50, my:86, aria:'Market Structure, Trend and Structure Logic, related to Order Block.'},
+      {id:'disp', label:'Displacement', sub:'Momentum', icon:'arrow', idx:'05', type:'secondary', mobile:true, x:77, y:66, mx:80, my:66, aria:'Displacement, Momentum Engine, related to Order Block.'},
+      {id:'pd', label:'P/D Zones', sub:'Relative Value', icon:'scale', idx:'06', type:'secondary', mobile:false, x:23, y:90, aria:'Premium Discount Zones, Price Relative Value, related to Market Structure.'},
+      {id:'bisi', label:'BISI', sub:'Buyside', icon:'grid', idx:'07', type:'secondary', mobile:false, x:18, y:52, aria:'BISI, Buyside Inducement, related to Order Block.'},
+      {id:'sibi', label:'SIBI', sub:'Sellside', icon:'ring', idx:'08', type:'secondary', mobile:false, x:82, y:52, aria:'SIBI, Sellside Inducement, related to Order Block.'},
+      {id:'ict', label:'ICT Map', sub:'Related', icon:'nodes', idx:'09', type:'secondary', mobile:false, x:77, y:90, aria:'ICT Map, Related Knowledge, connected to Market Structure.'}
     ];
     const edgeData=[
-      {id:'fvg-ob', from:'fvg', to:'ob', type:'primary', label:'fills imbalance', c:[30,36,40,45], mc:[28,32,40,42], lp:[36,38], mlp:[34,34]},
-      {id:'ob-liq', from:'ob', to:'liq', type:'primary', label:'draws liquidity', c:[60,45,70,36], mc:[60,42,70,32], lp:[64,38], mlp:[66,34]},
-      {id:'ob-bisi', from:'ob', to:'bisi', type:'support', label:'related concept', c:[39,52,29,54]},
-      {id:'ob-sibi', from:'ob', to:'sibi', type:'support', label:'related concept', c:[61,52,72,54]},
-      {id:'ob-bb', from:'ob', to:'bb', type:'support', label:'structure shift', c:[42,57,35,61], mc:[41,56,34,63]},
-      {id:'ob-ms', from:'ob', to:'ms', type:'support', label:'confirms structure', c:[50,59,50,68], mc:[50,58,50,73], lp:[50,68], mlp:[50,73]},
-      {id:'ob-disp', from:'ob', to:'disp', type:'support', label:'momentum engine', c:[58,57,65,61], mc:[59,56,66,63]},
-      {id:'ms-pd', from:'ms', to:'pd', type:'support', label:'relative value', c:[47,81,42,84]},
-      {id:'ms-ict', from:'ms', to:'ict', type:'support', label:'related knowledge', c:[53,81,58,84]}
+      {id:'fvg-ob', from:'fvg', to:'ob', type:'primary', label:'fills imbalance', c:[31,21,42,29], mc:[31,28,42,36], lp:[37,25], mlp:[37,31]},
+      {id:'ob-liq', from:'ob', to:'liq', type:'primary', label:'draws liquidity', c:[58,29,69,21], mc:[58,36,69,28], lp:[63,25], mlp:[63,31]},
+      {id:'ob-bisi', from:'ob', to:'bisi', type:'support', label:'related concept', c:[40,44,29,49]},
+      {id:'ob-sibi', from:'ob', to:'sibi', type:'support', label:'related concept', c:[60,44,71,49]},
+      {id:'ob-bb', from:'ob', to:'bb', type:'support', label:'structure shift', c:[41,47,32,58], mc:[41,51,31,60]},
+      {id:'ob-ms', from:'ob', to:'ms', type:'support', label:'confirms structure', c:[50,50,50,66], mc:[50,53,50,74]},
+      {id:'ob-disp', from:'ob', to:'disp', type:'support', label:'momentum engine', c:[59,47,68,58], mc:[59,51,69,60]},
+      {id:'ms-pd', from:'ms', to:'pd', type:'support', label:'relative value', c:[43,82,33,88]},
+      {id:'ms-ict', from:'ms', to:'ict', type:'support', label:'related knowledge', c:[57,82,67,88]}
     ];
     const story=[
       {active:['fvg'], edge:'fvg-ob', label:'fills imbalance'},
@@ -1832,7 +1832,7 @@ window.PLUGICT = {
       {active:['liq'], edge:'ob-liq', label:'draws liquidity'}
     ];
     const labels={fvg:'fills imbalance', ob:'confirms structure', liq:'draws liquidity', bb:'structure shift', ms:'confirms structure', disp:'momentum engine', pd:'relative value', bisi:'related concept', sibi:'related concept', ict:'related knowledge'};
-    const mobileMq=window.matchMedia('(max-width: 560px)');
+    const mobileMq=window.matchMedia('(max-width: 680px)');
     const hoverMq=window.matchMedia('(hover:hover)');
     const svgNS='http://www.w3.org/2000/svg';
     let nodes=[];
