@@ -337,102 +337,150 @@ window.PLUGICT = {
   .cv-code{background:var(--dark); border-radius:12px; padding:16px; font:400 12px/1.8 var(--mono); color:rgba(244,239,228,.75)}
   .cv-code .k{color:var(--terracotta-bright)} .cv-code .v{color:#F4EFE4}
   /* ── knowledge graph visual (capability #4) ──────────────── */
-  .cap-visual.cv-graph{max-width:min(100%,520px); margin-top:2px}
-  .cv-graph{position:relative; border-radius:16px; padding:0; overflow:hidden;
+  .cap-visual.cv-graph{max-width:min(100%,540px); margin-top:2px}
+  .cv-graph{position:relative; border-radius:18px; padding:0; overflow:hidden;
     background:
-      radial-gradient(ellipse 44% 38% at 50% 49%, rgba(232,98,44,.18), transparent 62%),
-      radial-gradient(ellipse 90% 70% at 50% 100%, rgba(80,43,19,.18), transparent 68%),
-      linear-gradient(180deg,#15110c 0%,#0c0b08 48%,#070604 100%);
-    border:1px solid rgba(232,218,196,.14);
-    box-shadow:inset 0 1px 0 rgba(242,234,217,.08), inset 0 -28px 52px rgba(0,0,0,.34), 0 18px 48px -36px rgba(232,98,44,.35);
-    min-height:340px}
+      radial-gradient(ellipse 54% 46% at 50% 49%, rgba(232,98,44,.20), transparent 64%),
+      radial-gradient(ellipse 86% 70% at 50% 93%, rgba(105,48,21,.16), transparent 72%),
+      linear-gradient(180deg,#14100c 0%,#0b0907 52%,#060504 100%);
+    border:1px solid rgba(210,129,88,.42);
+    box-shadow:inset 0 1px 0 rgba(255,231,205,.08), inset 0 0 0 1px rgba(242,234,217,.035), inset 0 -38px 70px rgba(0,0,0,.44), 0 18px 48px -34px rgba(232,98,44,.42);
+    min-height:360px}
   .cv-graph .kg-surface{position:relative; width:100%; height:360px; isolation:isolate; overflow:hidden; border-radius:inherit}
-  .kg-surface:before{content:""; position:absolute; inset:0; pointer-events:none;
+  .kg-surface:before{content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
     background:
-      linear-gradient(rgba(242,234,217,.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(242,234,217,.028) 1px, transparent 1px);
-    background-size:34px 34px; opacity:.38;
-    -webkit-mask-image:radial-gradient(ellipse 82% 72% at 50% 52%,#000 18%,transparent 82%);
-    mask-image:radial-gradient(ellipse 82% 72% at 50% 52%,#000 18%,transparent 82%)}
-  .kg-surface:after{content:""; position:absolute; inset:10% 12%; pointer-events:none;
-    background:radial-gradient(circle at 50% 50%, rgba(255,138,74,.16), transparent 34%);
-    filter:blur(16px); opacity:.92; z-index:0}
-  .kg-grid{position:absolute; inset:0; pointer-events:none; opacity:.18;
-    background-image:radial-gradient(circle, rgba(242,234,217,.16) 1px, transparent 1.25px);
-    background-size:25px 25px;
-    -webkit-mask-image:radial-gradient(ellipse 78% 68% at 50% 50%, #000 20%, transparent 82%);
-    mask-image:radial-gradient(ellipse 78% 68% at 50% 50%, #000 20%, transparent 82%)}
-  .kg-depth{position:absolute; inset:18px; pointer-events:none; z-index:1; opacity:.34;
+      linear-gradient(rgba(244,239,228,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(244,239,228,.02) 1px, transparent 1px),
+      radial-gradient(circle at 50% 50%, rgba(232,98,44,.11), transparent 30%);
+    background-size:38px 38px,38px 38px,100% 100%;
+    -webkit-mask-image:radial-gradient(ellipse 90% 78% at 50% 51%,#000 18%,transparent 86%);
+    mask-image:radial-gradient(ellipse 90% 78% at 50% 51%,#000 18%,transparent 86%)}
+  .kg-surface:after{content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
     background:
-      radial-gradient(circle at 18% 30%, rgba(242,234,217,.18) 0 1px, transparent 1.4px),
-      radial-gradient(circle at 83% 31%, rgba(242,234,217,.14) 0 1px, transparent 1.4px),
-      radial-gradient(circle at 31% 78%, rgba(232,98,44,.24) 0 1px, transparent 1.5px),
-      radial-gradient(circle at 68% 79%, rgba(232,98,44,.18) 0 1px, transparent 1.5px)}
-  .kg-coords{position:absolute; inset:14px 16px; pointer-events:none; font:500 9px var(--mono);
-    color:rgba(242,234,217,.25); letter-spacing:.14em; display:flex; justify-content:space-between; z-index:3; text-transform:uppercase}
-  .kg-edges{position:absolute; inset:0; z-index:2; width:100%; height:100%; overflow:visible}
-  .kg-edge{fill:none; stroke:rgba(242,234,217,.15); stroke-width:1.45; stroke-linecap:round; stroke-linejoin:round;
+      radial-gradient(circle at 50% 50%, transparent 0 19%, rgba(232,98,44,.12) 19.4%, transparent 20% 32%, rgba(244,239,228,.07) 32.4%, transparent 33% 45%, rgba(244,239,228,.045) 45.4%, transparent 46% 58%, rgba(232,98,44,.06) 58.4%, transparent 59%),
+      linear-gradient(90deg, transparent 49.9%, rgba(244,239,228,.045) 50%, transparent 50.1%),
+      linear-gradient(0deg, transparent 49.9%, rgba(244,239,228,.04) 50%, transparent 50.1%);
+    opacity:.52; transform:scaleX(1.08)}
+  .kg-grid{position:absolute; inset:0; pointer-events:none; z-index:1; opacity:.22;
+    background-image:radial-gradient(circle, rgba(244,239,228,.16) 1px, transparent 1.4px);
+    background-size:26px 26px;
+    -webkit-mask-image:radial-gradient(ellipse 74% 66% at 50% 50%, #000 18%, transparent 83%);
+    mask-image:radial-gradient(ellipse 74% 66% at 50% 50%, #000 18%, transparent 83%)}
+  .kg-depth{position:absolute; inset:18px; pointer-events:none; z-index:2; opacity:.42;
+    background:
+      radial-gradient(circle at 6% 60%, rgba(244,239,228,.2) 0 1px, transparent 1.6px),
+      radial-gradient(circle at 94% 24%, rgba(244,239,228,.17) 0 1px, transparent 1.6px),
+      radial-gradient(circle at 50% 50%, rgba(255,138,74,.3) 0 1px, transparent 1.5px)}
+  .kg-radar{position:absolute; left:50%; top:50%; width:270px; aspect-ratio:1; transform:translate(-50%,-50%); z-index:1; pointer-events:none;
+    border-radius:50%; opacity:.34;
+    background:
+      repeating-radial-gradient(circle, transparent 0 38px, rgba(244,239,228,.09) 39px 40px, transparent 41px 75px),
+      conic-gradient(from -15deg, rgba(232,98,44,.14), transparent 18%, transparent 72%, rgba(244,239,228,.06));
+    filter:blur(.1px)}
+  .kg-radar:after{content:""; position:absolute; inset:47%; border-radius:50%; background:rgba(255,138,74,.55); box-shadow:0 0 42px 24px rgba(232,98,44,.2)}
+  .kg-cross{position:absolute; width:28px; height:28px; z-index:3; pointer-events:none; opacity:.34}
+  .kg-cross:before,.kg-cross:after{content:""; position:absolute; background:rgba(244,239,228,.28)}
+  .kg-cross:before{left:50%; top:0; width:1px; height:100%; transform:translateX(-50%)}
+  .kg-cross:after{top:50%; left:0; width:100%; height:1px; transform:translateY(-50%)}
+  .kg-cross i{position:absolute; inset:8px; border:1px solid rgba(232,98,44,.28); border-radius:50%}
+  .kg-cross.tl{left:22px; top:58%}
+  .kg-cross.tr{right:22px; top:22%}
+  .kg-coords{position:absolute; inset:16px 20px auto; pointer-events:none; font:500 9px var(--mono);
+    color:rgba(244,239,228,.37); letter-spacing:.2em; display:flex; justify-content:space-between; z-index:6; text-transform:uppercase}
+  .kg-edges{position:absolute; inset:0; z-index:3; width:100%; height:100%; overflow:visible}
+  .kg-edge{fill:none; stroke:rgba(244,239,228,.18); stroke-width:1.25; stroke-linecap:round; stroke-linejoin:round;
     vector-effect:non-scaling-stroke; transition:stroke .32s ease, opacity .32s ease, filter .32s ease}
-  .kg-edge.primary{stroke:rgba(232,98,44,.34); stroke-width:1.8}
-  .kg-edge.support{stroke:rgba(242,234,217,.11); stroke-width:1.2}
+  .kg-edge.primary{stroke:rgba(232,98,44,.78); stroke-width:1.9; filter:drop-shadow(0 0 5px rgba(232,98,44,.3))}
+  .kg-edge.support{stroke:rgba(244,239,228,.24); stroke-width:1.1; stroke-dasharray:2.5 3.8; opacity:.48}
   .kg-edge.draw{stroke-dasharray:1; stroke-dashoffset:1; animation:kg-draw 1.15s cubic-bezier(.22,1,.36,1) forwards}
-  .kg-edge.active{stroke:rgba(255,138,74,.92); opacity:1; filter:drop-shadow(0 0 5px rgba(232,98,44,.42))}
-  .kg-edge.dim{opacity:.16}
-  .kg-pulse{fill:#ffb078; opacity:0; filter:drop-shadow(0 0 7px rgba(255,138,74,.78))}
-  .kg-route-glow{fill:none; stroke:rgba(232,98,44,.11); stroke-width:10; stroke-linecap:round; opacity:0; transition:opacity .35s ease; vector-effect:non-scaling-stroke}
+  .kg-edge.support.draw{stroke-dasharray:2.5 3.8; stroke-dashoffset:0; animation:none}
+  .kg-edge.active{stroke:rgba(255,138,74,.98); opacity:1; filter:drop-shadow(0 0 7px rgba(232,98,44,.58))}
+  .kg-edge.dim{opacity:.18}
+  .kg-pulse{fill:#ffd0a8; opacity:0; filter:drop-shadow(0 0 9px rgba(255,138,74,.9))}
+  .kg-route-glow{fill:none; stroke:rgba(232,98,44,.16); stroke-width:13; stroke-linecap:round; opacity:0; transition:opacity .35s ease; vector-effect:non-scaling-stroke}
   .kg-route-glow.on{opacity:1}
+  .kg-edge-label{font:600 2.6px var(--mono); fill:rgba(255,153,96,.82); letter-spacing:.04em; text-shadow:0 0 5px rgba(232,98,44,.48); pointer-events:none}
+  .kg-edge-label.support{fill:rgba(244,239,228,.44)}
   @keyframes kg-draw{to{stroke-dashoffset:0}}
-  .kg-nodes{position:absolute; inset:0; z-index:4}
+  .kg-nodes{position:absolute; inset:0; z-index:5}
   .kg-node{position:absolute; transform:translate(-50%,-50%) scale(.97);
-    display:inline-grid; grid-template-columns:auto auto auto; align-items:center; gap:7px;
-    min-height:44px; max-width:158px; border:1px solid rgba(242,234,217,.16); border-radius:11px;
-    background:linear-gradient(180deg, rgba(31,23,16,.98), rgba(13,11,8,.98));
-    color:rgba(242,234,217,.88); font:500 11.5px/1 var(--mono); letter-spacing:.02em;
-    padding:10px 12px; cursor:pointer; white-space:nowrap;
+    display:grid; grid-template-columns:24px minmax(0,1fr) auto; align-items:center; column-gap:10px; row-gap:2px;
+    width:max-content; max-width:168px; min-height:50px; border:1px solid rgba(210,129,88,.38); border-radius:8px;
+    background:linear-gradient(180deg, rgba(28,21,15,.96), rgba(10,8,6,.97));
+    color:rgba(244,239,228,.92); font:500 11px/1.15 var(--mono); letter-spacing:0;
+    padding:9px 11px; cursor:pointer; text-align:left;
     transition:border-color .28s ease, box-shadow .28s ease, opacity .28s ease, transform .24s ease, color .28s ease, background .28s ease;
-    box-shadow:inset 0 1px 0 rgba(242,234,217,.07), inset 0 -10px 18px rgba(0,0,0,.18)}
+    box-shadow:inset 0 1px 0 rgba(255,231,205,.07), inset 0 -12px 18px rgba(0,0,0,.24), 0 10px 22px -18px #000}
   .kg-node.is-ready{transform:translate(-50%,-50%) scale(1)}
-  .kg-node .port{width:7px; height:7px; border-radius:50%; background:rgba(242,234,217,.30); flex-shrink:0;
-    box-shadow:0 0 0 3px rgba(242,234,217,.055)}
-  .kg-node .label{overflow:hidden; text-overflow:ellipsis}
-  .kg-node .idx{font-size:9px; color:rgba(242,234,217,.36); letter-spacing:.1em}
-  .kg-node.primary{font-size:12.5px; padding:12px 14px; border-color:rgba(242,234,217,.22); min-width:104px}
-  .kg-node.primary[data-id="ob"]{min-width:132px; color:#f7ead9; border-color:rgba(232,98,44,.42);
-    box-shadow:0 0 34px -14px rgba(232,98,44,.72), inset 0 1px 0 rgba(255,176,122,.13), inset 0 -12px 20px rgba(0,0,0,.18)}
-  .kg-node.secondary{min-height:34px; max-width:138px; padding:8px 10px; font-size:10px; opacity:.62;
-    border-color:rgba(242,234,217,.095); background:linear-gradient(180deg, rgba(24,19,14,.88), rgba(12,10,8,.88)); color:rgba(242,234,217,.66)}
-  .kg-node:hover, .kg-node:focus-visible{outline:none; border-color:rgba(232,98,44,.7);
+  .kg-node .port{position:absolute; width:7px; height:7px; border-radius:50%; background:rgba(232,98,44,.7); right:-4px; top:50%; transform:translateY(-50%);
+    box-shadow:0 0 0 3px rgba(232,98,44,.08), 0 0 12px rgba(232,98,44,.45)}
+  .kg-node .icon{grid-row:1 / span 2; display:grid; place-items:center; width:24px; height:24px; color:rgba(255,138,74,.88)}
+  .kg-node .icon svg{width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:1.5}
+  .kg-node .label{grid-column:2; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:var(--serif); font-size:17px; line-height:1; color:#f6ecdc}
+  .kg-node .sub{grid-column:2 / span 2; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:8.5px; line-height:1.1; color:rgba(244,239,228,.48)}
+  .kg-node .idx{grid-column:3; grid-row:1; align-self:start; font-size:9px; color:rgba(255,138,74,.86); letter-spacing:.1em}
+  .kg-node.primary{min-width:156px; min-height:58px; padding:11px 13px; border-color:rgba(232,98,44,.62)}
+  .kg-node.primary[data-id="ob"]{min-width:204px; min-height:72px; color:#f7ead9; border-color:rgba(255,111,48,.9);
+    box-shadow:0 0 0 1px rgba(232,98,44,.28), 0 0 42px -10px rgba(232,98,44,.9), inset 0 1px 0 rgba(255,176,122,.16), inset 0 -14px 24px rgba(0,0,0,.26)}
+  .kg-node.primary[data-id="ob"] .label{font-size:26px}
+  .kg-node.primary[data-id="ob"] .icon{display:none}
+  .kg-node.primary[data-id="ob"] .idx{grid-column:1; justify-self:start}
+  .kg-node.primary[data-id="ob"] .sub{grid-column:2 / span 2; font-size:9px}
+  .kg-node.secondary{min-height:42px; max-width:156px; padding:8px 10px; opacity:.68; border-color:rgba(210,129,88,.25);
+    background:linear-gradient(180deg, rgba(20,16,12,.9), rgba(9,8,6,.92)); color:rgba(244,239,228,.68)}
+  .kg-node.secondary .label{font-size:13px}
+  .kg-node.secondary .icon{width:18px; height:18px}
+  .kg-node.secondary .icon svg{width:17px; height:17px; opacity:.8}
+  .kg-node.secondary .sub{font-size:7.5px}
+  .kg-node:hover, .kg-node:focus-visible{outline:none; border-color:rgba(255,138,74,.82);
     transform:translate(-50%, calc(-50% - 2px)) scale(1); color:#f6ecdc}
-  .kg-node:focus-visible{box-shadow:0 0 0 2px rgba(12,11,8,.9), 0 0 0 4px rgba(255,138,74,.72), inset 0 1px 0 rgba(255,176,122,.12)}
+  .kg-node:focus-visible{box-shadow:0 0 0 2px rgba(12,11,8,.9), 0 0 0 4px rgba(255,138,74,.68), inset 0 1px 0 rgba(255,176,122,.12)}
   .kg-node.active{opacity:1; border-color:var(--terracotta-bright); color:#ffd0a8;
-    box-shadow:0 0 0 1px rgba(232,98,44,.32), 0 0 28px -6px rgba(232,98,44,.64), inset 0 1px 0 rgba(255,176,122,.14)}
+    box-shadow:0 0 0 1px rgba(232,98,44,.42), 0 0 34px -6px rgba(232,98,44,.74), inset 0 1px 0 rgba(255,176,122,.14)}
   .kg-node.active:focus-visible{box-shadow:0 0 0 2px rgba(12,11,8,.9), 0 0 0 4px rgba(255,138,74,.72), 0 0 28px -6px rgba(232,98,44,.64), inset 0 1px 0 rgba(255,176,122,.14)}
-  .kg-node.active .port{background:var(--terracotta-bright); box-shadow:0 0 9px 2px rgba(232,98,44,.55)}
-  .kg-node.related{opacity:.9; border-color:rgba(242,234,217,.18); color:rgba(242,234,217,.84)}
-  .kg-node.dim{opacity:.23}
-  .kg-caption{position:absolute; left:50%; bottom:16px; transform:translateX(-50%) translateY(5px);
-    z-index:5; max-width:calc(100% - 36px); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-    font:500 11px var(--mono); letter-spacing:.04em; color:rgba(255,190,145,.94);
-    background:rgba(12,10,8,.78); border:1px solid rgba(232,98,44,.28); border-radius:999px;
-    padding:7px 12px; opacity:0; pointer-events:none; transition:opacity .28s ease, transform .28s ease}
-  .kg-caption.on{opacity:1; transform:translateX(-50%) translateY(0)}
-  .kg-badge{position:absolute; left:17px; bottom:14px; z-index:3; pointer-events:none;
-    font:500 9px var(--mono); letter-spacing:.16em; color:rgba(242,234,217,.24); text-transform:uppercase}
+  .kg-node.active .port{background:var(--terracotta-bright); box-shadow:0 0 12px 3px rgba(232,98,44,.65)}
+  .kg-node.related{opacity:.92; border-color:rgba(210,129,88,.38); color:rgba(244,239,228,.86)}
+  .kg-node.dim{opacity:.24}
+  .kg-caption{position:absolute; left:50%; bottom:14px; z-index:6; transform:translateX(-50%); max-width:calc(100% - 190px); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; pointer-events:none;
+    font:500 10px var(--mono); letter-spacing:.04em; color:rgba(244,239,228,.88);
+    background:linear-gradient(180deg, rgba(36,22,14,.88), rgba(12,9,7,.88)); border:1px solid rgba(232,98,44,.24); border-radius:999px;
+    padding:7px 15px; opacity:1; box-shadow:0 0 20px -8px rgba(232,98,44,.72), inset 0 1px 0 rgba(255,176,122,.11); transition:opacity .28s ease, transform .28s ease}
+  .kg-caption:before{content:""; display:inline-block; width:6px; height:6px; margin-right:8px; border-radius:50%; background:var(--terracotta-bright); box-shadow:0 0 8px rgba(232,98,44,.8)}
+  .kg-caption:not(.on){opacity:.78}
+  .kg-badge{position:absolute; left:20px; bottom:20px; z-index:6; pointer-events:none; font:600 9px var(--mono); letter-spacing:.16em; color:rgba(244,239,228,.45); text-transform:uppercase}
+  .kg-badge:before{content:""; display:inline-block; width:5px; height:5px; border-radius:50%; margin-right:8px; border:1px solid var(--terracotta-bright); box-shadow:0 0 8px rgba(232,98,44,.5)}
+  .kg-badge .live{color:var(--terracotta-bright)}
+  .kg-legend{position:absolute; right:20px; bottom:16px; z-index:6; pointer-events:none; display:grid; gap:6px; font:500 8.5px var(--mono); color:rgba(244,239,228,.46); letter-spacing:.06em}
+  .kg-legend span{display:flex; align-items:center; gap:8px; white-space:nowrap}
+  .kg-legend i{display:block; width:24px; height:0; border-top:2px solid var(--terracotta-bright); box-shadow:0 0 8px rgba(232,98,44,.65)}
+  .kg-legend .dash i{border-top:1px dashed rgba(244,239,228,.46); box-shadow:none}
   @media(max-width:1000px){
-    .cv-graph{min-height:300px}
-    .cv-graph .kg-surface{height:300px}
+    .cv-graph{min-height:320px}
+    .cv-graph .kg-surface{height:320px}
+    .kg-radar{width:230px}
   }
   @media(max-width:560px){
     .cap-visual.cv-graph{max-width:100%; margin-top:6px}
-    .cv-graph{min-height:278px; border-radius:14px}
-    .cv-graph .kg-surface{height:278px}
-    .kg-coords{inset:12px 13px; font-size:8px}
-    .kg-badge{display:none}
-    .kg-node.primary{font-size:11.5px; min-width:auto; padding:10px 11px}
-    .kg-node.primary[data-id="ob"]{min-width:118px}
-    .kg-node.secondary{font-size:9.5px; max-width:116px; min-height:32px; padding:7px 9px}
+    .cv-graph{min-height:286px; border-radius:14px}
+    .cv-graph .kg-surface{height:286px}
+    .kg-coords{inset:12px 13px auto; font-size:7px; letter-spacing:.15em}
+    .kg-radar{width:178px}
+    .kg-cross{display:none}
+    .kg-node{grid-template-columns:18px minmax(0,1fr) auto; column-gap:7px; border-radius:7px}
+    .kg-node .label{font-size:13px}
+    .kg-node .sub{font-size:7px}
+    .kg-node .idx{font-size:7px}
+    .kg-node .icon,.kg-node.secondary .icon{width:17px; height:17px}
+    .kg-node .icon svg,.kg-node.secondary .icon svg{width:16px; height:16px}
+    .kg-node.primary{min-width:108px; min-height:44px; padding:8px 9px}
+    .kg-node.primary[data-id="ob"]{min-width:136px; min-height:56px}
+    .kg-node.primary[data-id="ob"] .label{font-size:19px}
+    .kg-node.secondary{max-width:118px; min-height:34px; padding:7px 8px}
+    .kg-node.secondary .label{font-size:10px}
     .kg-node.mobile-hidden{display:none}
-    .kg-caption{bottom:12px; font-size:10px; max-width:calc(100% - 28px)}
+    .kg-badge,.kg-legend{display:none}
+    .kg-caption{bottom:10px; font-size:8px; max-width:calc(100% - 24px); padding:6px 10px}
+    .kg-edge-label{font-size:2.4px}
   }
   @media (prefers-reduced-motion: reduce){
     .kg-edge.draw{animation:none; stroke-dashoffset:0}
@@ -904,15 +952,23 @@ window.PLUGICT = {
           <div class="kg-surface" role="group" aria-label="Interactive knowledge graph. Order Block is the central concept, connected to FVG and Liquidity.">
             <div class="kg-grid" aria-hidden="true"></div>
             <div class="kg-depth" aria-hidden="true"></div>
-            <div class="kg-coords" aria-hidden="true"><span>ICT-04 · KG</span><span>0,0</span></div>
-            <div class="kg-badge">graph · live</div>
+            <div class="kg-radar" aria-hidden="true"></div>
+            <div class="kg-cross tl" aria-hidden="true"><i></i></div>
+            <div class="kg-cross tr" aria-hidden="true"><i></i></div>
+            <div class="kg-coords" aria-hidden="true"><span>ICT-04 · KNOWLEDGE GRAPH</span><span>0,0</span></div>
+            <div class="kg-badge">GRAPH · <span class="live">LIVE</span></div>
             <svg class="kg-edges" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
               <path class="kg-route-glow" data-route-glow d="M0,0"/>
               <g data-kg-edges></g>
+              <g data-kg-labels></g>
               <circle class="kg-pulse" r="1.35" data-pulse cx="0" cy="0"></circle>
             </svg>
             <div class="kg-nodes" data-kg-nodes></div>
             <div class="kg-caption" data-kg-caption aria-live="polite"></div>
+            <div class="kg-legend" aria-hidden="true">
+              <span><i></i>Active Path</span>
+              <span class="dash"><i></i>Related Concept</span>
+            </div>
           </div>
         </div>
       </div>
@@ -1739,31 +1795,33 @@ window.PLUGICT = {
     const surface=root.querySelector('.kg-surface');
     const nodeLayer=root.querySelector('[data-kg-nodes]');
     const edgeLayer=root.querySelector('[data-kg-edges]');
+    const labelLayer=root.querySelector('[data-kg-labels]');
     const pulse=root.querySelector('[data-pulse]');
     const routeGlow=root.querySelector('[data-route-glow]');
     const caption=root.querySelector('[data-kg-caption]');
     if(!surface || !nodeLayer || !edgeLayer) return;
     const nodeData=[
-      {id:'fvg', label:'FVG', idx:'01', type:'primary', mobile:true, x:24, y:30, mx:24, my:27, aria:'FVG concept, connected to Order Block and Liquidity.'},
-      {id:'liq', label:'Liquidity', idx:'02', type:'primary', mobile:true, x:76, y:30, mx:76, my:27, aria:'Liquidity concept, connected to Order Block and FVG.'},
-      {id:'ob', label:'Order Block', idx:'00', type:'primary', mobile:true, x:50, y:53, mx:50, my:50, aria:'Order Block concept, central hub connected to FVG, Liquidity and supporting concepts.'},
-      {id:'bb', label:'Breaker Block', idx:'03', type:'secondary', mobile:true, x:25, y:70, mx:33, my:67, aria:'Breaker Block concept, related to Order Block.'},
-      {id:'ms', label:'Market Structure', idx:'04', type:'secondary', mobile:true, x:50, y:80, mx:50, my:78, aria:'Market Structure concept, related to Order Block.'},
-      {id:'disp', label:'Displacement', idx:'05', type:'secondary', mobile:true, x:75, y:70, mx:67, my:67, aria:'Displacement concept, related to Order Block.'},
-      {id:'pd', label:'Premium / Discount', idx:'06', type:'secondary', mobile:false, x:89, y:55, aria:'Premium Discount concept, related to Liquidity.'},
-      {id:'bisi', label:'BISI', idx:'07', type:'secondary', mobile:false, x:13, y:51, aria:'BISI concept, related to FVG.'},
-      {id:'sibi', label:'SIBI', idx:'08', type:'secondary', mobile:false, x:86, y:43, aria:'SIBI concept, related to Liquidity.'}
+      {id:'fvg', label:'FVG', sub:'Fair Value Gap', icon:'target', idx:'01', type:'primary', mobile:true, x:30, y:31, mx:24, my:26, aria:'FVG, Fair Value Gap, connected to Order Block.'},
+      {id:'liq', label:'Liquidity', sub:'Liquidity Pools', icon:'drop', idx:'02', type:'primary', mobile:true, x:72, y:31, mx:76, my:26, aria:'Liquidity, Liquidity Pools, connected to Order Block.'},
+      {id:'ob', label:'Order Block', sub:'Institutional Footprint', icon:'block', idx:'00', type:'primary', mobile:true, x:50, y:52, mx:50, my:49, aria:'Order Block, Institutional Footprint, central hub connected to FVG, Liquidity and supporting concepts.'},
+      {id:'bb', label:'Breaker Block', sub:'Structure Shift Area', icon:'shield', idx:'03', type:'secondary', mobile:true, x:31, y:66, mx:31, my:68, aria:'Breaker Block, Structure Shift Area, related to Order Block.'},
+      {id:'ms', label:'Market Structure', sub:'Trend & Structure Logic', icon:'structure', idx:'04', type:'secondary', mobile:true, x:50, y:75, mx:50, my:77, aria:'Market Structure, Trend and Structure Logic, related to Order Block.'},
+      {id:'disp', label:'Displacement', sub:'Momentum Engine', icon:'arrow', idx:'05', type:'secondary', mobile:true, x:70, y:66, mx:69, my:68, aria:'Displacement, Momentum Engine, related to Order Block.'},
+      {id:'pd', label:'Premium / Discount', sub:'Price Relative Value', icon:'scale', idx:'06', type:'secondary', mobile:false, x:39, y:86, aria:'Premium Discount, Price Relative Value, related to Market Structure.'},
+      {id:'bisi', label:'BISI', sub:'Buyside Inducement', icon:'grid', idx:'07', type:'secondary', mobile:false, x:20, y:54, aria:'BISI, Buyside Inducement, related to Order Block.'},
+      {id:'sibi', label:'SIBI', sub:'Sellside Inducement', icon:'ring', idx:'08', type:'secondary', mobile:false, x:82, y:54, aria:'SIBI, Sellside Inducement, related to Order Block.'},
+      {id:'ict', label:'ICT Concepts', sub:'Related Knowledge', icon:'nodes', idx:'09', type:'secondary', mobile:false, x:62, y:86, aria:'ICT Concepts, Related Knowledge, connected to Market Structure.'}
     ];
     const edgeData=[
-      {id:'fvg-ob', from:'fvg', to:'ob', type:'primary', label:'fills imbalance', c:[30,42,40,50], mc:[30,40,40,48]},
-      {id:'ob-liq', from:'ob', to:'liq', type:'primary', label:'draws liquidity', c:[60,50,70,42], mc:[60,48,70,40]},
-      {id:'fvg-liq', from:'fvg', to:'liq', type:'support', label:'related concept', c:[38,16,62,16], mc:[38,15,62,15]},
-      {id:'ob-bb', from:'ob', to:'bb', type:'support', label:'confirms structure', c:[41,60,32,66], mc:[41,58,32,64]},
-      {id:'ob-ms', from:'ob', to:'ms', type:'support', label:'confirms structure', c:[51,62,48,72], mc:[51,61,49,70]},
-      {id:'ob-disp', from:'ob', to:'disp', type:'support', label:'created by displacement', c:[59,60,68,66], mc:[59,58,68,64]},
-      {id:'liq-pd', from:'liq', to:'pd', type:'support', label:'related concept', c:[83,38,88,46]},
-      {id:'fvg-bisi', from:'fvg', to:'bisi', type:'support', label:'related concept', c:[19,36,14,44]},
-      {id:'liq-sibi', from:'liq', to:'sibi', type:'support', label:'related concept', c:[80,34,84,38]}
+      {id:'fvg-ob', from:'fvg', to:'ob', type:'primary', label:'fills imbalance', c:[34,42,40,48], mc:[31,39,40,47], lp:[39,43], mlp:[36,41]},
+      {id:'ob-liq', from:'ob', to:'liq', type:'primary', label:'draws liquidity', c:[61,48,68,42], mc:[60,47,69,39], lp:[64,43], mlp:[64,41]},
+      {id:'ob-bisi', from:'ob', to:'bisi', type:'support', label:'related concept', c:[39,52,29,54]},
+      {id:'ob-sibi', from:'ob', to:'sibi', type:'support', label:'related concept', c:[61,52,72,54]},
+      {id:'ob-bb', from:'ob', to:'bb', type:'support', label:'structure shift', c:[43,58,37,63], mc:[42,58,36,64]},
+      {id:'ob-ms', from:'ob', to:'ms', type:'support', label:'confirms structure', c:[50,59,50,68], mc:[50,58,50,70], lp:[50,69], mlp:[50,70]},
+      {id:'ob-disp', from:'ob', to:'disp', type:'support', label:'momentum engine', c:[57,58,64,63], mc:[58,58,64,64]},
+      {id:'ms-pd', from:'ms', to:'pd', type:'support', label:'relative value', c:[47,80,42,81]},
+      {id:'ms-ict', from:'ms', to:'ict', type:'support', label:'related knowledge', c:[53,80,58,81]}
     ];
     const story=[
       {active:['fvg'], edge:'fvg-ob', label:'fills imbalance'},
@@ -1771,7 +1829,7 @@ window.PLUGICT = {
       {active:['ob'], edge:'ob-liq', label:'draws liquidity'},
       {active:['liq'], edge:'ob-liq', label:'draws liquidity'}
     ];
-    const labels={fvg:'fills imbalance', ob:'confirms structure', liq:'draws liquidity', bb:'related concept', ms:'confirms structure', disp:'created by displacement', pd:'related concept', bisi:'related concept', sibi:'related concept'};
+    const labels={fvg:'fills imbalance', ob:'confirms structure', liq:'draws liquidity', bb:'structure shift', ms:'confirms structure', disp:'momentum engine', pd:'relative value', bisi:'related concept', sibi:'related concept', ict:'related knowledge'};
     const mobileMq=window.matchMedia('(max-width: 560px)');
     const hoverMq=window.matchMedia('(hover:hover)');
     const svgNS='http://www.w3.org/2000/svg';
@@ -1783,6 +1841,7 @@ window.PLUGICT = {
     const reduced=!!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let manual=false;
     let started=false;
+    const defaultCaption='Traversal: FVG → Order Block → Liquidity';
 
     function visibleNodeData(){
       const mobile=mobileMq.matches;
@@ -1798,12 +1857,28 @@ window.PLUGICT = {
       const c=(mobileMq.matches && edge.mc) ? edge.mc : edge.c;
       return 'M'+a.x+','+a.y+' C'+c[0]+','+c[1]+' '+c[2]+','+c[3]+' '+b.x+','+b.y;
     }
+    function iconSvg(name){
+      const icons={
+        target:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>',
+        drop:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3.4 4.1 5.5 7.2 5.5 10a5.5 5.5 0 0 1-11 0C6.5 10.2 8.6 7.1 12 3Z"/></svg>',
+        shield:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19 6v6.2c0 4-2.7 6.8-7 8.8-4.3-2-7-4.8-7-8.8V6l7-3Z"/><path d="M12 7v10"/></svg>',
+        structure:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="18" r="2"/><circle cx="12" cy="7" r="2"/><circle cx="19" cy="14" r="2"/><path d="M6.7 16.4 10.8 8.8M13.8 8.4l3.6 4.2"/></svg>',
+        arrow:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14h10"/><path d="m12 8 6 6-6 6"/><path d="M5 9c3-2 6-2 9 0"/></svg>',
+        scale:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M6 7h12M8 7l-4 7h8L8 7ZM16 7l-4 7h8l-4-7Z"/></svg>',
+        grid:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h5v5H5zM14 5h5M14 10h5M5 15h5M14 15h5"/></svg>',
+        ring:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3"/></svg>',
+        nodes:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2.5"/><circle cx="17" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.7 6.6-3.4M8.4 13.3l7.2 3.6"/></svg>',
+        block:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14v8H5z"/></svg>'
+      };
+      return icons[name] || icons.nodes;
+    }
     function render(){
       const visible=visibleNodeData();
       const byId={};
       visible.forEach(function(n){byId[n.id]=n;});
       nodeLayer.textContent='';
       edgeLayer.textContent='';
+      if(labelLayer) labelLayer.textContent='';
       edgeMap={};
       adj={};
 
@@ -1815,6 +1890,16 @@ window.PLUGICT = {
         path.setAttribute('pathLength','1');
         path.setAttribute('d',pathFor(e, byId));
         edgeLayer.appendChild(path);
+        if(labelLayer && e.lp && (!mobileMq.matches || e.type==='primary')){
+          const lp=(mobileMq.matches && e.mlp) ? e.mlp : e.lp;
+          const txt=document.createElementNS(svgNS,'text');
+          txt.setAttribute('class','kg-edge-label '+e.type);
+          txt.setAttribute('x',lp[0]);
+          txt.setAttribute('y',lp[1]);
+          txt.setAttribute('text-anchor','middle');
+          txt.textContent=e.label;
+          labelLayer.appendChild(txt);
+        }
         edgeMap[e.id]=[e.from,e.to];
         adj[e.from]=(adj[e.from]||[]).concat(e.to);
         adj[e.to]=(adj[e.to]||[]).concat(e.from);
@@ -1833,14 +1918,22 @@ window.PLUGICT = {
         const port=document.createElement('span');
         port.className='port';
         port.setAttribute('aria-hidden','true');
+        const icon=document.createElement('span');
+        icon.className='icon';
+        icon.innerHTML=iconSvg(n.icon);
         const label=document.createElement('span');
         label.className='label';
         label.textContent=n.label;
+        const sub=document.createElement('span');
+        sub.className='sub';
+        sub.textContent=n.sub;
         const idx=document.createElement('span');
         idx.className='idx';
         idx.textContent=n.idx;
         btn.appendChild(port);
+        btn.appendChild(icon);
         btn.appendChild(label);
+        btn.appendChild(sub);
         btn.appendChild(idx);
         nodeLayer.appendChild(btn);
       });
@@ -1880,8 +1973,8 @@ window.PLUGICT = {
         else routeGlow.classList.remove('on');
       }
       if(caption){
-        if(label){ caption.textContent=label; caption.classList.add('on'); }
-        else { caption.classList.remove('on'); }
+        caption.textContent=label ? 'Traversal: '+label : defaultCaption;
+        caption.classList.add('on');
       }
     }
     function clear(){ setActive([], [], null); if(pulse) pulse.style.opacity='0'; }
