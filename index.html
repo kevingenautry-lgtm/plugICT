@@ -337,7 +337,7 @@ window.PLUGICT = {
   .cv-code{background:var(--dark); border-radius:12px; padding:16px; font:400 12px/1.8 var(--mono); color:rgba(244,239,228,.75)}
   .cv-code .k{color:var(--terracotta-bright)} .cv-code .v{color:#F4EFE4}
   /* ── knowledge graph visual (capability #4) ──────────────── */
-  .cap-visual.cv-graph{max-width:min(100%,540px); margin-top:2px}
+  .cap-visual.cv-graph{max-width:min(100%,620px); margin-top:2px}
   .cv-graph{position:relative; border-radius:18px; padding:0; overflow:hidden;
     background:
       radial-gradient(ellipse 54% 46% at 50% 49%, rgba(232,98,44,.20), transparent 64%),
@@ -405,7 +405,7 @@ window.PLUGICT = {
   .kg-nodes{position:absolute; inset:0; z-index:5}
   .kg-node{position:absolute; transform:translate(-50%,-50%) scale(.97);
     display:grid; grid-template-columns:24px minmax(0,1fr) auto; align-items:center; column-gap:10px; row-gap:2px;
-    width:max-content; max-width:168px; min-height:50px; border:1px solid rgba(210,129,88,.38); border-radius:8px;
+    width:max-content; max-width:182px; min-height:50px; border:1px solid rgba(210,129,88,.38); border-radius:8px;
     background:linear-gradient(180deg, rgba(28,21,15,.96), rgba(10,8,6,.97));
     color:rgba(244,239,228,.92); font:500 11px/1.15 var(--mono); letter-spacing:0;
     padding:9px 11px; cursor:pointer; text-align:left;
@@ -416,19 +416,20 @@ window.PLUGICT = {
     box-shadow:0 0 0 3px rgba(232,98,44,.08), 0 0 12px rgba(232,98,44,.45)}
   .kg-node .icon{grid-row:1 / span 2; display:grid; place-items:center; width:24px; height:24px; color:rgba(255,138,74,.88)}
   .kg-node .icon svg{width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:1.5}
-  .kg-node .label{grid-column:2; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:var(--serif); font-size:17px; line-height:1; color:#f6ecdc}
-  .kg-node .sub{grid-column:2 / span 2; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:8.5px; line-height:1.1; color:rgba(244,239,228,.48)}
+  .kg-node .label{grid-column:2; min-width:0; overflow:visible; text-overflow:clip; white-space:normal; font-family:var(--serif); font-size:17px; line-height:1.06; color:#f6ecdc}
+  .kg-node .sub{grid-column:2 / span 2; min-width:0; overflow:visible; text-overflow:clip; white-space:normal; font-size:8.5px; line-height:1.15; color:rgba(244,239,228,.48)}
   .kg-node .idx{grid-column:3; grid-row:1; align-self:start; font-size:9px; color:rgba(255,138,74,.86); letter-spacing:.1em}
-  .kg-node.primary{min-width:156px; min-height:58px; padding:11px 13px; border-color:rgba(232,98,44,.62)}
-  .kg-node.primary[data-id="ob"]{min-width:204px; min-height:72px; color:#f7ead9; border-color:rgba(255,111,48,.9);
+  .kg-node.primary{min-width:166px; max-width:180px; min-height:58px; padding:11px 13px; border-color:rgba(232,98,44,.62)}
+  .kg-node.primary .label{white-space:nowrap}
+  .kg-node.primary[data-id="ob"]{min-width:190px; max-width:190px; min-height:76px; color:#f7ead9; border-color:rgba(255,111,48,.9);
     box-shadow:0 0 0 1px rgba(232,98,44,.28), 0 0 42px -10px rgba(232,98,44,.9), inset 0 1px 0 rgba(255,176,122,.16), inset 0 -14px 24px rgba(0,0,0,.26)}
-  .kg-node.primary[data-id="ob"] .label{font-size:26px}
+  .kg-node.primary[data-id="ob"] .label{font-size:25px; line-height:1}
   .kg-node.primary[data-id="ob"] .icon{display:none}
   .kg-node.primary[data-id="ob"] .idx{grid-column:1; justify-self:start}
   .kg-node.primary[data-id="ob"] .sub{grid-column:2 / span 2; font-size:9px}
-  .kg-node.secondary{min-height:42px; max-width:156px; padding:8px 10px; opacity:.68; border-color:rgba(210,129,88,.25);
+  .kg-node.secondary{min-height:46px; max-width:168px; padding:8px 10px; opacity:.68; border-color:rgba(210,129,88,.25);
     background:linear-gradient(180deg, rgba(20,16,12,.9), rgba(9,8,6,.92)); color:rgba(244,239,228,.68)}
-  .kg-node.secondary .label{font-size:13px}
+  .kg-node.secondary .label{font-size:12.5px; max-width:none; white-space:normal}
   .kg-node.secondary .icon{width:18px; height:18px}
   .kg-node.secondary .icon svg{width:17px; height:17px; opacity:.8}
   .kg-node.secondary .sub{font-size:7.5px}
@@ -461,25 +462,26 @@ window.PLUGICT = {
   }
   @media(max-width:560px){
     .cap-visual.cv-graph{max-width:100%; margin-top:6px}
-    .cv-graph{min-height:286px; border-radius:14px}
-    .cv-graph .kg-surface{height:286px}
+    .cv-graph{min-height:348px; border-radius:14px}
+    .cv-graph .kg-surface{height:348px}
     .kg-coords{inset:12px 13px auto; font-size:7px; letter-spacing:.15em}
     .kg-radar{width:178px}
     .kg-cross{display:none}
-    .kg-node{grid-template-columns:18px minmax(0,1fr) auto; column-gap:7px; border-radius:7px}
-    .kg-node .label{font-size:13px}
-    .kg-node .sub{font-size:7px}
+    .kg-node{grid-template-columns:18px minmax(0,1fr) auto; column-gap:7px; border-radius:7px; max-width:132px}
+    .kg-node .label{font-size:13px; line-height:1.08}
+    .kg-node .sub{font-size:7px; line-height:1.12}
     .kg-node .idx{font-size:7px}
     .kg-node .icon,.kg-node.secondary .icon{width:17px; height:17px}
     .kg-node .icon svg,.kg-node.secondary .icon svg{width:16px; height:16px}
-    .kg-node.primary{min-width:108px; min-height:44px; padding:8px 9px}
-    .kg-node.primary[data-id="ob"]{min-width:136px; min-height:56px}
+    .kg-node.primary{min-width:112px; max-width:138px; min-height:48px; padding:8px 9px}
+    .kg-node.primary[data-id="ob"]{min-width:152px; max-width:152px; min-height:64px}
     .kg-node.primary[data-id="ob"] .label{font-size:19px}
-    .kg-node.secondary{max-width:118px; min-height:34px; padding:7px 8px}
-    .kg-node.secondary .label{font-size:10px}
+    .kg-node.primary[data-id="ob"] .sub{font-size:7.5px}
+    .kg-node.secondary{max-width:126px; min-height:42px; padding:7px 8px}
+    .kg-node.secondary .label{font-size:10px; max-width:none; white-space:normal; line-height:1.1}
     .kg-node.mobile-hidden{display:none}
     .kg-badge,.kg-legend{display:none}
-    .kg-caption{bottom:10px; font-size:8px; max-width:calc(100% - 24px); padding:6px 10px}
+    .kg-caption{bottom:7px; font-size:7.5px; max-width:calc(100% - 24px); padding:5px 8px}
     .kg-edge-label{font-size:2.4px}
   }
   @media (prefers-reduced-motion: reduce){
@@ -1801,27 +1803,27 @@ window.PLUGICT = {
     const caption=root.querySelector('[data-kg-caption]');
     if(!surface || !nodeLayer || !edgeLayer) return;
     const nodeData=[
-      {id:'fvg', label:'FVG', sub:'Fair Value Gap', icon:'target', idx:'01', type:'primary', mobile:true, x:30, y:31, mx:24, my:26, aria:'FVG, Fair Value Gap, connected to Order Block.'},
-      {id:'liq', label:'Liquidity', sub:'Liquidity Pools', icon:'drop', idx:'02', type:'primary', mobile:true, x:72, y:31, mx:76, my:26, aria:'Liquidity, Liquidity Pools, connected to Order Block.'},
-      {id:'ob', label:'Order Block', sub:'Institutional Footprint', icon:'block', idx:'00', type:'primary', mobile:true, x:50, y:52, mx:50, my:49, aria:'Order Block, Institutional Footprint, central hub connected to FVG, Liquidity and supporting concepts.'},
-      {id:'bb', label:'Breaker Block', sub:'Structure Shift Area', icon:'shield', idx:'03', type:'secondary', mobile:true, x:31, y:66, mx:31, my:68, aria:'Breaker Block, Structure Shift Area, related to Order Block.'},
-      {id:'ms', label:'Market Structure', sub:'Trend & Structure Logic', icon:'structure', idx:'04', type:'secondary', mobile:true, x:50, y:75, mx:50, my:77, aria:'Market Structure, Trend and Structure Logic, related to Order Block.'},
-      {id:'disp', label:'Displacement', sub:'Momentum Engine', icon:'arrow', idx:'05', type:'secondary', mobile:true, x:70, y:66, mx:69, my:68, aria:'Displacement, Momentum Engine, related to Order Block.'},
-      {id:'pd', label:'Premium / Discount', sub:'Price Relative Value', icon:'scale', idx:'06', type:'secondary', mobile:false, x:39, y:86, aria:'Premium Discount, Price Relative Value, related to Market Structure.'},
-      {id:'bisi', label:'BISI', sub:'Buyside Inducement', icon:'grid', idx:'07', type:'secondary', mobile:false, x:20, y:54, aria:'BISI, Buyside Inducement, related to Order Block.'},
-      {id:'sibi', label:'SIBI', sub:'Sellside Inducement', icon:'ring', idx:'08', type:'secondary', mobile:false, x:82, y:54, aria:'SIBI, Sellside Inducement, related to Order Block.'},
-      {id:'ict', label:'ICT Concepts', sub:'Related Knowledge', icon:'nodes', idx:'09', type:'secondary', mobile:false, x:62, y:86, aria:'ICT Concepts, Related Knowledge, connected to Market Structure.'}
+      {id:'fvg', label:'FVG', sub:'Fair Value Gap', icon:'target', idx:'01', type:'primary', mobile:true, x:24, y:26, mx:22, my:20, aria:'FVG, Fair Value Gap, connected to Order Block.'},
+      {id:'liq', label:'Liquidity', sub:'Liquidity Pools', icon:'drop', idx:'02', type:'primary', mobile:true, x:76, y:26, mx:78, my:20, aria:'Liquidity, Liquidity Pools, connected to Order Block.'},
+      {id:'ob', label:'Order Block', sub:'Institutional Footprint', icon:'block', idx:'00', type:'primary', mobile:true, x:50, y:49, mx:50, my:46, aria:'Order Block, Institutional Footprint, central hub connected to FVG, Liquidity and supporting concepts.'},
+      {id:'bb', label:'Breaker Block', sub:'Structure Shift Area', icon:'shield', idx:'03', type:'secondary', mobile:true, x:24, y:68, mx:22, my:69, aria:'Breaker Block, Structure Shift Area, related to Order Block.'},
+      {id:'ms', label:'Market Structure', sub:'Trend & Structure Logic', icon:'structure', idx:'04', type:'secondary', mobile:true, x:50, y:80, mx:50, my:81, aria:'Market Structure, Trend and Structure Logic, related to Order Block.'},
+      {id:'disp', label:'Displacement', sub:'Momentum Engine', icon:'arrow', idx:'05', type:'secondary', mobile:true, x:76, y:68, mx:78, my:69, aria:'Displacement, Momentum Engine, related to Order Block.'},
+      {id:'pd', label:'Premium / Discount', sub:'Price Relative Value', icon:'scale', idx:'06', type:'secondary', mobile:false, x:36, y:88, aria:'Premium Discount, Price Relative Value, related to Market Structure.'},
+      {id:'bisi', label:'BISI', sub:'Buyside Inducement', icon:'grid', idx:'07', type:'secondary', mobile:false, x:12, y:50, aria:'BISI, Buyside Inducement, related to Order Block.'},
+      {id:'sibi', label:'SIBI', sub:'Sellside Inducement', icon:'ring', idx:'08', type:'secondary', mobile:false, x:88, y:50, aria:'SIBI, Sellside Inducement, related to Order Block.'},
+      {id:'ict', label:'ICT Concepts', sub:'Related Knowledge', icon:'nodes', idx:'09', type:'secondary', mobile:false, x:64, y:88, aria:'ICT Concepts, Related Knowledge, connected to Market Structure.'}
     ];
     const edgeData=[
-      {id:'fvg-ob', from:'fvg', to:'ob', type:'primary', label:'fills imbalance', c:[34,42,40,48], mc:[31,39,40,47], lp:[39,43], mlp:[36,41]},
-      {id:'ob-liq', from:'ob', to:'liq', type:'primary', label:'draws liquidity', c:[61,48,68,42], mc:[60,47,69,39], lp:[64,43], mlp:[64,41]},
+      {id:'fvg-ob', from:'fvg', to:'ob', type:'primary', label:'fills imbalance', c:[30,36,40,45], mc:[28,32,40,42], lp:[36,38], mlp:[34,34]},
+      {id:'ob-liq', from:'ob', to:'liq', type:'primary', label:'draws liquidity', c:[60,45,70,36], mc:[60,42,70,32], lp:[64,38], mlp:[66,34]},
       {id:'ob-bisi', from:'ob', to:'bisi', type:'support', label:'related concept', c:[39,52,29,54]},
       {id:'ob-sibi', from:'ob', to:'sibi', type:'support', label:'related concept', c:[61,52,72,54]},
-      {id:'ob-bb', from:'ob', to:'bb', type:'support', label:'structure shift', c:[43,58,37,63], mc:[42,58,36,64]},
-      {id:'ob-ms', from:'ob', to:'ms', type:'support', label:'confirms structure', c:[50,59,50,68], mc:[50,58,50,70], lp:[50,69], mlp:[50,70]},
-      {id:'ob-disp', from:'ob', to:'disp', type:'support', label:'momentum engine', c:[57,58,64,63], mc:[58,58,64,64]},
-      {id:'ms-pd', from:'ms', to:'pd', type:'support', label:'relative value', c:[47,80,42,81]},
-      {id:'ms-ict', from:'ms', to:'ict', type:'support', label:'related knowledge', c:[53,80,58,81]}
+      {id:'ob-bb', from:'ob', to:'bb', type:'support', label:'structure shift', c:[42,57,35,61], mc:[41,56,34,63]},
+      {id:'ob-ms', from:'ob', to:'ms', type:'support', label:'confirms structure', c:[50,59,50,68], mc:[50,58,50,73], lp:[50,68], mlp:[50,73]},
+      {id:'ob-disp', from:'ob', to:'disp', type:'support', label:'momentum engine', c:[58,57,65,61], mc:[59,56,66,63]},
+      {id:'ms-pd', from:'ms', to:'pd', type:'support', label:'relative value', c:[47,81,42,84]},
+      {id:'ms-ict', from:'ms', to:'ict', type:'support', label:'related knowledge', c:[53,81,58,84]}
     ];
     const story=[
       {active:['fvg'], edge:'fvg-ob', label:'fills imbalance'},
