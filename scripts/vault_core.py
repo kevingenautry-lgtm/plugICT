@@ -50,6 +50,7 @@ CONTEXT_AFTER_MAX_CHARS = 500
 CONTEXT_TOTAL_MAX_CHARS = 2000
 MAX_QUERY_VARIANTS = 4
 MAX_TOP_K = 5
+RESEARCH_MAX_TOP_K = 10
 RESULT_REF_TTL_SECONDS = 15 * 60
 RESULT_REF_MAX_USES = 1
 
@@ -1693,12 +1694,13 @@ def finalize_ranked_results(ranked, snippet_chars=SNIPPET_DEFAULT_CHARS):
     return out
 
 
-def clamp_top_k(value):
+def clamp_top_k(value, research_mode=False):
     try:
         value = int(value or MAX_TOP_K)
     except (TypeError, ValueError):
         value = MAX_TOP_K
-    return max(1, min(value, MAX_TOP_K))
+    hard = RESEARCH_MAX_TOP_K if research_mode else MAX_TOP_K
+    return max(1, min(value, hard))
 
 
 def normalize_query_variants(question, queries):
@@ -1742,7 +1744,7 @@ def estimate_multi_search_work_units(db, question, queries, kg=True, semantic=Tr
 
 
 def collect_multi_search_candidates(db, semantic_retriever, question, queries, top_k=5,
-                                    playlist=None, kg=True):
+                                    playlist=None, kg=True, research_mode=False):
     """Retrieve raw candidates for every query variant, then fuse and rerank once.
 
     semantic_retriever(query, limit, playlist, rrf_source, matched_query) must
@@ -1752,7 +1754,7 @@ def collect_multi_search_candidates(db, semantic_retriever, question, queries, t
     if not question:
         raise ValueError("question is required")
     variants = normalize_query_variants(question, queries)
-    top_k = clamp_top_k(top_k)
+    top_k = clamp_top_k(top_k, research_mode=research_mode)
     pool = top_k + 5
     candidates = []
     work_units = 0
@@ -1788,11 +1790,14 @@ def collect_multi_search_candidates(db, semantic_retriever, question, queries, t
     pool_k = min(pool_k, max(len(candidates), top_k))
     ranked = rerank(question, candidates, pool_k) if candidates else []
     ranked, diversity = diversify_by_video(ranked, top_k=top_k)
+    diversity = dict(diversity or {})
+    diversity['research_mode'] = bool(research_mode)
     return ranked, {
         'queries': variants,
         'work_units': work_units,
         'candidate_count': len(candidates),
         'diversity': diversity,
+        'research_mode': bool(research_mode),
     }
 
 

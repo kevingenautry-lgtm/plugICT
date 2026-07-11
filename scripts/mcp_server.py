@@ -36,6 +36,7 @@ _licensed_to = "unknown"
 _query_timestamps = deque()
 _RATE_LIMIT_WORK_UNITS_PER_MINUTE = 60
 _MAX_TOP_K = 5
+_RESEARCH_MAX_TOP_K = 10
 _result_refs = vc.ResultRefStore()
 
 
@@ -52,12 +53,13 @@ def _rate_limit_exceeded(work_units=1):
     return False
 
 
-def _clamp_top_k(value):
+def _clamp_top_k(value, research_mode=False):
     try:
         value = int(value or _MAX_TOP_K)
     except (TypeError, ValueError):
         value = _MAX_TOP_K
-    return max(1, min(value, _MAX_TOP_K))
+    hard = _RESEARCH_MAX_TOP_K if research_mode else _MAX_TOP_K
+    return max(1, min(value, hard))
 
 
 def ensure_vault():
@@ -213,15 +215,21 @@ def search_vault(query, top_k=5, playlist=None, kg=True):
     return ranked
 
 
-def multi_search_vault(question, queries, top_k=5, playlist=None, snippet_chars=None):
+def multi_search_vault(question, queries, top_k=5, playlist=None, snippet_chars=None,
+                       research_mode=False, debug=False):
     ensure_vault()
-    top_k = _clamp_top_k(top_k)
+    research_mode = bool(research_mode)
+    debug = bool(debug) or research_mode
+    top_k = _clamp_top_k(top_k, research_mode=research_mode)
     variants = vc.normalize_query_variants(question, queries)
     work_units = vc.estimate_multi_search_work_units(_db, question, variants, kg=True, semantic=True)
+    if research_mode:
+        work_units = int(work_units * max(1.0, top_k / 5.0))
     if _rate_limit_exceeded(work_units):
         raise VaultError("Rate limit exceeded. Please wait.")
     ranked, meta = vc.collect_multi_search_candidates(
-        _db, _semantic_candidates, question, variants, top_k, playlist)
+        _db, _semantic_candidates, question, variants, top_k, playlist,
+        research_mode=research_mode)
     for c in ranked:
         c['result_ref'] = _result_refs.issue(c)
     results = vc.finalize_ranked_results(
@@ -233,11 +241,18 @@ def multi_search_vault(question, queries, top_k=5, playlist=None, snippet_chars=
         'queries': variants,
         'top_k': top_k,
         'playlist': playlist,
-        'work_units': meta['work_units'],
+        'work_units': meta.get('work_units', work_units),
         'results': results,
+        'research_mode': research_mode,
     }
     if meta.get('diversity'):
         out['diversity'] = meta['diversity']
+    if debug:
+        out['debug'] = {
+            'diversity': meta.get('diversity'),
+            'candidate_count': meta.get('candidate_count'),
+            'research_mode': research_mode,
+        }
     return out
 
 
@@ -347,6 +362,14 @@ async def list_tools():
                     "playlist": {"type": "string",
                                  "description": "Optional playlist filter, e.g. '2022 ICT Mentorship'."},
                     "snippet_chars": {"type": "integer", "default": 500, "minimum": 1, "maximum": 1000},
+                    "research_mode": {
+                        "type": "boolean", "default": False,
+                        "description": "If true, allow top_k up to 10 and include debug meta. More work_units."
+                    },
+                    "debug": {
+                        "type": "boolean", "default": False,
+                        "description": "If true, include debug diversity/candidate meta."
+                    },
                 },
                 "required": ["question", "queries"],
             },
@@ -442,12 +465,15 @@ async def call_tool(name, arguments):
 
         if name == "multi_search_ict":
             try:
+                research = bool(arguments.get('research_mode', False))
                 payload = multi_search_vault(
                     arguments.get('question', ''),
                     arguments.get('queries') or [],
-                    top_k=_clamp_top_k(arguments.get('top_k', 5)),
+                    top_k=_clamp_top_k(arguments.get('top_k', 5), research_mode=research),
                     playlist=arguments.get('playlist'),
                     snippet_chars=arguments.get('snippet_chars', vc.SNIPPET_DEFAULT_CHARS),
+                    research_mode=research,
+                    debug=bool(arguments.get('debug', False)),
                 )
             except ValueError as e:
                 return [TextContent(type="text", text=f"Invalid input: {e}")]
