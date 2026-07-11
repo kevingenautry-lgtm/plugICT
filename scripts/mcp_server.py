@@ -228,7 +228,7 @@ def multi_search_vault(question, queries, top_k=5, playlist=None, snippet_chars=
         ranked,
         vc._clamp_chars(snippet_chars, vc.SNIPPET_DEFAULT_CHARS, vc.SNIPPET_MAX_CHARS),
     )
-    return {
+    out = {
         'question': question,
         'queries': variants,
         'top_k': top_k,
@@ -236,6 +236,9 @@ def multi_search_vault(question, queries, top_k=5, playlist=None, snippet_chars=
         'work_units': meta['work_units'],
         'results': results,
     }
+    if meta.get('diversity'):
+        out['diversity'] = meta['diversity']
+    return out
 
 
 def expand_result(result_ref, before=0, after=0):

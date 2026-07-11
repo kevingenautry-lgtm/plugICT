@@ -53,6 +53,14 @@ MAX_TOP_K = 5
 RESULT_REF_TTL_SECONDS = 15 * 60
 RESULT_REF_MAX_USES = 1
 
+# Agent Layer v1.1a — source diversity (video-level)
+MAX_RESULTS_PER_VIDEO = 2
+MERGE_GAP_SEC = 90
+DISTINCT_GAP_SEC = 600
+# Rerank a larger pool, then diversify down to top_k
+DIVERSITY_RERANK_POOL_MULT = 3
+DIVERSITY_RERANK_POOL_EXTRA = 8
+
 EMBEDDING_MODEL_KEY = "embedding_model_name"
 EMBEDDING_DIM_KEY = "embedding_dimension"
 EMBEDDING_NORMALIZE_KEY = "embedding_normalize"
@@ -1500,6 +1508,167 @@ def make_snippet(text, max_chars=SNIPPET_DEFAULT_CHARS):
     return clean[:max_chars]
 
 
+def _cand_score(c):
+    """Best available ranking score for diversity selection."""
+    for key in ('final_score', 'rerank_score', 'rrf_score'):
+        if c.get(key) is not None:
+            try:
+                return float(c[key])
+            except (TypeError, ValueError):
+                pass
+    return 0.0
+
+
+def _cand_ts_seconds(c):
+    return timestamp_seconds(c.get('start_ts') or c.get('timestamp'))
+
+
+def _video_bucket_key(c):
+    vid = (c.get('video_id') or '').strip().lower()
+    if vid:
+        return ('video', vid)
+    return ('chunk', str(_cand_key(c)))
+
+
+def _merge_two_candidates(a, b):
+    """Keep higher-score chunk; union metadata; prefer longer text for expand."""
+    if _cand_score(b) > _cand_score(a):
+        keep, drop = dict(b), a
+    else:
+        keep, drop = dict(a), b
+    keep['matched_queries'] = _merge_unique_values(
+        keep.get('matched_queries'), drop.get('matched_queries'))
+    keep['retrieval_sources'] = _merge_unique_values(
+        keep.get('retrieval_sources'), drop.get('retrieval_sources'),
+        keep.get('source'), drop.get('source'),
+        keep.get('method'), drop.get('method'))
+    keep['rrf_score'] = max(keep.get('rrf_score', 0.0) or 0.0,
+                            drop.get('rrf_score', 0.0) or 0.0)
+    if drop.get('final_score') is not None or keep.get('final_score') is not None:
+        keep['final_score'] = max(_cand_score(keep), _cand_score(drop))
+    if drop.get('rerank_score') is not None or keep.get('rerank_score') is not None:
+        try:
+            keep['rerank_score'] = max(
+                float(keep.get('rerank_score') or -1e9),
+                float(drop.get('rerank_score') or -1e9))
+        except (TypeError, ValueError):
+            pass
+    if len(_cand_text(drop)) > len(_cand_text(keep)):
+        for field in ('_full_text', 'text', 'snippet'):
+            if drop.get(field):
+                keep[field] = drop[field]
+    keep['_merged_from'] = (keep.get('_merged_from') or 1) + (drop.get('_merged_from') or 1)
+    return keep
+
+
+def _merge_adjacent_same_video(cands, merge_gap_sec=MERGE_GAP_SEC):
+    """Within each video, merge chunks whose start times are within merge_gap_sec."""
+    if not cands:
+        return [], 0
+    by_vid = {}
+    orphan = []
+    for c in cands:
+        key = _video_bucket_key(c)
+        if key[0] != 'video':
+            orphan.append(c)
+            continue
+        by_vid.setdefault(key[1], []).append(c)
+
+    merged = list(orphan)
+    merges = 0
+    for _vid, items in by_vid.items():
+        items = sorted(items, key=lambda c: (_cand_ts_seconds(c) is None,
+                                             _cand_ts_seconds(c) or 0,
+                                             -_cand_score(c)))
+        clusters = []
+        for c in items:
+            ts = _cand_ts_seconds(c)
+            if not clusters or ts is None:
+                clusters.append(c)
+                continue
+            prev = clusters[-1]
+            pts = _cand_ts_seconds(prev)
+            if pts is not None and abs(ts - pts) <= merge_gap_sec:
+                clusters[-1] = _merge_two_candidates(prev, c)
+                merges += 1
+            else:
+                clusters.append(c)
+        merged.extend(clusters)
+    return merged, merges
+
+
+def diversify_by_video(candidates, top_k=5,
+                       max_per_video=MAX_RESULTS_PER_VIDEO,
+                       merge_gap_sec=MERGE_GAP_SEC,
+                       distinct_gap_sec=DISTINCT_GAP_SEC):
+    """Post-rerank diversity: merge nearby same-video chunks, cap per video.
+
+    Returns (selected_list, meta_dict).
+    """
+    top_k = max(1, int(top_k or MAX_TOP_K))
+    max_per_video = max(1, int(max_per_video or MAX_RESULTS_PER_VIDEO))
+    if not candidates:
+        return [], {
+            'unique_videos': 0,
+            'max_per_video': max_per_video,
+            'merged_chunks': 0,
+            'selected': 0,
+        }
+
+    pool, merges = _merge_adjacent_same_video(candidates, merge_gap_sec=merge_gap_sec)
+    pool = sorted(pool, key=_cand_score, reverse=True)
+
+    selected = []
+    per_video = {}
+    last_ts_for_video = {}
+
+    for c in pool:
+        if len(selected) >= top_k:
+            break
+        vkey = _video_bucket_key(c)
+        count = per_video.get(vkey, 0)
+        if count >= max_per_video:
+            continue
+        if count >= 1 and vkey[0] == 'video':
+            ts = _cand_ts_seconds(c)
+            prev_ts = last_ts_for_video.get(vkey)
+            if ts is not None and prev_ts is not None:
+                if abs(ts - prev_ts) < distinct_gap_sec:
+                    continue
+            elif ts is None:
+                continue
+        selected.append(c)
+        per_video[vkey] = count + 1
+        ts = _cand_ts_seconds(c)
+        if ts is not None:
+            last_ts_for_video[vkey] = ts
+
+    if len(selected) < top_k:
+        selected_ids = {id(c) for c in selected}
+        for c in pool:
+            if len(selected) >= top_k:
+                break
+            if id(c) in selected_ids:
+                continue
+            vkey = _video_bucket_key(c)
+            if per_video.get(vkey, 0) >= max_per_video:
+                continue
+            selected.append(c)
+            selected_ids.add(id(c))
+            per_video[vkey] = per_video.get(vkey, 0) + 1
+
+    vids = {(c.get('video_id') or '').strip() for c in selected if (c.get('video_id') or '').strip()}
+    meta = {
+        'unique_videos': len(vids),
+        'max_per_video': max_per_video,
+        'merged_chunks': merges,
+        'selected': len(selected),
+        'pool_in': len(candidates),
+        'pool_after_merge': len(pool),
+    }
+    return selected, meta
+
+
 def finalize_ranked_results(ranked, snippet_chars=SNIPPET_DEFAULT_CHARS):
     out = []
     for c in ranked:
@@ -1614,11 +1783,16 @@ def collect_multi_search_candidates(db, semantic_retriever, question, queries, t
     candidates = apply_rrf_scores(candidates)
     candidates = dedup_candidates(candidates)
     candidates = [hydrate_candidate_text(db, c) for c in candidates]
-    ranked = rerank(question, candidates, top_k) if candidates else []
+    # Rerank a larger pool so diversity has alternatives after top hits
+    pool_k = max(top_k * DIVERSITY_RERANK_POOL_MULT, top_k + DIVERSITY_RERANK_POOL_EXTRA)
+    pool_k = min(pool_k, max(len(candidates), top_k))
+    ranked = rerank(question, candidates, pool_k) if candidates else []
+    ranked, diversity = diversify_by_video(ranked, top_k=top_k)
     return ranked, {
         'queries': variants,
         'work_units': work_units,
         'candidate_count': len(candidates),
+        'diversity': diversity,
     }
 
 
