@@ -1,12 +1,12 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0D0B08">
-<!-- Inline SVG favicon (the plug mark) — self-contained, no extra request, no 404 -->
+<!-- Inline SVG favicon (the plug mark) â€” self-contained, no extra request, no 404 -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23E8622C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 2v5'/><path d='M15 2v5'/><path d='M7 7h10v4a5 5 0 0 1-10 0V7z'/><path d='M12 16v3a3 3 0 0 1-3 3'/></svg>">
-<title>PlugICT — Years of ICT Lessons. One Instant Answer.</title>
+<title>PlugICT â€” Years of ICT Lessons. One Instant Answer.</title>
 <meta name="description" content="576 ICT videos transcribed, indexed and searchable by your own AI agent via MCP. Verified answers with exact video sources and timestamps. Lifetime license, runs locally.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,7 +16,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "PlugICT",
-  "description": "AI knowledge base of 576 ICT videos — transcribed, indexed, searchable by any MCP-compatible AI agent with exact video sources and timestamps.",
+  "description": "AI knowledge base of 576 ICT videos â€” transcribed, indexed, searchable by any MCP-compatible AI agent with exact video sources and timestamps.",
   "offers": {
     "@type": "Offer",
     "price": "1.00",
@@ -26,7 +26,7 @@
 }
 </script>
 <script>
-/* ═══ SITE CONFIG — the only block you edit when wiring up payments ═══
+/* â•â•â• SITE CONFIG â€” the only block you edit when wiring up payments â•â•â•
    Backend reference: store/README.md (payment methods) and
    store/webhook_server.py (automated license delivery for billplz/stripe). */
 window.PLUGICT = {
@@ -34,8 +34,8 @@ window.PLUGICT = {
   priceMyr: '',            // optional MYR shown on DuitNow QR pane, e.g. 'RM 105'
 
   /* Automated checkout (webhook issues the license, buyer gets email instantly) */
-  billplzUrl: '',          // Billplz payment form URL — FPX + DuitNow, Malaysia
-  stripeUrl: 'https://buy.stripe.com/7sY14oeiC06QdVX9Hm6Ri01',           // Stripe Payment Link — international cards
+  billplzUrl: '',          // Billplz payment form URL â€” FPX + DuitNow, Malaysia
+  stripeUrl: 'https://buy.stripe.com/7sY14oeiC06QdVX9Hm6Ri01',           // Stripe Payment Link â€” international cards
 
   /* Manual methods (you confirm payment, then run store/issue_license.py) */
   duitnowQrImg: '',        // path to your DuitNow QR image, e.g. 'assets/duitnow-qr.png'
@@ -49,32 +49,32 @@ window.PLUGICT = {
      Empty = section stays hidden. No placeholder shown to visitors. */
   demoVideoUrl: '',
 
-  /* Real buyer quotes only — leave empty until you have them. Each item:
-     {quote:'…', who:'Firdaus, KL'}. Section stays hidden while empty. */
+  /* Real buyer quotes only â€” leave empty until you have them. Each item:
+     {quote:'â€¦', who:'Firdaus, KL'}. Section stays hidden while empty. */
   testimonials: [],
 
-  /* ── LIVE "Try it" demo (client-side, no backend, no API key) ──────────
+  /* â”€â”€ LIVE "Try it" demo (client-side, no backend, no API key) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
      The section auto-appears if EITHER of these is set:
 
-     1) demoIndexUrl — a JSON file built from your DEMO vault by
+     1) demoIndexUrl â€” a JSON file built from your DEMO vault by
         store/export_web_demo.py (commit it at the repo root). Powers the
         free-text search box: real keyword search over the demo transcripts,
-        with clickable YouTube timestamps. This is honest "raw search" — the
+        with clickable YouTube timestamps. This is honest "raw search" â€” the
         full product's AI reasons on top of exactly this.
 
-     2) demoQA — REAL answers you captured by asking Claude (connected to the
+     2) demoQA â€” REAL answers you captured by asking Claude (connected to the
         vault) these questions. Shown as one-click suggested questions so a
         visitor with no AI setup still sees a full reasoned, cited answer.
-        Leave empty until you paste real captures — never invent answers.
+        Leave empty until you paste real captures â€” never invent answers.
         Each item:
           { q:'What is FVG?',
-            a:'A fair value gap is …',                     // real Claude output
-            cites:[{title:'2022 Mentorship — Ep 4', ts:'15:23', v:'YT_ID'}] }
+            a:'A fair value gap is â€¦',                     // real Claude output
+            cites:[{title:'2022 Mentorship â€” Ep 4', ts:'15:23', v:'YT_ID'}] }
   */
   demoIndexUrl: 'demo-index.json',
   demoQA: [],
 
-  /* Launch-price countdown. Set a REAL deadline (ISO 8601) or leave empty —
+  /* Launch-price countdown. Set a REAL deadline (ISO 8601) or leave empty â€”
      an empty value hides the countdown entirely. No fake scarcity. */
   saleEndsAt: '',          // e.g. '2026-08-01T00:00:00+08:00'
 
@@ -86,14 +86,15 @@ window.PLUGICT = {
 <style>
 /* Hallmark · macrostructure: Workbench · genre: atmospheric */
 /* Hallmark · pre-emit critique: P5 H4 E4 S5 R4 V5 */
-  :root{
+:root{
     --paper:#070605; --paper-alt:#0C0A08; --card:#131009;
     --dark:#050403; --dark-line:rgba(244,239,228,.1);
     --ink:#F4EEDF; --ink-soft:#B8AC96; --ink-mut:#8F8470;
     --line:rgba(242,234,217,.11); --line-soft:rgba(242,234,217,.06);
     --terracotta:#E8622C; --terracotta-bright:#FF8A4A; --terracotta-deep:#B9440F;
-    --ember-glow:rgba(232,98,44,.22);
+    --ember-glow:rgba(232,98,44,.35);
     --maxw:1180px;
+    --spot:rgba(232,98,44,.10);
     --serif:'Newsreader',Georgia,serif;
     --sans:'Instrument Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -110,21 +111,21 @@ window.PLUGICT = {
   ::selection{background:rgba(232,98,44,.3)}
   .wrap{max-width:var(--maxw); margin:0 auto; padding:0 28px}
   em{font-style:normal; color:var(--terracotta)}
-  .accent-text{color:var(--terracotta-bright); font-style:normal}
 
-  /* ── nav · N9 edge-minimal for atmospheric product ───────── */
+  /* â”€â”€ nav â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   nav{position:absolute; top:0; left:0; right:0; z-index:20; background:transparent}
   nav .wrap{display:flex; align-items:center; justify-content:space-between; min-height:88px}
   .brand{display:flex; align-items:center; gap:10px; font:500 20px var(--serif); font-style:normal; letter-spacing:-.01em}
   .brand .mark{width:21px;height:21px;flex-shrink:0;color:var(--terracotta)}
   .navlinks{display:flex; gap:14px; align-items:center; font-size:14px}
-  .navlinks a{color:var(--ink-soft); text-decoration:none; transition:color .2s; white-space:nowrap}
+  .navlinks a{color:var(--ink-soft); text-decoration:none; transition:color .2s}
   .navlinks a:hover{color:var(--ink)}
-  .btn{display:inline-flex; align-items:center; gap:9px; text-decoration:none; cursor:pointer; white-space:nowrap;
+  .btn{display:inline-flex; align-items:center; gap:9px; text-decoration:none; cursor:pointer;
     font:500 15.5px var(--sans); padding:16px 30px; border-radius:999px; border:none;
-    transition:transform .15s cubic-bezier(.16,1,.3,1), background .2s cubic-bezier(.16,1,.3,1);}
-  .btn.primary{background:var(--terracotta); color:#fff}
-  .btn.primary:hover{transform:translateY(-1px); background:var(--terracotta-bright)}
+    transition:transform .15s ease, background .2s;}
+  .btn.primary{background:linear-gradient(180deg,var(--terracotta-bright),var(--terracotta)); color:#fff;
+    box-shadow:0 8px 28px -10px var(--ember-glow), inset 0 1px 0 rgba(255,255,255,.18)}
+  .btn.primary:hover{transform:translateY(-2px); box-shadow:0 14px 36px -10px var(--ember-glow), inset 0 1px 0 rgba(255,255,255,.18)}
   .btn.small{padding:10px 22px; font-size:13.5px; font-weight:500}
   .btn.ghost{background:none; color:var(--ink); border:1.5px solid rgba(232,98,44,.55);
     font:500 13px var(--mono); letter-spacing:.06em; padding:14px 26px;
@@ -137,39 +138,42 @@ window.PLUGICT = {
   .link-arrow:hover{color:var(--terracotta)}
   @media(max-width:760px){ .navlinks a:not(.btn){display:none} nav .wrap{min-height:72px} }
 
-  /* ── hero ───────────────────────────────────────────────── */
+  /* â”€â”€ hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .hero{position:relative; overflow:hidden}
-  .hero::before{content:""; position:absolute; top:116px; right:8vw; width:14px; height:14px; pointer-events:none; z-index:1;
-    background:var(--terracotta); border-radius:999px; box-shadow:0 0 0 1px rgba(232,98,44,.35)}
+  .hero::before{content:""; position:absolute; top:116px; right:8vw; width:14px; height:14px; pointer-events:none; z-index:1; background:var(--terracotta); border-radius:999px}
+  /* faint engineering grid, masked to fade toward the edges */
   .hero::after{content:""; position:absolute; inset:0; pointer-events:none; z-index:0; opacity:.5;
     background:
-      repeating-linear-gradient(0deg, rgba(242,234,217,.035) 0 1px, transparent 1px 64px),
-      repeating-linear-gradient(90deg, rgba(242,234,217,.025) 0 1px, transparent 1px 64px);
+      repeating-linear-gradient(0deg, rgba(242,234,217,.045) 0 1px, transparent 1px 64px),
+      repeating-linear-gradient(90deg, rgba(242,234,217,.045) 0 1px, transparent 1px 64px);
     -webkit-mask-image:radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 78%);
     mask-image:radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 78%)}
-  .hero .wrap{display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr); gap:52px; align-items:end; padding:154px 28px 84px; position:relative; z-index:2}
+  .hero .wrap{display:grid; grid-template-columns:1.05fr .95fr; gap:52px; align-items:center; padding:96px 28px 84px; position:relative; z-index:2}
   @media(max-width:1000px){ .hero .wrap{grid-template-columns:1fr} }
   .eyebrow{font:500 11.5px var(--mono); letter-spacing:.18em; color:var(--terracotta); text-transform:uppercase}
-  .hero h1{font:400 clamp(40px,5.8vw,78px)/1.04 var(--serif); letter-spacing:-.025em; margin-top:24px; overflow-wrap:anywhere}
+  .hero h1{font:400 clamp(42px,6.3vw,86px)/1.03 var(--serif); letter-spacing:-.025em; margin-top:24px}
   .hero .sub{font-size:17px; line-height:1.7; color:var(--ink-soft); max-width:460px; margin-top:24px}
   .hero .cta{display:flex; align-items:center; gap:22px; flex-wrap:wrap; margin-top:34px}
   .hero .fine{font:400 12px var(--mono); letter-spacing:.05em; color:var(--ink-mut); margin-top:18px}
 
   /* terminal panel */
-  .terminal{background:var(--dark); border-radius:8px; border:1px solid rgba(232,98,44,.32); overflow:hidden}
-  .term-head{display:flex; align-items:center; padding:12px 18px; border-bottom:1px solid var(--dark-line)}
-  .term-head i{display:none}
-  .term-head span{font:400 11.5px var(--mono); color:rgba(244,239,228,.55)}
+  .terminal{background:var(--dark); border-radius:18px; border:1px solid rgba(232,98,44,.35); overflow:hidden;
+    box-shadow:0 0 70px -18px var(--ember-glow), 0 40px 80px -40px rgba(0,0,0,.9);
+    transform:perspective(1400px) rotateY(-7deg) rotateX(1.5deg)}
+  @media(max-width:1000px){ .terminal{transform:none} }
+  .term-head{display:flex; align-items:center; gap:7px; padding:14px 18px; border-bottom:1px solid var(--dark-line)}
+  .term-head i{width:10px;height:10px;border-radius:50%;background:rgba(244,239,228,.18);display:block}
+  .term-head span{margin-left:8px; font:400 11.5px var(--mono); color:rgba(244,239,228,.45)}
   .term-body{padding:26px 26px 30px; font:400 13.5px/1.95 var(--mono); min-height:252px; color:#F4EFE4}
   .t-prompt{color:var(--terracotta-bright)} .t-cmd{color:#F4EFE4} .t-dim{color:rgba(244,239,228,.4)}
   .t-warm{color:var(--terracotta-bright)}
-  .t-cursor{display:inline-block; width:7px; height:14px; background:var(--terracotta-bright); vertical-align:-2px; animation:blink 1s steps(1) infinite}
+  .t-cursor{display:inline-block; width:7px; height:14px; background:var(--terracotta-bright); vertical-align:-2px; animation:none}
   @keyframes blink{50%{opacity:0}}
   .t-cite{margin-top:14px; border-left:2px solid var(--terracotta-bright); padding-left:14px}
   .t-cite .title{color:#F4EFE4; font-weight:500}
   .t-cite .ts{color:var(--terracotta-bright)}
 
-  /* ── live "try it" demo ─────────────────────────────────── */
+  /* â”€â”€ live "try it" demo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .trydemo{padding:70px 28px 40px}
   .trydemo .inner{max-width:860px}
   .trydemo .eyebrow{text-align:center}
@@ -180,8 +184,8 @@ window.PLUGICT = {
     background:var(--card); border:1px solid var(--line); border-radius:999px; padding:9px 16px;
     transition:border-color .2s, color .2s, transform .15s}
   .demo-chip:hover{border-color:var(--terracotta); color:var(--ink); transform:translateY(-1px)}
-  .demo-console{margin:26px auto 0; background:var(--dark); border:1px solid rgba(232,98,44,.32); border-radius:12px;
-    overflow:hidden}
+  .demo-console{margin:26px auto 0; background:var(--dark); border:1px solid rgba(232,98,44,.32); border-radius:16px;
+    overflow:hidden; box-shadow:0 0 60px -22px var(--ember-glow), 0 30px 70px -40px rgba(0,0,0,.9)}
   .demo-bar{display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid var(--dark-line)}
   .demo-bar .t-prompt{font:500 13px var(--mono); flex-shrink:0}
   .demo-input{flex:1; background:none; border:none; outline:none; color:#F4EFE4;
@@ -206,28 +210,35 @@ window.PLUGICT = {
   /* streaming demo: idle hint, typing caret, staggered card reveal */
   .demo-idle{color:rgba(244,239,228,.42); font:400 13.5px/1.7 var(--mono)}
   .demo-idle .cur{display:inline-block; width:7px; height:15px; margin-left:2px;
-    background:var(--terracotta-bright); vertical-align:-2px; animation:blink 1s steps(1) infinite}
+    background:var(--terracotta-bright); vertical-align:-2px; animation:none}
   .demo-cur{display:inline-block; width:7px; height:15px; background:var(--terracotta-bright);
-    vertical-align:-2px; margin-left:1px; animation:blink 1s steps(1) infinite}
-  .demo-hit.rin{opacity:0; transform:translateY(8px); animation:demo-rise .34s cubic-bezier(.16,1,.3,1) forwards}
+    vertical-align:-2px; margin-left:1px; animation:none}
+  .demo-hit.rin{opacity:1; transform:none}
   @keyframes demo-rise{to{opacity:1; transform:none}}
   .demo-again{margin-top:16px; font:500 12px var(--mono); letter-spacing:.04em;
     color:var(--ink-mut); background:none; border:none; cursor:pointer; padding:0}
   .demo-again:hover{color:var(--terracotta-bright)}
 
-  /* ── video placeholder ─────────────────────────────────── */
+  /* â”€â”€ video placeholder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .video-slot{margin:0 28px; position:relative}
-  .video-slot::before{display:none}
+  .video-slot::before{content:""; position:absolute; left:-10%; right:-10%; top:30%; bottom:-90px; pointer-events:none;
+    background:
+      radial-gradient(60% 55% at 50% 100%, rgba(232,98,44,.14), transparent 70%),
+      repeating-linear-gradient(90deg, rgba(232,98,44,.10) 0 1px, transparent 1px 72px),
+      repeating-linear-gradient(0deg, rgba(232,98,44,.10) 0 1px, transparent 1px 46px);
+    transform:perspective(700px) rotateX(58deg); transform-origin:50% 100%;
+    -webkit-mask-image:radial-gradient(65% 80% at 50% 90%, #000 30%, transparent 75%);
+    mask-image:radial-gradient(65% 80% at 50% 90%, #000 30%, transparent 75%)}
   .video-box{max-width:calc(var(--maxw) - 56px); margin:0 auto; aspect-ratio:16/9;
     border:1px solid var(--line); border-radius:20px; background:rgba(10,8,6,.88); position:relative;
-    overflow:hidden}
+    overflow:hidden; box-shadow:0 30px 80px -30px rgba(0,0,0,.9)}
   .video-box iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
   .video-cap{font:400 12px var(--mono); color:var(--ink-mut); max-width:var(--maxw); margin:12px auto 0; padding:0 28px}
 
-  /* ── stats strip ────────────────────────────────────────── */
+  /* â”€â”€ stats strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .stats{display:flex; gap:14px; flex-wrap:wrap; justify-content:space-between; align-items:center;
     padding:22px 28px; margin:56px auto 0; max-width:calc(var(--maxw) - 56px);
-    background:var(--card); border:1px solid var(--line); border-radius:8px;
+    background:var(--card); border:1px solid var(--line); border-radius:18px;
     font:500 12px var(--mono); letter-spacing:.1em; color:var(--ink-mut); position:relative; z-index:1}
   .stats span{display:flex; align-items:center; gap:12px}
   .stats span b{display:block; font:500 23px var(--mono); letter-spacing:.02em; color:var(--ink); white-space:nowrap}
@@ -237,7 +248,7 @@ window.PLUGICT = {
   .stats .s-ic svg{width:18px; height:18px}
   @media(max-width:900px){ .stats{justify-content:flex-start; gap:20px} }
 
-  /* ── sections ───────────────────────────────────────────── */
+  /* â”€â”€ sections â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   section{padding:88px 28px}
   section.alt{background:var(--paper-alt); border-top:1px solid var(--line-soft)}
   section h2{font:400 clamp(30px,4.2vw,52px)/1.1 var(--serif); letter-spacing:-.015em; max-width:720px}
@@ -246,7 +257,7 @@ window.PLUGICT = {
   .center h2,.center .sub,.center .eyebrow{margin-left:auto; margin-right:auto}
   .inner{max-width:var(--maxw); margin:0 auto}
 
-  /* ── problem story ──────────────────────────────────────── */
+  /* â”€â”€ problem story â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .story{display:grid; grid-template-columns:1fr auto 1fr; gap:34px; align-items:center; margin-top:56px}
   @media(max-width:1000px){ .story{grid-template-columns:1fr} .story .arrow{justify-self:center} }
   .panel{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:28px; min-height:280px; position:relative}
@@ -256,7 +267,7 @@ window.PLUGICT = {
   .chaos .vid.r1{transform:rotate(-3deg)} .chaos .vid.r2{transform:rotate(2.5deg)} .chaos .vid.r3{transform:rotate(-1.5deg)}
   .chaos .searchbar{margin-top:18px; border:1px solid var(--line); border-radius:10px; padding:12px 16px;
     color:var(--ink-mut); font-size:14px; display:flex; justify-content:space-between; background:rgba(0,0,0,.35)}
-  /* Before→After connector = neuron string (SVG).
+  /* Beforeâ†’After connector = neuron string (SVG).
          Horizontal on desktop, vertical on mobile. */
     .story .arrow{display:flex; align-items:center; justify-content:center; color:var(--terracotta); padding:4px 0}
     .neuron-svg{display:block; overflow:visible; filter:drop-shadow(0 0 8px rgba(232,98,44,.45))}
@@ -266,10 +277,10 @@ window.PLUGICT = {
     .neuron-svg .soma{fill:url(#somaGrad); stroke:rgba(255,176,122,.7); stroke-width:1}
     .neuron-svg .soma-core{fill:#FF8A4A}
     .neuron-svg .signal{fill:#FFB07A; filter:url(#softGlow)}
-    .neuron-svg .signal{animation:signal-move 2.2s ease-in-out infinite}
+    .neuron-svg .signal{animation:none}
     .neuron-svg .s2{animation-delay:.35s}
     .neuron-svg .s3{animation-delay:.7s}
-    .neuron-svg .soma{transform-origin:center; animation:soma-breathe 2.2s ease-in-out infinite}
+    .neuron-svg .soma{transform-origin:center; animation:none}
     .neuron-svg .soma.s-d1{animation-delay:0s}
     .neuron-svg .soma.s-d2{animation-delay:.25s}
     .neuron-svg .soma.s-d3{animation-delay:.5s}
@@ -300,27 +311,13 @@ window.PLUGICT = {
   .answer .cite b{color:#F4EFE4}
   .answer .cite .ts{color:var(--terracotta-bright); font-weight:600; font-family:var(--mono)}
 
-  /* ── capability cards ───────────────────────────────────── */
-  .cap-list{margin-top:52px; display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:14px; align-items:stretch}
-  .cap-row{display:grid; grid-template-columns:44px minmax(0,1fr); gap:14px 22px; align-content:start; padding:26px 28px;
+  /* â”€â”€ capability cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  .cap-list{margin-top:52px; display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  .cap-row{display:grid; grid-template-columns:56px 1fr; gap:18px 24px; align-content:start; padding:28px 30px;
     background:var(--card); border:1px solid var(--line); border-radius:18px;
     transition:border-color .25s, transform .2s ease}
   .cap-row:hover{border-color:rgba(232,98,44,.4); transform:translateY(-2px)}
-  .cap-row:nth-child(1){grid-column:span 5}
-  .cap-row:nth-child(2){grid-column:span 7}
-  .cap-row:nth-child(3){grid-column:span 4}
-  .cap-row:nth-child(4){grid-column:1/-1; grid-template-columns:minmax(0,.32fr) minmax(0,.68fr)}
-  .cap-row:nth-child(4) .cap-num{grid-column:1}
-  .cap-row:nth-child(4) .cap-text{grid-column:1}
-  .cap-row:nth-child(4) .cap-visual{grid-column:2; grid-row:1 / span 2}
-  .cap-row:nth-child(5){grid-column:span 7}
-  .cap-row:nth-child(6){grid-column:span 5}
-  @media(max-width:1000px){
-    .cap-list{grid-template-columns:1fr}
-    .cap-row,.cap-row:nth-child(n){grid-column:1; grid-template-columns:44px minmax(0,1fr)}
-    .cap-row:nth-child(4) .cap-num,.cap-row:nth-child(4) .cap-text,.cap-row:nth-child(4) .cap-visual{grid-column:auto; grid-row:auto}
-    .cap-row:nth-child(4) .cap-visual{grid-column:1/-1}
-  }
+  @media(max-width:1000px){ .cap-list{grid-template-columns:1fr} }
   .cap-num{width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; align-self:start;
     font:500 18px var(--mono); color:var(--terracotta); background:rgba(232,98,44,.1); border:1px solid rgba(232,98,44,.32)}
   .cap-text h3{font:500 27px var(--serif); letter-spacing:-.01em; margin-bottom:8px}
@@ -337,7 +334,7 @@ window.PLUGICT = {
   .cv-cite .note{font-size:12px; color:var(--ink-mut); margin-top:4px}
   .cv-code{background:var(--dark); border-radius:12px; padding:16px; font:400 12px/1.8 var(--mono); color:rgba(244,239,228,.75)}
   .cv-code .k{color:var(--terracotta-bright)} .cv-code .v{color:#F4EFE4}
-  /* ── knowledge graph visual (capability #4) ──────────────── */
+  /* â”€â”€ knowledge graph visual (capability #4) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .cap-visual.cv-graph{grid-column:1/-1; max-width:100%; margin-top:2px}
   .cv-graph{position:relative; border-radius:18px; padding:0; overflow:hidden;
     background:
@@ -393,7 +390,7 @@ window.PLUGICT = {
     vector-effect:non-scaling-stroke; transition:stroke .32s ease, opacity .32s ease, filter .32s ease}
   .kg-edge.primary{stroke:rgba(232,98,44,.78); stroke-width:1.9; filter:drop-shadow(0 0 5px rgba(232,98,44,.3))}
   .kg-edge.support{stroke:rgba(244,239,228,.24); stroke-width:1.1; stroke-dasharray:2.5 3.8; opacity:.48}
-  .kg-edge.draw{stroke-dasharray:1; stroke-dashoffset:1; animation:kg-draw 1.15s cubic-bezier(.22,1,.36,1) forwards}
+  .kg-edge.draw{stroke-dasharray:1; stroke-dashoffset:0; animation:none}
   .kg-edge.support.draw{stroke-dasharray:2.5 3.8; stroke-dashoffset:0; animation:none}
   .kg-edge.active{stroke:rgba(255,138,74,.98); opacity:1; filter:drop-shadow(0 0 7px rgba(232,98,44,.58))}
   .kg-edge.dim{opacity:.18}
@@ -485,6 +482,15 @@ window.PLUGICT = {
     .kg-caption{bottom:7px; font-size:7.5px; max-width:calc(100% - 24px); padding:5px 8px}
     .kg-edge-label{font-size:2.4px}
   }
+  .terminal{transform:none !important}
+  .setup-stack{display:grid; grid-template-columns:1fr; gap:0; margin-top:42px; max-width:780px}
+  .setup-step{display:grid; grid-template-columns:86px minmax(0,1fr); gap:22px; background:transparent; border:0; border-top:1px solid var(--line); border-radius:0; padding:28px 0}
+  .setup-step:last-child{border-bottom:1px solid var(--line)}
+  .setup-step .move-chips,.setup-step .move-cmd{grid-column:2}
+  .setup-step .num{font:500 13px var(--mono); color:var(--terracotta); margin-top:3px}
+  .setup-step h3{font-size:20px; margin-top:0}
+  @media(max-width:620px){.setup-step{grid-template-columns:1fr; gap:10px}.setup-step .move-chips,.setup-step .move-cmd{grid-column:1}}
+
   @media (prefers-reduced-motion: reduce){
     .kg-edge.draw{animation:none; stroke-dashoffset:0}
     .kg-node,.kg-caption,.kg-edge,.kg-route-glow{transition:none}
@@ -498,16 +504,13 @@ window.PLUGICT = {
   .cv-license .price{font:500 22px var(--serif); margin-top:8px}
   .cv-license .note{font-size:12.5px; color:var(--ink-soft); margin-top:4px}
 
-  /* ── three moves ────────────────────────────────────────── */
-  .moves{display:flex; flex-direction:column; gap:0; margin-top:36px; max-width:720px; border-left:1px solid var(--line)}
-  .moves{display:flex; flex-direction:column; gap:0; margin-top:36px; max-width:720px; border-left:1px solid var(--line); padding-left:0}
-  .move-card{display:grid; grid-template-columns:64px 1fr; gap:14px 18px; padding:22px 8px 22px 28px; border:none; background:transparent; border-radius:0; position:relative; box-shadow:none}
-  .move-card::before{content:""; position:absolute; left:-5px; top:30px; width:9px; height:9px; border-radius:50%; background:var(--terracotta); box-shadow:0 0 0 4px rgba(232,98,44,.15)}
-  .move-card .num{font:500 12px var(--mono); color:var(--terracotta); letter-spacing:.12em; margin:0}
-  .move-card h3{font-weight:600; font-size:16.5px; margin:0; grid-column:2}
-  .move-card p{margin:0; font-size:14px; line-height:1.6; color:var(--ink-soft); grid-column:2}
-  .move-card .move-chips,.move-card .move-cmd{grid-column:2; margin-top:4px}
-  @media(max-width:820px){ .move-card{grid-template-columns:48px 1fr; padding-left:22px} }
+  /* â”€â”€ three moves â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  .moves{display:flex; flex-direction:column; gap:0; margin-top:44px; max-width:780px; border-left:1px solid var(--line)}
+  @media(max-width:820px){ .moves{grid-template-columns:1fr} }
+  .move-card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:26px}
+  .move-card .num{font:500 12px var(--mono); color:var(--terracotta)}
+  .move-card h3{font-weight:600; font-size:16.5px; margin-top:10px}
+  .move-card p{margin-top:6px; font-size:14px; line-height:1.6; color:var(--ink-soft)}
   .move-cmd{margin-top:16px; background:var(--dark); border-radius:8px; padding:11px 14px;
     display:flex; justify-content:space-between; align-items:center; gap:10px}
   .move-cmd span:first-child{font:400 12px var(--mono); color:#F4EFE4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
@@ -517,7 +520,7 @@ window.PLUGICT = {
   .move-chips{display:flex; gap:6px; margin-top:16px; flex-wrap:wrap}
   .move-chips span{border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-size:12px; color:var(--ink-soft)}
 
-  /* ── trust banner ───────────────────────────────────────── */
+  /* â”€â”€ trust banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .banner-band{padding:10px 28px 74px}
   .band-card{max-width:var(--maxw); margin:0 auto; display:flex; align-items:center; gap:22px; flex-wrap:wrap;
     background:linear-gradient(180deg, rgba(232,98,44,.09), rgba(232,98,44,.03)), var(--card);
@@ -536,7 +539,7 @@ window.PLUGICT = {
   .band-steps span.step b{color:var(--terracotta); font-weight:500}
   .band-steps .sep{color:var(--terracotta); opacity:.7}
 
-  /* ── pricing ────────────────────────────────────────────── */
+  /* â”€â”€ pricing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .price-wrap{display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:center; max-width:var(--maxw); margin:0 auto}
   @media(max-width:1000px){ .price-wrap{grid-template-columns:1fr} }
   .price-feats{margin-top:28px; display:flex; flex-direction:column; gap:12px; font-size:15px}
@@ -558,15 +561,15 @@ window.PLUGICT = {
   .pay-row{display:flex; gap:8px; justify-content:center; margin-top:20px; flex-wrap:wrap}
   .pay-chip{font:400 11px var(--mono); color:var(--ink-mut); border:1px solid var(--line); border-radius:999px; padding:6px 12px}
 
-  /* ── countdown (hidden unless a real deadline is configured) ── */
+  /* â”€â”€ countdown (hidden unless a real deadline is configured) â”€â”€ */
   .countdown{display:none; margin-top:18px; font:500 12px var(--mono); letter-spacing:.1em; color:var(--terracotta)}
   .countdown.on{display:block}
 
-  /* ── payment modal ──────────────────────────────────────── */
+  /* â”€â”€ payment modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .pay-overlay{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.72); display:none;
     align-items:center; justify-content:center; padding:20px}
-  .pay-overlay.open{display:flex; animation:overlay-in .18s ease}
-  .pay-overlay.open .pay-modal{animation:modal-in .22s cubic-bezier(.22,1,.36,1)}
+  .pay-overlay.open{display:flex}
+  .pay-overlay.open .pay-modal{}
   @keyframes overlay-in{from{opacity:0}}
   @keyframes modal-in{from{opacity:0; transform:translateY(12px) scale(.98)}}
   .pay-modal{background:var(--card); border:1px solid rgba(232,98,44,.35); border-radius:18px; max-width:520px; width:100%;
@@ -603,7 +606,7 @@ window.PLUGICT = {
     line-height:1.65; color:var(--ink-soft)}
   .pay-note a{color:var(--terracotta)}
 
-  /* ── testimonials (hidden until real quotes exist in config) ── */
+  /* â”€â”€ testimonials (hidden until real quotes exist in config) â”€â”€ */
   .quotes-band{padding:0 28px 74px}
   .quotes{max-width:var(--maxw); margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px}
   .quote-card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:26px 28px}
@@ -611,7 +614,7 @@ window.PLUGICT = {
   .quote-card p{font-size:15px; line-height:1.7; color:var(--ink-soft); margin-top:10px; font-style:italic}
   .quote-card .who{margin-top:14px; font:500 12px var(--mono); letter-spacing:.08em; color:var(--ink-mut)}
 
-  /* ── final CTA + email capture ──────────────────────────── */
+  /* â”€â”€ final CTA + email capture â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .final-cta{background:var(--dark); color:#F4EFE4; border-top:1px solid var(--line-soft); position:relative; overflow:hidden}
   .final-cta::before{content:""; position:absolute; left:20%; right:20%; bottom:-40%; height:80%; pointer-events:none;
     background:radial-gradient(50% 50% at 50% 50%, rgba(232,98,44,.14), transparent 70%)}
@@ -632,7 +635,7 @@ window.PLUGICT = {
   .capture button:hover{border-color:var(--terracotta-bright); color:var(--terracotta-bright)}
   .capture .cap-done{display:none; margin-top:14px; font-size:14px; color:var(--terracotta-bright)}
 
-  /* ── FAQ ────────────────────────────────────────────────── */
+  /* â”€â”€ FAQ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .faq{max-width:720px; margin:36px 0 0; background:#0F0D0A; border:1px solid var(--line);
     border-radius:18px; padding:6px 26px}
   .faq details:last-of-type{border-bottom:none}
@@ -652,16 +655,16 @@ window.PLUGICT = {
   code{font-family:var(--mono); font-size:.9em; background:rgba(242,234,217,.07);
     border:1px solid var(--line); border-radius:6px; padding:2px 7px}
 
-  /* ── footer ─────────────────────────────────────────────── */
+  /* â”€â”€ footer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   footer{border-top:1px solid var(--line); padding:44px 28px 56px; background:var(--paper-alt)}
   footer .wrap{display:flex; justify-content:space-between; gap:34px; flex-wrap:wrap}
   footer .disc{color:var(--ink-mut); font-size:12.5px; max-width:560px; line-height:1.7}
 
-  /* ── entrance animation ─────────────────────────────────── */
+  /* â”€â”€ entrance animation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .fadeup{opacity:0; transform:translateY(22px); transition:opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1)}
   .fadeup.infade{opacity:1; transform:none}
   html:not(.js) .fadeup{opacity:1; transform:none}
-  /* directional scroll-reveal variants (x.ai-style staggered entrances) */
+  /* directional scroll-reveal variants */
   .rv{opacity:0; transition:opacity .8s cubic-bezier(.22,1,.36,1), transform .8s cubic-bezier(.22,1,.36,1)}
   .rv-up{transform:translateY(34px)} .rv-left{transform:translateX(-40px)} .rv-right{transform:translateX(40px)}
   .rv-scale{transform:scale(.94)}
@@ -676,7 +679,7 @@ window.PLUGICT = {
   .glow:hover::before{opacity:1}
   .glow > *{position:relative; z-index:1}
 
-  /* ── x.ai-style code-snippet tabs ───────────────────────── */
+  /* â”€â”€ code-snippet tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .codeblock{margin-top:48px; display:grid; grid-template-columns:1.02fr 1.18fr; gap:44px; align-items:center; max-width:var(--maxw)}
   @media(max-width:900px){ .codeblock{grid-template-columns:1fr; gap:30px} }
   .codeblock .lead h3{font:400 clamp(26px,3.4vw,40px)/1.12 var(--serif); letter-spacing:-.02em}
@@ -702,13 +705,14 @@ window.PLUGICT = {
     overflow-x:auto; white-space:pre; scrollbar-width:thin}
   .code-body .cm{color:var(--ink-mut)} .code-body .ky{color:var(--terracotta-bright)}
   .code-body .st{color:#9BD39B} .code-body .fn{color:#7FB8FF}
-  .code-pane{display:none} .code-pane.on{display:block; animation:code-fade .3s ease}
+  .code-pane{display:none} .code-pane.on{display:block}
   @keyframes code-fade{from{opacity:0; transform:translateY(6px)}}
 
   @media (prefers-reduced-motion: reduce){
     *,*::before,*::after{animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important}
     .fadeup{opacity:1 !important; transform:none !important}
-    .rv{opacity:1 !important; transform:none !important} #spotlight{display:none !important}
+    .rv{opacity:1 !important; transform:none !important}
+
   }
 </style>
 </head>
@@ -730,30 +734,30 @@ window.PLUGICT = {
 
 <main>
 
-<!-- ═══ HERO ═══ -->
+<!-- â•â•â• HERO â•â•â• -->
 <header class="hero">
   <div class="wrap">
     <div>
       <div class="eyebrow fadeup">The ICT knowledge engine</div>
-      <h1 class="fadeup" data-delay=".08">Years of ICT lessons — one instant answer.</h1>
-      <p class="sub fadeup" data-delay=".16">576 videos transcribed, indexed and connected to your AI — every answer cited to the exact video and timestamp.</p>
+      <h1 class="fadeup" data-delay=".08">Years of ICT lessons â€” one instant answer.</h1>
+      <p class="sub fadeup" data-delay=".16">576 videos transcribed, indexed and connected to your AI â€” every answer cited to the exact video and timestamp.</p>
       <div class="cta fadeup" data-delay=".24">
         <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access</a>
-        <a class="btn ghost" href="https://github.com/godzillacode0000/plugICT/releases/download/v1.0-demo/ict-vault-demo.zip" data-demo-link>TRY THE FREE DEMO →</a>
+        <a class="btn ghost" href="https://github.com/godzillacode0000/plugICT/releases/download/v1.0-demo/ict-vault-demo.zip" data-demo-link>TRY THE FREE DEMO â†’</a>
       </div>
-      <div class="fine fadeup" data-delay=".3">$1.00 one-time · runs locally · use your own AI agent — free options work</div>
+      <div class="fine fadeup" data-delay=".3">$1.00 one-time Â· runs locally Â· use your own AI agent</div>
     </div>
     <div class="terminal fadeup" data-delay=".2" role="img" aria-label="Terminal demo: searching the ICT Vault">
-      <div class="term-head"><i></i><i></i><i></i><span>ict-vault — search</span></div>
+      <div class="term-head"><span>ict-vault â€” local search</span></div>
       <div class="term-body" id="term"></div>
     </div>
   </div>
 </header>
 
-<!-- ═══ LIVE "TRY IT" DEMO — appears if demoIndexUrl or demoQA is configured ═══ -->
+<!-- â•â•â• LIVE "TRY IT" DEMO â€” appears if demoIndexUrl or demoQA is configured â•â•â• -->
 <section class="trydemo fadeup" id="trydemo" hidden>
   <div class="inner">
-    <div class="eyebrow">Try it — no download, no signup</div>
+    <div class="eyebrow">Try it â€” no download, no signup</div>
     <h2>Ask the vault right here.</h2>
     <p class="sub">A live sample of 5 videos from the 2022 Mentorship. Type a question, or tap one:</p>
     <div class="demo-chips" id="demo-chips"></div>
@@ -770,13 +774,13 @@ window.PLUGICT = {
   </div>
 </section>
 
-<!-- ═══ DEMO VIDEO — hidden until PLUGICT.demoVideoUrl is set in the config ═══ -->
+<!-- â•â•â• DEMO VIDEO â€” hidden until PLUGICT.demoVideoUrl is set in the config â•â•â• -->
 <div class="video-slot fadeup" id="video-slot" hidden>
   <div class="video-box" id="video-box"></div>
-  <div class="video-cap">↑ A real query, answered and cited in ~3 seconds.</div>
+  <div class="video-cap">â†‘ A real query, answered and cited in ~3 seconds.</div>
 </div>
 
-<!-- ═══ STATS ═══ -->
+<!-- â•â•â• STATS â•â•â• -->
 <div class="stats fadeup">
   <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5 15 12l-5 2.5z" fill="currentColor" stroke="none"/></svg></i><span><b><span data-count="576">576</span></b>VIDEOS</span></span>
   <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.8.6 1.5 1.6 1.5 2.6h4c0-1 .7-2 1.5-2.6A6 6 0 0 0 12 3z"/></svg></i><span><b><span data-count="100">100</span>+</b>CONCEPTS</span></span>
@@ -785,25 +789,25 @@ window.PLUGICT = {
   <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3z"/><path d="m9 11.5 2 2 4-4"/></svg></i><span><b>LIFETIME</b>LICENSE</span></span>
 </div>
 
-<!-- ═══ PROBLEM ═══ -->
+<!-- â•â•â• PROBLEM â•â•â• -->
 <section id="problem">
   <div class="inner">
     <div class="eyebrow fadeup">The problem</div>
     <h2 class="fadeup" data-delay=".05">Hundreds of hours of knowledge. Zero ways to search it.</h2>
-    <p class="sub fadeup" data-delay=".1">The exact lesson you need is buried in nearly a decade of long videos. Scrubbing timelines kills momentum — and generic AI models guess, because they never watched them.</p>
+    <p class="sub fadeup" data-delay=".1">The exact lesson you need is buried in nearly a decade of long videos. Scrubbing timelines kills momentum â€” and generic AI models guess, because they never watched them.</p>
 
     <div class="story">
       <div class="panel chaos fadeup">
         <span class="panel-label">Before</span>
-        <span class="vid r1">2022 Mentorship — Ep 04 · 1:42:10</span>
-        <span class="vid r2">Silver Bullet… somewhere?</span>
-        <span class="vid r3">2023 Ep 31 · 58:22</span>
-        <span class="vid r2">Charter — PD Arrays</span>
-        <span class="vid r1">Forex Series 12 · 1:12:44</span>
-        <span class="vid r3">2024 Ep 09 · 47:05</span>
+        <span class="vid r1">2022 Mentorship â€” Ep 04 Â· 1:42:10</span>
+        <span class="vid r2">Silver Bulletâ€¦ somewhere?</span>
+        <span class="vid r3">2023 Ep 31 Â· 58:22</span>
+        <span class="vid r2">Charter â€” PD Arrays</span>
+        <span class="vid r1">Forex Series 12 Â· 1:12:44</span>
+        <span class="vid r3">2024 Ep 09 Â· 47:05</span>
         <span class="vid r1">SMC Lecture 3</span>
         <span class="vid r2">2016 Core Content M4</span>
-        <div class="searchbar"><span>where does he explain CISD entry…?</span><span>⌕</span></div>
+        <div class="searchbar"><span>where does he explain CISD entryâ€¦?</span><span>âŒ•</span></div>
       </div>
       <div class="arrow fadeup" aria-hidden="true">
         <!-- Desktop: horizontal neuron string -->
@@ -894,14 +898,14 @@ window.PLUGICT = {
       <div class="panel answer fadeup">
         <span class="panel-label">After</span>
         <div class="q">You: How does ICT define CISD?</div>
-        <div class="a">A Change In State of Delivery is confirmed when price closes past the opening of the candle series that created the last swing — signalling delivery has flipped…</div>
-        <div class="cite">📍 <span><b>2022 Mentorship · Ep 147</b> — watch at <span class="ts">18:24</span></span></div>
+        <div class="a">A Change In State of Delivery is confirmed when price closes past the opening of the candle series that created the last swing â€” signalling delivery has flippedâ€¦</div>
+        <div class="cite">ðŸ“ <span><b>2022 Mentorship Â· Ep 147</b> â€” watch at <span class="ts">18:24</span></span></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══ CAPABILITIES ═══ -->
+<!-- â•â•â• CAPABILITIES â•â•â• -->
 <section id="capabilities" class="alt">
   <div class="inner">
     <h2 class="fadeup">What the vault does that a playlist can't.</h2>
@@ -910,11 +914,11 @@ window.PLUGICT = {
 
       <div class="cap-row fadeup glow">
         <div class="cap-num">1.</div>
-        <div class="cap-text"><h3>Ask anything.</h3><p>Hybrid semantic search finds the exact moment — even when you don't know ICT's exact words.</p></div>
+        <div class="cap-text"><h3>Ask anything.</h3><p>Hybrid semantic search finds the exact moment â€” even when you don't know ICT's exact words.</p></div>
         <div class="cap-visual cv-term">
           <div><span class="q">ict&gt;</span> silver bullet entry window</div>
-          <div class="dim">searching 576 videos…</div>
-          <div class="q">✓ 26 lessons · 1.2s</div>
+          <div class="dim">searching 576 videosâ€¦</div>
+          <div class="q">âœ“ 26 lessons Â· 1.2s</div>
         </div>
       </div>
 
@@ -923,8 +927,8 @@ window.PLUGICT = {
         <div class="cap-text"><h3>Verify every answer.</h3><p>Every answer cites its source video and the exact second, so you can jump in and check.</p></div>
         <div class="cap-visual cv-cite">
           <div class="line">
-            <div class="title">2022 Mentorship — Ep 147</div>
-            <div class="ts">▶ 18:24</div>
+            <div class="title">2022 Mentorship â€” Ep 147</div>
+            <div class="ts">â–¶ 18:24</div>
             <div class="note">opens at the exact moment</div>
           </div>
         </div>
@@ -932,17 +936,17 @@ window.PLUGICT = {
 
       <div class="cap-row fadeup glow">
         <div class="cap-num">3.</div>
-        <div class="cap-text"><h3>Plug in your AI agent.</h3><p>Download, add one config to Claude Desktop, Cursor or Hermes — done. No code needed.</p></div>
+        <div class="cap-text"><h3>Plug in your AI agent.</h3><p>Download, add one config to Claude Desktop, Cursor or Hermes â€” done. No code needed.</p></div>
         <div class="cap-visual cv-badges">
-          <span>1 · open settings</span>
-          <span>2 · paste config</span>
-          <span class="on">✓ connected</span>
+          <span>1 Â· open settings</span>
+          <span>2 Â· paste config</span>
+          <span class="on">âœ“ connected</span>
         </div>
       </div>
 
       <div class="cap-row fadeup glow">
         <div class="cap-num">4.</div>
-        <div class="cap-text"><h3>Walk the knowledge graph.</h3><p>FVG, liquidity, order blocks — concepts linked into a graph your AI traverses to build complete answers.</p></div>
+        <div class="cap-text"><h3>Walk the knowledge graph.</h3><p>FVG, liquidity, order blocks â€” concepts linked into a graph your AI traverses to build complete answers.</p></div>
         <div class="cap-visual cv-graph" id="kg-graph" data-kg>
           <div class="kg-surface" role="group" aria-label="Interactive knowledge graph. Order Block is the central concept, connected to FVG and Liquidity.">
             <div class="kg-grid" aria-hidden="true"></div>
@@ -950,8 +954,8 @@ window.PLUGICT = {
             <div class="kg-radar" aria-hidden="true"></div>
             <div class="kg-cross tl" aria-hidden="true"><i></i></div>
             <div class="kg-cross tr" aria-hidden="true"><i></i></div>
-            <div class="kg-coords" aria-hidden="true"><span>ICT-04 · KNOWLEDGE GRAPH</span><span>0,0</span></div>
-            <div class="kg-badge">GRAPH · <span class="live">LIVE</span></div>
+            <div class="kg-coords" aria-hidden="true"><span>ICT-04 Â· KNOWLEDGE GRAPH</span><span>0,0</span></div>
+            <div class="kg-badge">GRAPH Â· <span class="live">LIVE</span></div>
             <svg class="kg-edges" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
               <path class="kg-route-glow" data-route-glow d="M0,0"/>
               <g data-kg-edges></g>
@@ -970,7 +974,7 @@ window.PLUGICT = {
 
       <div class="cap-row fadeup glow">
         <div class="cap-num">5.</div>
-        <div class="cap-text"><h3>Keep it private.</h3><p>The encrypted vault runs on your machine. No cloud, no per-query fees from us — you just use your own AI agent's key (free options exist).</p></div>
+        <div class="cap-text"><h3>Keep it private.</h3><p>The encrypted vault runs on your machine. No cloud, no per-query fees from us â€” you just use your own AI agent's key (free options exist).</p></div>
         <div class="cap-visual cv-badges">
           <span>runs on your machine</span>
           <span>no cloud</span>
@@ -982,12 +986,12 @@ window.PLUGICT = {
 
       <div class="cap-row fadeup glow">
         <div class="cap-num">6.</div>
-        <div class="cap-text"><h3>Own it outright.</h3><p>One payment, a license tied to you. Lifetime access — it always works.</p></div>
+        <div class="cap-text"><h3>Own it outright.</h3><p>One payment, a license tied to you. Lifetime access â€” it always works.</p></div>
         <div class="cap-visual cv-license">
           <span class="cv-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8.5 8.5C5.5 8.5 3.5 10 3.5 12s2 3.5 5 3.5c3.5 0 4.5-7 8-7 3 0 5 1.5 5 3.5s-2 3.5-5 3.5c-3.5 0-4.5-7-8-7z" transform="scale(.86) translate(2 2)"/></svg></span>
           <div class="lbl">LICENSE.KEY</div>
-          <div class="price">$1.00 · one-time</div>
-          <div class="note">lifetime access · always works</div>
+          <div class="price">$1.00 Â· one-time</div>
+          <div class="note">lifetime access Â· always works</div>
         </div>
       </div>
 
@@ -995,7 +999,7 @@ window.PLUGICT = {
   </div>
 </section>
 
-<!-- ═══ TRUST BANNER ═══ -->
+<!-- â•â•â• TRUST BANNER â•â•â• -->
 <div class="banner-band fadeup">
   <div class="band-card">
     <span class="b-ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3z"/><path d="m9 11.5 2 2 4-4"/></svg></span>
@@ -1003,44 +1007,44 @@ window.PLUGICT = {
       <div class="b-title">Built for traders. Powered by precision.</div>
       <div class="b-sub">Private. Fast. Accurate. Yours.</div>
     </div>
-    <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access →</a>
+    <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access â†’</a>
     <div class="band-steps" aria-label="How it works in three steps">
       <span class="step"><b>1</b> download the vault</span>
-      <span class="sep">→</span>
+      <span class="sep">â†’</span>
       <span class="step"><b>2</b> connect your AI agent</span>
-      <span class="sep">→</span>
-      <span class="step"><b>3</b> ask — get cited answers</span>
+      <span class="sep">â†’</span>
+      <span class="step"><b>3</b> ask â€” get cited answers</span>
     </div>
   </div>
 </div>
 
-<!-- ═══ SETUP ═══ -->
+<!-- â•â•â• SETUP â•â•â• -->
 <section id="setup">
   <div class="inner">
     <h2 class="fadeup">Three moves to set up.</h2>
-    <p class="sub fadeup" data-delay=".05" style="margin-top:14px"><span style="font:500 12px var(--mono);letter-spacing:.1em;color:var(--terracotta);border:1px solid rgba(232,98,44,.4);border-radius:999px;padding:6px 14px">≈ 3 MINUTES · NO CODE</span></p>
-    <div class="moves">
-      <div class="move-card fadeup">
-        <div class="num">01</div>
+    <p class="sub fadeup" data-delay=".05" style="margin-top:14px"><span style="font:500 12px var(--mono);letter-spacing:.1em;color:var(--terracotta);border:1px solid rgba(232,98,44,.4);border-radius:999px;padding:6px 14px">â‰ˆ 3 MINUTES Â· NO CODE</span></p>
+    <div class="setup-stack">
+      <div class="setup-step fadeup glow">
+        <div class="num">1</div>
         <h3>Unlock the vault</h3>
         <p>Download the vault, drop in your license key, double-click the setup file. That's it.</p>
         <div class="move-chips">
-          <span>⬇ download</span>
-          <span>🔑 license.key</span>
-          <span>▶ double-click setup</span>
+          <span>â¬‡ download</span>
+          <span>ðŸ”‘ license.key</span>
+          <span>â–¶ double-click setup</span>
         </div>
       </div>
-      <div class="move-card fadeup" data-delay=".08">
-        <div class="num">02</div>
+      <div class="setup-step fadeup glow" data-delay=".08">
+        <div class="num">2</div>
         <h3>Connect your agent</h3>
-        <p>Open your AI agent's settings and paste the PlugICT config — copy-paste, no code.</p>
+        <p>Open your AI agent's settings and paste the PlugICT config â€” copy-paste, no code.</p>
         <div class="move-cmd">
-          <span>"ict-vault": { "command": … }</span>
+          <span>"ict-vault": { "command": â€¦ }</span>
           <button class="copy-btn" type="button" data-cmd='"ict-vault": { "command": "ict-vault-mcp" }'>copy</button>
         </div>
       </div>
-      <div class="move-card fadeup" data-delay=".16">
-        <div class="num">03</div>
+      <div class="setup-step fadeup glow" data-delay=".16">
+        <div class="num">3</div>
         <h3>Ask your AI</h3>
         <p>It searches, walks the graph, and answers with cited timestamps.</p>
         <div class="move-chips">
@@ -1054,14 +1058,14 @@ window.PLUGICT = {
   </div>
 </section>
 
-<!-- ═══ CONNECT / CODE TABS (x.ai-style developer block) ═══ -->
+<!-- â•â•â• CONNECT / CODE TABS â•â•â• -->
 <section id="connect">
   <div class="inner">
     <div class="eyebrow rv rv-up">Connect your agent</div>
     <div class="codeblock">
       <div class="lead rv rv-left">
         <h3>One config. Any MCP agent.</h3>
-        <p>Paste the vault into your agent and every answer comes back cited to the exact video and timestamp — no glue code, no cloud round-trip. Copy the snippet for your tool and you're live.</p>
+        <p>Paste the vault into your agent and every answer comes back cited to the exact video and timestamp â€” no glue code, no cloud round-trip. Copy the snippet for your tool and you're live.</p>
         <div class="code-langs">
           <span class="code-lang"><i></i>Claude Desktop</span>
           <span class="code-lang"><i></i>Cursor</span>
@@ -1091,7 +1095,7 @@ window.PLUGICT = {
   }
 }</pre></div>
 
-        <div class="code-pane" data-pane="cursor"><pre class="code-body"><span class="cm"># ~/.cursor/mcp.json — same shape, drop it in and reload</span>
+        <div class="code-pane" data-pane="cursor"><pre class="code-body"><span class="cm"># ~/.cursor/mcp.json â€” same shape, drop it in and reload</span>
 {
   <span class="ky">"mcpServers"</span>: {
     <span class="ky">"ict-vault"</span>: {
@@ -1104,21 +1108,21 @@ window.PLUGICT = {
         <div class="code-pane" data-pane="cli"><pre class="code-body"><span class="cm"># unlock once, then let the doctor verify everything</span>
 <span class="fn">$</span> ict-vault unlock --license license.key
 <span class="fn">$</span> ict-vault doctor
-<span class="ky">✓</span> vault decrypted  <span class="cm">· 576 videos · 12,438 chunks</span>
-<span class="ky">✓</span> knowledge graph loaded  <span class="cm">· reranker ready</span>
-<span class="ky">✓</span> MCP server listening on stdio</pre></div>
+<span class="ky">âœ“</span> vault decrypted  <span class="cm">Â· 576 videos Â· 12,438 chunks</span>
+<span class="ky">âœ“</span> knowledge graph loaded  <span class="cm">Â· reranker ready</span>
+<span class="ky">âœ“</span> MCP server listening on stdio</pre></div>
 
         <div class="code-pane" data-pane="ask"><pre class="code-body"><span class="fn">you&gt;</span> difference between an order block and a breaker?
 <span class="ky">ict-vault&gt;</span> An order block is the last down-candle before an
           up-move; a breaker is that block after price fails
-          and breaks back through it…
-          <span class="cm">↳ 2023 Mentorship — Ep 31 · 41:07 (97% confidence)</span></pre></div>
+          and breaks back through itâ€¦
+          <span class="cm">â†³ 2023 Mentorship â€” Ep 31 Â· 41:07 (97% confidence)</span></pre></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══ PRICING ═══ -->
+<!-- â•â•â• PRICING â•â•â• -->
 <section id="pricing" class="alt">
   <div class="price-wrap">
     <div class="fadeup">
@@ -1126,21 +1130,22 @@ window.PLUGICT = {
       <h2 style="margin-top:20px">Own it forever.</h2>
       <p class="sub" style="margin-left:0">No subscription. One license, tied to you, that unlocks the vault on your machine for life.</p>
       <div class="price-feats">
-        <div><span class="tick">✓</span>&nbsp; 576 videos, fully searchable</div>
-        <div><span class="tick">✓</span>&nbsp; Knowledge graph + reranker</div>
-        <div><span class="tick">✓</span>&nbsp; Timestamp-verified citations</div>
-        <div><span class="tick">✓</span>&nbsp; Runs locally — private by design</div>
-        <div><span class="tick">✓</span>&nbsp; Lifetime access — one payment</div>
+        <div><span class="tick">âœ“</span>&nbsp; 576 videos, fully searchable</div>
+        <div><span class="tick">âœ“</span>&nbsp; Knowledge graph + reranker</div>
+        <div><span class="tick">âœ“</span>&nbsp; Timestamp-verified citations</div>
+        <div><span class="tick">âœ“</span>&nbsp; Runs locally â€” private by design</div>
+        <div><span class="tick">âœ“</span>&nbsp; Lifetime access â€” one payment</div>
       </div>
-      <p style="margin-top:18px;font-size:13px;line-height:1.6;color:var(--ink-mut);max-width:400px">The vault has zero ongoing fees. Your AI agent brings its own key — free Google Gemini (1,500 queries/day) or ~$2/month DeepSeek both work.</p>
+      <p style="margin-top:18px;font-size:13px;line-height:1.6;color:var(--ink-mut);max-width:400px">The vault has zero ongoing fees. Your AI agent brings its own key â€” free Google Gemini (1,500 queries/day) or ~$2/month DeepSeek both work.</p>
     </div>
     <div class="price-card fadeup glow" data-delay=".1">
-      <div class="tag">LIFETIME LICENSE · LAUNCH PRICING</div>
+      <div class="tag">LIFETIME LICENSE Â· ONE-TIME</div>
+      <div class="was">Launch test price</div>
       <div class="now">$1.00</div>
       <div class="onetime">one-time payment</div>
       <div class="countdown" id="countdown" role="timer" aria-live="off"></div>
       <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access</a>
-      <div class="demo-line">or <a href="https://github.com/godzillacode0000/plugICT/releases/download/v1.0-demo/ict-vault-demo.zip" data-demo-link>try the free demo</a> first — vault of 3 videos from the 2022 Mentorship, full engine, no license needed</div>
+      <div class="demo-line">or <a href="https://github.com/godzillacode0000/plugICT/releases/download/v1.0-demo/ict-vault-demo.zip" data-demo-link>try the free demo</a> first â€” vault of 3 videos from the 2022 Mentorship, full engine, no license needed</div>
       <div class="pay-row">
         <span class="pay-chip">FPX</span>
         <span class="pay-chip">CARD</span>
@@ -1150,52 +1155,52 @@ window.PLUGICT = {
   </div>
 </section>
 
-<!-- ═══ FAQ ═══ -->
+<!-- â•â•â• FAQ â•â•â• -->
 <section id="faq">
   <div class="inner">
     <h2 class="fadeup">Questions, answered.</h2>
     <div class="faq">
       <details class="fadeup"><summary>Do I need to be technical to set this up? <span class="chev">+</span></summary>
-        <div class="faq-body"><div><p>No. You download, drop in your license key, and double-click the setup file — it handles everything. Then you paste one small config into your AI agent (copy-paste, no code). If anything's off, a built-in doctor check tells you exactly what to fix, in plain English.</p></div></div></details>
+        <div class="faq-body"><div><p>No. You download, drop in your license key, and double-click the setup file â€” it handles everything. Then you paste one small config into your AI agent (copy-paste, no code). If anything's off, a built-in doctor check tells you exactly what to fix, in plain English.</p></div></div></details>
       <details class="fadeup"><summary>Does it work without internet? <span class="chev">+</span></summary>
-        <div class="faq-body"><div><p>The vault's search runs locally on your machine — it never sends your queries to a cloud. But your AI agent and the YouTube links do need internet. Think of it like this: the library is on your shelf, but you need wifi to ask the librarian.</p></div></div></details>
+        <div class="faq-body"><div><p>The vault's search runs locally on your machine â€” it never sends your queries to a cloud. But your AI agent and the YouTube links do need internet. Think of it like this: the library is on your shelf, but you need wifi to ask the librarian.</p></div></div></details>
       <details class="fadeup"><summary>Can I use it with ChatGPT or Claude on the web? <span class="chev">+</span></summary>
-        <div class="faq-body"><div><p>It works today with Claude Desktop (free download), Cursor (free) and Hermes Agent (free) — any local MCP agent. Web-based ChatGPT and Claude don't support MCP yet; a hosted connector for web AIs is on the roadmap.</p></div></div></details>
+        <div class="faq-body"><div><p>It works today with Claude Desktop (free download), Cursor (free) and Hermes Agent (free) â€” any local MCP agent. Web-based ChatGPT and Claude don't support MCP yet; a hosted connector for web AIs is on the roadmap.</p></div></div></details>
       <details class="fadeup"><summary>What exactly do I download? <span class="chev">+</span></summary>
         <div class="faq-body"><div><p>Three things: an encrypted knowledge vault file, a setup file that handles everything automatically, and your personal <code>license.key</code> (emailed to you). No app, no installer, no bloat. The license is tied to you and traceable, so please don't share it.</p></div></div></details>
       <details class="fadeup"><summary>Do I need to pay for anything else? <span class="chev">+</span></summary>
-        <div class="faq-body"><div><p>The vault is one-time $1.00 with zero ongoing fees. Your AI agent needs its own API key — free options include Google Gemini (1,500 queries/day free), and DeepSeek runs about $2/month. Claude Desktop's free plan works too.</p></div></div></details>
+        <div class="faq-body"><div><p>The vault is one-time $1.00 with zero ongoing fees. Your AI agent needs its own API key â€” free options include Google Gemini (1,500 queries/day free), and DeepSeek runs about $2/month. Claude Desktop's free plan works too.</p></div></div></details>
       <details class="fadeup"><summary>How can I pay? <span class="chev">+</span></summary>
         <div class="faq-body"><div><p>DuitNow QR and FPX online banking for Malaysia, international cards via Stripe, or USDT (Solana / TRC20) for crypto. However you pay, your license is emailed to you and the product works exactly the same.</p></div></div></details>
       <details class="fadeup"><summary>What are the system requirements? <span class="chev">+</span></summary>
         <div class="faq-body"><div><p>Windows, macOS or Linux with Python 3.9+. The setup script handles the rest in an isolated environment, so it won't interfere with anything else on your computer.</p></div></div></details>
     </div>
-    <p class="faq-more fadeup">Still have questions? Email <a href="" class="support-mail"></a> — a real person answers.</p>
+    <p class="faq-more fadeup">Still have questions? Email <a href="" class="support-mail"></a> â€” a real person answers.</p>
   </div>
 </section>
 
-<!-- ═══ TESTIMONIALS — hidden until PLUGICT.testimonials has real quotes ═══ -->
+<!-- â•â•â• TESTIMONIALS â€” hidden until PLUGICT.testimonials has real quotes â•â•â• -->
 <div class="quotes-band fadeup" id="quotes-band" hidden>
   <div class="quotes" id="quotes"></div>
 </div>
 
-<!-- ═══ FINAL CTA ═══ -->
+<!-- â•â•â• FINAL CTA â•â•â• -->
 <section id="get-access" class="final-cta center">
   <div class="inner">
     <h2 class="fadeup">Stop scrubbing timelines. Start asking.</h2>
     <p class="sub fadeup" data-delay=".08">576 videos, one license, yours for life. Set up in three minutes.</p>
     <div class="fadeup" data-delay=".16" style="margin-top:34px">
-      <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access — $1.00</a>
+      <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access â€” $1.00</a>
     </div>
-    <div class="fine fadeup" data-delay=".22">ONE-TIME · NO SUBSCRIPTION · NO ONGOING FEES</div>
+    <div class="fine fadeup" data-delay=".22">ONE-TIME Â· NO SUBSCRIPTION Â· NO ONGOING FEES</div>
 
     <div class="capture fadeup" data-delay=".28">
-      <div class="cap-lbl">NOT READY YET? GET LAUNCH UPDATES</div>
+      <div class="cap-lbl">NOT READY YET? GET PRODUCT UPDATES</div>
       <form id="capture-form" novalidate>
         <input type="email" name="email" placeholder="you@example.com" required autocomplete="email" aria-label="Email address">
         <button type="submit">Keep me posted</button>
       </form>
-      <div class="cap-done" id="capture-done">✓ Noted — you'll hear from us before the launch price ends.</div>
+      <div class="cap-done" id="capture-done">✓ Noted — you'll hear from us when updates ship.</div>
     </div>
   </div>
 </section>
@@ -1209,53 +1214,53 @@ window.PLUGICT = {
       Educational research tool. PlugICT is an independent product and is <b>not affiliated with, endorsed by, or
       sponsored by</b> The Inner Circle Trader or Michael J. Huddleston. All trademarks belong to their respective owners.
       Nothing here is financial advice.
-      <div style="margin-top:12px">© <span data-year></span> PlugICT. All rights reserved.</div>
+      <div style="margin-top:12px">Â© <span data-year></span> PlugICT. All rights reserved.</div>
     </div>
   </div>
 </footer>
 
-<!-- ═══ PAYMENT MODAL ═══ -->
+<!-- â•â•â• PAYMENT MODAL â•â•â• -->
 <div class="pay-overlay" id="pay-overlay" role="dialog" aria-modal="true" aria-labelledby="pay-title">
   <div class="pay-modal">
-    <button class="close" type="button" aria-label="Close" data-pay-close>×</button>
+    <button class="close" type="button" aria-label="Close" data-pay-close>Ã—</button>
 
     <div id="pay-home">
       <h3 id="pay-title">Get Lifetime Access</h3>
       <div class="price-line" id="pay-price"></div>
       <div class="pay-methods">
         <button class="pay-method" type="button" data-method="billplz">
-          <span><span class="pm-name">FPX / DuitNow</span><br><span class="pm-desc">Malaysian online banking via Billplz — license emailed instantly</span></span>
+          <span><span class="pm-name">FPX / DuitNow</span><br><span class="pm-desc">Malaysian online banking via Billplz â€” license emailed instantly</span></span>
           <span class="pm-tag" data-tag="billplz">INSTANT</span>
         </button>
         <button class="pay-method" type="button" data-method="stripe">
-          <span><span class="pm-name">Card</span><br><span class="pm-desc">International cards via Stripe — license emailed instantly</span></span>
+          <span><span class="pm-name">Card</span><br><span class="pm-desc">International cards via Stripe â€” license emailed instantly</span></span>
           <span class="pm-tag" data-tag="stripe">INSTANT</span>
         </button>
         <button class="pay-method" type="button" data-method="duitnow">
-          <span><span class="pm-name">DuitNow QR</span><br><span class="pm-desc">Scan &amp; pay from any Malaysian bank app — 0% fees</span></span>
+          <span><span class="pm-name">DuitNow QR</span><br><span class="pm-desc">Scan &amp; pay from any Malaysian bank app â€” 0% fees</span></span>
           <span class="pm-tag soon">MANUAL</span>
         </button>
         <button class="pay-method" type="button" data-method="usdt">
-          <span><span class="pm-name">USDT</span><br><span class="pm-desc">Solana or TRC20 — crypto, international</span></span>
+          <span><span class="pm-name">USDT</span><br><span class="pm-desc">Solana or TRC20 â€” crypto, international</span></span>
           <span class="pm-tag soon">MANUAL</span>
         </button>
       </div>
     </div>
 
     <div class="pay-pane" id="pane-duitnow">
-      <button class="back" type="button" data-pay-back>← all payment methods</button>
+      <button class="back" type="button" data-pay-back>â† all payment methods</button>
       <h4>Pay with DuitNow QR</h4>
       <img class="qr" id="duitnow-qr" alt="DuitNow QR code" hidden>
       <ol>
         <li>Scan the QR with any Malaysian bank app and pay <b id="duitnow-amt"></b>.</li>
         <li>Email your payment receipt to <a href="" class="support-mail"></a> from the address you want the license sent to.</li>
-        <li>Your <code style="font-size:.85em">license.key</code> + download link arrive by email — usually within a few hours.</li>
+        <li>Your <code style="font-size:.85em">license.key</code> + download link arrive by email â€” usually within a few hours.</li>
       </ol>
-      <div class="pay-note">DuitNow QR is verified manually, so delivery isn't instant like FPX/card — but it has zero fees.</div>
+      <div class="pay-note">DuitNow QR is verified manually, so delivery isn't instant like FPX/card â€” but it has zero fees.</div>
     </div>
 
     <div class="pay-pane" id="pane-usdt">
-      <button class="back" type="button" data-pay-back>← all payment methods</button>
+      <button class="back" type="button" data-pay-back>â† all payment methods</button>
       <h4>Pay with USDT</h4>
       <ol>
         <li>Send the equivalent of <b class="usd-amt"></b> in USDT to either address:</li>
@@ -1269,10 +1274,10 @@ window.PLUGICT = {
     </div>
 
     <div class="pay-pane" id="pane-fallback">
-      <button class="back" type="button" data-pay-back>← all payment methods</button>
+      <button class="back" type="button" data-pay-back>â† all payment methods</button>
       <h4 id="fallback-title">Checkout is being set up</h4>
       <div class="pay-note">This payment method goes live shortly. In the meantime, email
-        <a href="" class="support-mail"></a> and we'll sort your order out directly — or pick another method.</div>
+        <a href="" class="support-mail"></a> and we'll sort your order out directly â€” or pick another method.</div>
     </div>
 
   </div>
@@ -1287,10 +1292,7 @@ window.PLUGICT = {
   (function(){
     document.querySelectorAll('.fadeup').forEach(el=>{if(el.dataset.delay)el.style.transitionDelay=el.dataset.delay+'s';});
     const counters=document.querySelectorAll('[data-count]');
-    const runCount=(el)=>{const target=+el.dataset.count,t0=performance.now(),D=1400;
-      const step=(t)=>{const k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);
-        el.textContent=Math.round(target*e);if(k<1)requestAnimationFrame(step);};
-      requestAnimationFrame(step);};
+    const runCount=(el)=>{el.textContent=el.dataset.count;};
     if(REDUCED){document.querySelectorAll('.fadeup').forEach(el=>el.classList.add('infade'));
       counters.forEach(c=>c.textContent=c.dataset.count);return;}
     /* HTML ships real values (for no-JS); zero them here, pre-paint, for the count-up */
@@ -1313,7 +1315,7 @@ window.PLUGICT = {
     });
   });
 
-  /* ── payments: modal, countdown, email capture (config in <head>) ── */
+  /* â”€â”€ payments: modal, countdown, email capture (config in <head>) â”€â”€ */
   (function(){
     const cfg=window.PLUGICT||{};
     const overlay=document.getElementById('pay-overlay'); if(!overlay) return;
@@ -1321,9 +1323,9 @@ window.PLUGICT = {
     const panes={duitnow:'pane-duitnow',usdt:'pane-usdt',fallback:'pane-fallback'};
 
     document.getElementById('pay-price').textContent=
-      (cfg.priceUsd||'$1.00')+' one-time'+(cfg.priceMyr?' · '+cfg.priceMyr:'');
+      (cfg.priceUsd||'$1.00')+' one-time'+(cfg.priceMyr?' Â· '+cfg.priceMyr:'');
 
-    /* demo walkthrough video — appears only when a real URL is configured */
+    /* demo walkthrough video â€” appears only when a real URL is configured */
     if(cfg.demoVideoUrl){
       const slot=document.getElementById('video-slot');
       const box=document.getElementById('video-box');
@@ -1334,17 +1336,17 @@ window.PLUGICT = {
       box.appendChild(f); slot.hidden=false;
     }
 
-    /* testimonials — real quotes only, rendered from config */
+    /* testimonials â€” real quotes only, rendered from config */
     if(Array.isArray(cfg.testimonials)&&cfg.testimonials.length){
       const wrap=document.getElementById('quotes');
       cfg.testimonials.forEach(t=>{
         if(!t||!t.quote)return;
         const card=document.createElement('figure'); card.className='quote-card';
-        const mark=document.createElement('div'); mark.className='qmark'; mark.textContent='“';
+        const mark=document.createElement('div'); mark.className='qmark'; mark.textContent='â€œ';
         const p=document.createElement('p'); p.textContent=t.quote;
         card.appendChild(mark); card.appendChild(p);
         if(t.who){const who=document.createElement('figcaption'); who.className='who';
-          who.textContent='— '+t.who; card.appendChild(who);}
+          who.textContent='â€” '+t.who; card.appendChild(who);}
         wrap.appendChild(card);
       });
       if(wrap.children.length)document.getElementById('quotes-band').hidden=false;
@@ -1390,7 +1392,7 @@ window.PLUGICT = {
       } else showPane(panes[m]);
     }));
 
-    /* countdown — renders only for a real, future deadline */
+    /* countdown â€” renders only for a real, future deadline */
     const cd=document.getElementById('countdown');
     const end=cfg.saleEndsAt?Date.parse(cfg.saleEndsAt):NaN;
     if(cd&&!isNaN(end)&&end>Date.now()){
@@ -1398,7 +1400,7 @@ window.PLUGICT = {
       const tick=()=>{const ms=end-Date.now();
         if(ms<=0){cd.classList.remove('on');return;}
         const d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5),mi=Math.floor(ms%36e5/6e4);
-        cd.textContent='LAUNCH PRICE ENDS IN '+(d?d+'D ':'')+h+'H '+mi+'M';
+        cd.textContent='PRICE TIMER '+(d?d+'D ':'')+h+'H '+mi+'M';
         setTimeout(tick,3e4);};
       tick();
     }
@@ -1424,17 +1426,17 @@ window.PLUGICT = {
   (function(){
     const term=document.getElementById('term'); if(!term) return;
     const scenarios=[
-      {cmd:'explain CISD', found:'18 lessons', title:'2022 Mentorship — Video 147', ts:'18:24', conf:'99%'},
-      {cmd:'silver bullet entry window', found:'26 lessons', title:'2023 Mentorship — Episode 31', ts:'41:07', conf:'97%'},
-      {cmd:'order block vs breaker', found:'34 lessons', title:'ICT Core Content — Month 4', ts:'12:52', conf:'98%'},
+      {cmd:'explain CISD', found:'18 lessons', title:'2022 Mentorship â€” Video 147', ts:'18:24', conf:'99%'},
+      {cmd:'silver bullet entry window', found:'26 lessons', title:'2023 Mentorship â€” Episode 31', ts:'41:07', conf:'97%'},
+      {cmd:'order block vs breaker', found:'34 lessons', title:'ICT Core Content â€” Month 4', ts:'12:52', conf:'98%'},
     ];
     const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
     if(REDUCED){const s=scenarios[0];
       term.innerHTML=`<div><span class="t-prompt">ict&gt;</span> <span class="t-cmd">${esc(s.cmd)}</span></div>
-        <div class="t-dim">Searching 576 videos…</div>
-        <div><span class="t-warm">✓</span> Found ${s.found}</div>
+        <div class="t-dim">Searching 576 videosâ€¦</div>
+        <div><span class="t-warm">âœ“</span> Found ${s.found}</div>
         <div class="t-cite"><div class="title">${esc(s.title)}</div>
-        <div><span class="ts">${s.ts}</span>&nbsp;·&nbsp; ${s.conf} confidence</div></div>`;
+        <div><span class="ts">${s.ts}</span>&nbsp;Â·&nbsp; ${s.conf} confidence</div></div>`;
       return;}
     let si=0;
     const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -1445,24 +1447,24 @@ window.PLUGICT = {
       for(const ch of s.cmd){cmdEl.textContent+=ch; await sleep(45+Math.random()*55);}
       await sleep(400);
       term.querySelector('.t-cursor')?.remove();
-      term.insertAdjacentHTML('beforeend',`<div class="t-dim">Searching 576 videos…</div>`);
+      term.insertAdjacentHTML('beforeend',`<div class="t-dim">Searching 576 videosâ€¦</div>`);
       await sleep(750);
-      term.insertAdjacentHTML('beforeend',`<div><span class="t-warm">✓</span> Found ${s.found} <span class="t-dim">· reranked in 1.2s</span></div>`);
+      term.insertAdjacentHTML('beforeend',`<div><span class="t-warm">âœ“</span> Found ${s.found} <span class="t-dim">Â· reranked in 1.2s</span></div>`);
       await sleep(450);
       term.insertAdjacentHTML('beforeend',
         `<div class="t-cite"><div class="title">${esc(s.title)}</div>
-         <div><span class="ts">${s.ts}</span>&nbsp;·&nbsp; ${s.conf} confidence</div>
-         <div class="t-dim" style="margin-top:4px">▶ youtu.be/… opens at the exact moment</div></div>`);
+         <div><span class="ts">${s.ts}</span>&nbsp;Â·&nbsp; ${s.conf} confidence</div>
+         <div class="t-dim" style="margin-top:4px">â–¶ youtu.be/â€¦ opens at the exact moment</div></div>`);
       await sleep(4200);
       run();
     }
     run();
   })();
 
-  /* ── live "try it" demo: real client-side search over the demo vault ──
+  /* â”€â”€ live "try it" demo: real client-side search over the demo vault â”€â”€
      Powered by demo-index.json (built by store/export_web_demo.py) and/or
      PLUGICT.demoQA (real captured Claude answers). Nothing here fabricates
-     ICT content — search results come from the actual demo transcripts, and
+     ICT content â€” search results come from the actual demo transcripts, and
      canned answers are only shown if you pasted real ones into the config. */
   (function(){
     const cfg=window.PLUGICT||{};
@@ -1484,7 +1486,7 @@ window.PLUGICT = {
     const expand=q=>{const sf=(index&&index.shortforms)||{};
       return q.split(/\s+/).map(tok=>{const core=tok.replace(/[?!.,;:()]/g,'');
         if(core&&core===core.toUpperCase()&&sf[core])
-          return sf[core].split(' — ')[0].split(' / ')[0].trim();
+          return sf[core].split(' â€” ')[0].split(' / ')[0].trim();
         return tok;}).join(' ');};
 
     const STOP=new Set(['the','a','an','is','of','to','in','on','and','or','what','how','does','do','you','your','it','for','me','explain','define']);
@@ -1512,7 +1514,7 @@ window.PLUGICT = {
     // per-line timestamps (the citation already shows the real one).
     function cleanText(t){
       return String(t)
-        .replace(/[▶►]️?/g,' ')
+        .replace(/[â–¶â–º]ï¸?/g,' ')
         .replace(/`+/g,'')
         .replace(/:-+:|-{3,}/g,' ')
         .replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g,' ')
@@ -1529,7 +1531,7 @@ window.PLUGICT = {
       let start=Math.max(0,firstIdx-60);
       let frag=esc(text.slice(start,start+220));
       for(const t of ts){frag=frag.replace(new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig'),'<b>$1</b>');}
-      return (start>0?'…':'')+frag+'…';
+      return (start>0?'â€¦':'')+frag+'â€¦';
     }
 
     const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -1538,15 +1540,15 @@ window.PLUGICT = {
     function citeHtml(title,v,ts){
       const link=ytLink(v,ts);
       return '<div class="demo-hit"><div class="title">'+esc(title||'')+'</div>'
-        +(link?'<a class="play" href="'+link+'" target="_blank" rel="noopener">▶ watch at '+esc(ts||'')+'</a>':'')
+        +(link?'<a class="play" href="'+link+'" target="_blank" rel="noopener">â–¶ watch at '+esc(ts||'')+'</a>':'')
         +'</div>';
     }
     function againBtn(){
-      return '<button class="demo-again" type="button" data-again>↑ ask another question</button>';
+      return '<button class="demo-again" type="button" data-again>â†‘ ask another question</button>';
     }
 
     // Stream real text word-by-word into el (ChatGPT-style). Honest: the text is
-    // real — a captured Claude answer or a real transcript snippet.
+    // real â€” a captured Claude answer or a real transcript snippet.
     async function typeInto(el, text, myRun, wps){
       if(REDUCED){ el.innerHTML=esc(text); return; }
       const words=text.split(/(\s+)/); el.innerHTML='';
@@ -1554,7 +1556,7 @@ window.PLUGICT = {
       el.appendChild(cur);
       const delay=1000/((wps||42));
       for(const w of words){
-        if(myRun!==runId) return;              // superseded — stop
+        if(myRun!==runId) return;              // superseded â€” stop
         cur.insertAdjacentText('beforebegin', w);
         if(w.trim()) await sleep(delay);
       }
@@ -1575,9 +1577,9 @@ window.PLUGICT = {
     async function renderHits(hits,q,myRun){
       if(!hits.length){
         out.innerHTML='<div class="demo-empty">No match in this 5-video sample. '
-          +'Try “fair value gap”, “liquidity”, or a suggested question above — '
+          +'Try â€œfair value gapâ€, â€œliquidityâ€, or a suggested question above â€” '
           +'the full vault covers all 576 videos.</div>'; return;}
-      out.innerHTML='<div class="status">✓ '+hits.length+' result'+(hits.length>1?'s':'')
+      out.innerHTML='<div class="status">âœ“ '+hits.length+' result'+(hits.length>1?'s':'')
         +' in the demo sample</div><div id="demo-hits"></div>';
       const box=document.getElementById('demo-hits');
       for(const c of hits){
@@ -1587,7 +1589,7 @@ window.PLUGICT = {
         el.className='demo-hit'+(REDUCED?'':' rin');
         el.innerHTML='<div class="title">'+esc(c.t)+'</div>'
           +'<div class="snip">'+snippet(c.x,q)+'</div>'
-          +(link?'<a class="play" href="'+link+'" target="_blank" rel="noopener">▶ watch at '+esc(c.ts)+'</a>':'');
+          +(link?'<a class="play" href="'+link+'" target="_blank" rel="noopener">â–¶ watch at '+esc(c.ts)+'</a>':'');
         box.appendChild(el);
         if(!REDUCED) await sleep(150);
       }
@@ -1602,12 +1604,12 @@ window.PLUGICT = {
       const hit=qa.find(x=>x.q.toLowerCase().replace(/[?.!]/g,'').trim()
                           ===q.toLowerCase().replace(/[?.!]/g,'').trim());
       if(hit){
-        out.innerHTML='<div class="status">Thinking…</div>';
+        out.innerHTML='<div class="status">Thinkingâ€¦</div>';
         if(!REDUCED) await sleep(450);
         if(myRun!==runId) return;
         return renderQA(hit, myRun);
       }
-      out.innerHTML='<div class="status">Searching the demo sample…</div>';
+      out.innerHTML='<div class="status">Searching the demo sampleâ€¦</div>';
       if(!REDUCED) await sleep(400);
       if(myRun!==runId) return;
       await renderHits(search(q), q, myRun);
@@ -1632,7 +1634,7 @@ window.PLUGICT = {
     }
 
     function idle(){
-      // empty, inviting start — user types first (no pre-filled answer)
+      // empty, inviting start â€” user types first (no pre-filled answer)
       out.innerHTML='<div class="demo-idle">Ask anything about ICT, or tap a '
         +'question above.<span class="cur"></span></div>';
     }
@@ -1641,11 +1643,11 @@ window.PLUGICT = {
       sec.hidden=false;
       buildChips();
       input.placeholder = qa.length
-        ? 'Ask a question — e.g. ' + qa[0].q
-        : 'Ask anything about ICT — e.g. what is a fair value gap?';
+        ? 'Ask a question â€” e.g. ' + qa[0].q
+        : 'Ask anything about ICT â€” e.g. what is a fair value gap?';
       go.addEventListener('click',()=>ask(input.value));
       input.addEventListener('keydown',e=>{if(e.key==='Enter')ask(input.value);});
-      // "ask another" → clear + refocus the input for a fresh question
+      // "ask another" â†’ clear + refocus the input for a fresh question
       out.addEventListener('click',e=>{
         if(e.target.closest('[data-again]')){ input.value=''; idle(); input.focus(); }
       });
@@ -1663,43 +1665,13 @@ window.PLUGICT = {
           if(noteEl&&j.demo) noteEl.innerHTML='This is the <b>raw search</b> over '
             +(j.demo.count||'5')+' sample videos. The full product connects your AI '
             +'agent, which <b>reasons over these results</b> to answer in plain English '
-            +'— across all '+(j.demo.total||'576')+' videos.';
+            +'â€” across all '+(j.demo.total||'576')+' videos.';
         }
         finish();
       }).catch(finish);
     } else { finish(); }
   })();
-
-  /* ══════════════════════════════════════════════════════════════
-     MOTION (restrained)
-     — scroll-reveal + code tabs only.
-     All gated on prefers-reduced-motion and pointer capability.
-     ══════════════════════════════════════════════════════════════ */
-
-  /* ── 3. per-card glow follows the cursor ── */
-  (function(){
-    if(REDUCED) return;
-    document.querySelectorAll('.glow').forEach(card=>{
-      card.addEventListener('pointermove',e=>{
-        const r=card.getBoundingClientRect();
-        card.style.setProperty('--mx',(e.clientX-r.left)+'px');
-        card.style.setProperty('--my',(e.clientY-r.top)+'px');
-      },{passive:true});
-    });
-  })();
-
-  /* ── 5. directional scroll-reveal for .rv elements ── */
-  (function(){
-    const items=document.querySelectorAll('.rv');
-    if(!items.length) return;
-    if(REDUCED){ items.forEach(el=>el.classList.add('in')); return; }
-    const io=new IntersectionObserver(es=>es.forEach(en=>{
-      if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
-    }),{threshold:.18});
-    items.forEach(el=>io.observe(el));
-  })();
-
-  /* ── 6. code-snippet tabs ── */
+  /* code-snippet tabs */
   (function(){
     const panel=document.querySelector('.code-panel'); if(!panel) return;
     const tabs=panel.querySelectorAll('.code-tab');
@@ -1721,7 +1693,7 @@ window.PLUGICT = {
     });
   })();
 
-  /* ── 7. knowledge graph traversal ── */
+  /* â”€â”€ 7. knowledge graph traversal â”€â”€ */
   (function(){
     const root=document.getElementById('kg-graph'); if(!root) return;
     const surface=root.querySelector('.kg-surface');
@@ -1770,10 +1742,10 @@ window.PLUGICT = {
     let edgeMap={};
     let adj={};
     let timer=null, paused=false;
-    const reduced=!!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced=true;
     let manual=false;
     let started=false;
-    const defaultCaption='Traversal: FVG → Order Block → Liquidity';
+    const defaultCaption='Traversal: FVG â†’ Order Block â†’ Liquidity';
 
     function visibleNodeData(){
       const mobile=mobileMq.matches;
