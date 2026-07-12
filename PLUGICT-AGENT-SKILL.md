@@ -2,6 +2,20 @@
 
 Use this skill when answering buyer questions with the PlugICT MCP vault.
 
+## Routing Guideline
+
+| Question type | Tool to use |
+|---|---|
+| Simple concept definition (FVG, OTE, CISD) | `search_ict` (fast, ~1-3s) |
+| Timing / session info | `search_ict` |
+| Terminology / glossary | `search_ict` |
+| Multi-facet question | `multi_search_ict` |
+| Comparison across years/sessions | `multi_search_ict` |
+| Deep research | `multi_search_ict` with research_mode |
+| Snippet too short | `expand_result` |
+
+Always try search_ict first. Only escalate to multi_search_ict when evidence is weak or question has multiple facets.
+
 ## Evidence Rules
 
 - Treat vault evidence as the primary source for what ICT said.
