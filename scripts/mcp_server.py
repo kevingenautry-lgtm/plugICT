@@ -16,6 +16,7 @@ import os
 import sqlite3
 import time
 import json
+import threading
 from collections import deque
 from contextlib import redirect_stdout
 
@@ -155,10 +156,12 @@ def _semantic_candidates(query_text, limit, playlist=None, rrf_source='semantic'
 def search_vault(query, top_k=5, playlist=None, kg=True, rerank=True):
     ensure_vault()
     top_k = _clamp_top_k(top_k)
-    if kg:
-        cached = vc.get_cached_results(query, top_k, playlist)
-        if cached is not None:
-            return cached
+    # Cache keyed on the result-shaping flags so the fast (kg/rerank off) path and
+    # the full path never serve each other's results for the same query.
+    variant = f"kg{int(bool(kg))}rr{int(bool(rerank))}"
+    cached = vc.get_cached_results(query, top_k, playlist, variant=variant)
+    if cached is not None:
+        return cached
     results = []
     expanded, _ = vc.expand_query(query)
     # Over-fetch from each source so the reranker has real choice, then trim.
@@ -204,14 +207,14 @@ def search_vault(query, top_k=5, playlist=None, kg=True, rerank=True):
         except Exception as e:
             log(f"[warn] kg expansion skipped: {e}")
 
-    # 4) Dedup (one chunk never fills two slots), then 5) cross-encoder rerank.
+    # 4) Dedup (one chunk never fills two slots), then 5) rank.
     results = vc.apply_rrf_scores(results)
     results = vc.dedup_candidates(results)
     results = [vc.hydrate_candidate_text(_db, r) for r in results]
-    ranked = vc.rerank(query, results, top_k)
+    # Fast path (search_ict) skips the cross-encoder; full path reranks + MMR.
+    ranked = vc.rerank(query, results, top_k) if rerank else vc.rank_by_rrf(results, top_k)
     ranked = vc.finalize_ranked_results(ranked)
-    if kg:
-        vc.put_cached_results(query, top_k, playlist, ranked)
+    vc.put_cached_results(query, top_k, playlist, ranked, variant=variant)
     return ranked
 
 
@@ -540,12 +543,34 @@ async def call_tool(name, arguments):
         return [TextContent(type="text", text=f"Error: {e}")]
 
 
+def _preload_models():
+    """Warm the embedding + reranker models in the background right after the
+    vault decrypts, so the buyer's FIRST query isn't stalled by a one-time model
+    load (~10-25s). Best-effort: any failure just falls back to lazy loading on
+    first use. Runs in a daemon thread so it never blocks server startup."""
+    try:
+        vc.warm_reranker()  # cross-encoder (rerank path)
+    except Exception as e:
+        log(f"[warn] reranker preload skipped: {e}")
+    try:
+        # Fire one throwaway embedding through Chroma to load the BGE model that
+        # semantic search (both search_ict and multi_search_ict) depends on.
+        if vc.chroma_store_usable(_chroma_dir):
+            with redirect_stdout(sys.stderr):
+                _get_collection().query(query_texts=["warmup"], n_results=1)
+    except Exception as e:
+        log(f"[warn] embedding preload skipped: {e}")
+    log("✅ Models warm — first query will be fast.")
+
+
 async def main():
     log("=" * 50)
     log("ICT Knowledge Vault — MCP Server v" + SERVER_VERSION)
     log("=" * 50)
     try:
         ensure_vault()  # logs its own warm-up + ready messages
+        # Preload models off the main thread; the buyer's first query lands warm.
+        threading.Thread(target=_preload_models, name="model-preload", daemon=True).start()
     except VaultError as e:
         log(f"WARNING: vault not loaded yet: {e}")
         log("Server will start; tools will report the problem until it's fixed.")

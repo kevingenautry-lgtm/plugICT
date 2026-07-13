@@ -1133,19 +1133,23 @@ def clear_search_cache():
     _search_cache.clear()
 
 
-def _cache_key(query, top_k, playlist=None):
+def _cache_key(query, top_k, playlist=None, variant=''):
+    # `variant` distinguishes result-shaping flags (e.g. kg/rerank on vs off) so
+    # a fast-path (rerank-skipped) result is never served to a full-pipeline
+    # caller for the same query/top_k/playlist, and vice versa.
     return (
         (query or "").lower(),
         int(top_k),
         playlist or '',
+        variant or '',
         vault_hash,
         _vault_embedding_cache_fingerprint,
     )
 
 
-def get_cached_results(query, top_k, playlist=None):
+def get_cached_results(query, top_k, playlist=None, variant=''):
     global _search_cache_hits, _search_cache_misses
-    key = _cache_key(query, top_k, playlist)
+    key = _cache_key(query, top_k, playlist, variant)
     if key in _search_cache:
         _search_cache_hits += 1
         _search_cache.move_to_end(key)
@@ -1156,8 +1160,8 @@ def get_cached_results(query, top_k, playlist=None):
     return None
 
 
-def put_cached_results(query, top_k, playlist, results):
-    key = _cache_key(query, top_k, playlist)
+def put_cached_results(query, top_k, playlist, results, variant=''):
+    key = _cache_key(query, top_k, playlist, variant)
     _search_cache[key] = [dict(r) for r in results]
     _search_cache.move_to_end(key)
     while len(_search_cache) > SEARCH_CACHE_MAX:
@@ -1466,6 +1470,14 @@ def warm_reranker():
         return True
     except Exception:
         return False
+
+
+def rank_by_rrf(candidates, top_k):
+    """Fast path: order by fused RRF score and trim, skipping the cross-encoder.
+    Used by the light search_ict tool where latency matters more than the last
+    bit of ranking precision. Assumes apply_rrf_scores() has already run."""
+    ranked = sorted(candidates, key=lambda c: c.get('rrf_score', 0.0), reverse=True)
+    return ranked[:top_k]
 
 
 def rerank(query, candidates, top_k):

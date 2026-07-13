@@ -147,3 +147,36 @@ def test_single_candidate_shortcircuits(monkeypatch):
     # <=1 candidate never needs the model at all
     monkeypatch.setattr(vc, "_reranker", None)
     assert vc.rerank("q", [{"snippet": "only one"}], top_k=5) == [{"snippet": "only one"}]
+
+
+def test_rank_by_rrf_orders_by_score_and_trims():
+    # Fast path (rerank=False) must order by fused RRF score and cut to top_k,
+    # without touching the cross-encoder.
+    cands = [
+        {"title": "low", "rrf_score": 0.1},
+        {"title": "high", "rrf_score": 0.9},
+        {"title": "mid", "rrf_score": 0.5},
+    ]
+    out = vc.rank_by_rrf(cands, top_k=2)
+    assert [c["title"] for c in out] == ["high", "mid"]
+
+
+def test_cache_variant_prevents_cross_contamination():
+    # A fast-path (kg/rerank off) result must never be served to a full-pipeline
+    # caller for the same query/top_k, and vice versa.
+    vc.clear_search_cache()
+    fast = [{"title": "fast-result"}]
+    full = [{"title": "full-result"}]
+    vc.put_cached_results("FVG", 3, None, fast, variant="kg0rr0")
+    vc.put_cached_results("FVG", 3, None, full, variant="kg1rr1")
+    assert vc.get_cached_results("fvg", 3, variant="kg0rr0") == fast
+    assert vc.get_cached_results("fvg", 3, variant="kg1rr1") == full
+    # A variant with no stored entry is a clean miss, not a wrong-shape hit.
+    assert vc.get_cached_results("fvg", 3, variant="kg1rr0") is None
+
+
+def test_cache_default_variant_backward_compatible():
+    vc.clear_search_cache()
+    results = [{"title": "x"}]
+    vc.put_cached_results("q", 2, None, results)          # no variant arg
+    assert vc.get_cached_results("q", 2) == results        # still hits
