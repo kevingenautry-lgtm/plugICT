@@ -1,3 +1,4 @@
+> ⚠️ LEGACY NOTICE — no longer in production use.
 # Delivery Flow — Local / Lifetime
 
 How a paid order becomes a working install on the buyer's machine. Model:

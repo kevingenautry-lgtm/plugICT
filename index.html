@@ -27,13 +27,13 @@
 </script>
 <script>
 /* ═══ SITE CONFIG — the only block you edit when wiring up payments ═══
-   Backend reference: store/README.md (payment methods) and
-   store/webhook_server.py (automated license delivery for billplz/stripe). */
+   Note: This landing page now uses manual fulfillment (no webhooks/auto-email).
+   See store/issue_license.py for local license generation after verifying payment. */
 window.PLUGICT = {
   priceUsd: '$1.00',
   priceMyr: '',            // optional MYR shown on DuitNow QR pane, e.g. 'RM 105'
 
-  /* Automated checkout (webhook issues the license, buyer gets email instantly) */
+  /* Manual checkout (you confirm payment, then run store/issue_license.py) */
   billplzUrl: '',          // Billplz payment form URL — FPX + DuitNow, Malaysia
   stripeUrl: 'https://buy.stripe.com/7sY14oeiC06QdVX9Hm6Ri01',           // Stripe Payment Link — international cards
 
@@ -113,6 +113,10 @@ window.PLUGICT = {
   /* ── nav ────────────────────────────────────────────────── */
   nav{position:sticky; top:0; z-index:20; backdrop-filter:blur(10px);
       background:rgba(13,11,8,.82); border-bottom:1px solid var(--line-soft)}
+  .ref-banner{display:none; padding:7px 20px; text-align:center; color:var(--ink-soft);
+    background:rgba(232,98,44,.08); border-bottom:1px solid rgba(232,98,44,.18);
+    font:500 11px var(--mono); letter-spacing:.08em; text-transform:uppercase}
+  .ref-banner.on{display:block}
   nav .wrap{display:flex; align-items:center; justify-content:space-between; height:76px}
   .brand{display:flex; align-items:center; gap:10px; font:500 20px var(--serif); font-style:italic; letter-spacing:-.01em}
   .brand .mark{width:21px;height:21px;flex-shrink:0;color:var(--terracotta)}
@@ -759,6 +763,8 @@ window.PLUGICT = {
   </div>
 </nav>
 
+<div class="ref-banner" id="ref-banner" role="status">Referred by an affiliate</div>
+
 <main>
 
 <!-- ═══ HERO ═══ -->
@@ -1247,9 +1253,22 @@ window.PLUGICT = {
       sponsored by</b> The Inner Circle Trader or Michael J. Huddleston. All trademarks belong to their respective owners.
       Nothing here is financial advice.
       <div style="margin-top:12px">© <span data-year></span> PlugICT. All rights reserved.</div>
+      <div style="margin-top:8px"><a class="link-arrow" href="/affiliate.html">Affiliate →</a></div>
     </div>
   </div>
 </footer>
+
+<script>
+  (function(){
+    const value=new URLSearchParams(location.search).get('ref');
+    try{if(value&&/^[a-z0-9_-]{1,64}$/i.test(value))localStorage.setItem('plugict_ref',value);}
+    catch(e){}
+    let ref='';try{ref=localStorage.getItem('plugict_ref')||'';}catch(e){}
+    if(!ref)return;
+    document.getElementById('ref-banner').classList.add('on');
+    window.plugictStripeUrl=url=>{const target=new URL(url);target.searchParams.set('client_reference_id',ref);return target.href;};
+  })();
+</script>
 
 <!-- ═══ PAYMENT MODAL ═══ -->
 <div class="pay-overlay" id="pay-overlay" role="dialog" aria-modal="true" aria-labelledby="pay-title">
@@ -1261,11 +1280,11 @@ window.PLUGICT = {
       <div class="price-line" id="pay-price"></div>
       <div class="pay-methods">
         <button class="pay-method" type="button" data-method="billplz">
-          <span><span class="pm-name">FPX / DuitNow</span><br><span class="pm-desc">Malaysian online banking via Billplz — license emailed instantly</span></span>
+          <span><span class="pm-name">FPX / DuitNow</span><br><span class="pm-desc">Malaysian online banking via Billplz — license delivered within 24 hours</span></span>
           <span class="pm-tag" data-tag="billplz">INSTANT</span>
         </button>
         <button class="pay-method" type="button" data-method="stripe">
-          <span><span class="pm-name">Card</span><br><span class="pm-desc">International cards via Stripe — license emailed instantly</span></span>
+          <span><span class="pm-name">Card</span><br><span class="pm-desc">International cards via Stripe — license delivered within 24 hours</span></span>
           <span class="pm-tag" data-tag="stripe">INSTANT</span>
         </button>
         <button class="pay-method" type="button" data-method="duitnow">
@@ -1286,9 +1305,9 @@ window.PLUGICT = {
       <ol>
         <li>Scan the QR with any Malaysian bank app and pay <b id="duitnow-amt"></b>.</li>
         <li>Email your payment receipt to <a href="" class="support-mail"></a> from the address you want the license sent to.</li>
-        <li>Your <code style="font-size:.85em">license.key</code> + download link arrive by email — usually within a few hours.</li>
+        <li>Your <code style="font-size:.85em">license.key</code> + download link arrive by email — delivered within 24 hours.</li>
       </ol>
-      <div class="pay-note">DuitNow QR is verified manually, so delivery isn't instant like FPX/card — but it has zero fees.</div>
+      <div class="pay-note">DuitNow QR is verified manually — delivery within 24 hours, but zero fees.</div>
     </div>
 
     <div class="pay-pane" id="pane-usdt">
@@ -1434,7 +1453,7 @@ window.PLUGICT = {
       const m=btn.dataset.method;
       if(m==='billplz'||m==='stripe'){
         const url=cfg[m+'Url'];
-        if(url){location.href=url;}
+        if(url){location.href=m==='stripe'&&window.plugictStripeUrl?window.plugictStripeUrl(url):url;}
         else{document.getElementById('fallback-title').textContent=
           (m==='billplz'?'FPX / DuitNow checkout':'Card checkout')+' is being set up';
           showPane(panes.fallback);}

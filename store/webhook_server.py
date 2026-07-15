@@ -1,3 +1,4 @@
+# LEGACY — no longer in production use.
 """
 webhook_server.py — Automated license delivery on purchase
 ==========================================================

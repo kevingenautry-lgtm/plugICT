@@ -1,3 +1,4 @@
+# LEGACY — no longer in production use.
 # Render Blueprint for the PlugICT license-delivery webhook.
 # ---------------------------------------------------------------------------
 # In Render: New +  ->  Blueprint  ->  pick this repo. Render reads this file,
