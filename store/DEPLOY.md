@@ -1,3 +1,4 @@
+> ⚠️ LEGACY NOTICE — no longer in production use.
 # Go-Live Runbook — money → license email in inbox
 
 The one-time setup that turns a paid Stripe order into an automatic license

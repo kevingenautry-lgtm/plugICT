@@ -27,13 +27,13 @@
 </script>
 <script>
 /* ═══ SITE CONFIG — the only block you edit when wiring up payments ═══
-   Backend reference: store/README.md (payment methods) and
-   store/webhook_server.py (automated license delivery for billplz/stripe). */
+   Note: This landing page now uses manual fulfillment (no webhooks/auto-email).
+   See store/issue_license.py for local license generation after verifying payment. */
 window.PLUGICT = {
   priceUsd: '$1.00',
   priceMyr: '',            // optional MYR shown on DuitNow QR pane, e.g. 'RM 105'
 
-  /* Automated checkout (webhook issues the license, buyer gets email instantly) */
+  /* Manual checkout (you confirm payment, then run store/issue_license.py) */
   billplzUrl: '',          // Billplz payment form URL — FPX + DuitNow, Malaysia
   stripeUrl: 'https://buy.stripe.com/7sY14oeiC06QdVX9Hm6Ri01',           // Stripe Payment Link — international cards
 
@@ -52,27 +52,6 @@ window.PLUGICT = {
   /* Real buyer quotes only — leave empty until you have them. Each item:
      {quote:'…', who:'Firdaus, KL'}. Section stays hidden while empty. */
   testimonials: [],
-
-  /* ── LIVE "Try it" demo (client-side, no backend, no API key) ──────────
-     The section auto-appears if EITHER of these is set:
-
-     1) demoIndexUrl — a JSON file built from your DEMO vault by
-        store/export_web_demo.py (commit it at the repo root). Powers the
-        free-text search box: real keyword search over the demo transcripts,
-        with clickable YouTube timestamps. This is honest "raw search" — the
-        full product's AI reasons on top of exactly this.
-
-     2) demoQA — REAL answers you captured by asking Claude (connected to the
-        vault) these questions. Shown as one-click suggested questions so a
-        visitor with no AI setup still sees a full reasoned, cited answer.
-        Leave empty until you paste real captures — never invent answers.
-        Each item:
-          { q:'What is FVG?',
-            a:'A fair value gap is …',                     // real Claude output
-            cites:[{title:'2022 Mentorship — Ep 4', ts:'15:23', v:'YT_ID'}] }
-  */
-  demoIndexUrl: 'demo-index.json',
-  demoQA: [],
 
   /* Launch-price countdown. Set a REAL deadline (ISO 8601) or leave empty —
      an empty value hides the countdown entirely. No fake scarcity. */
@@ -109,10 +88,42 @@ window.PLUGICT = {
   ::selection{background:rgba(232,98,44,.3)}
   .wrap{max-width:var(--maxw); margin:0 auto; padding:0 28px}
   em{font-style:italic; color:var(--terracotta)}
+  /* hero "develop sweep": a bright bar passes top→bottom and the terracotta
+     text develops/glows as it passes. Font/size/color unchanged — only a
+     moving highlight via background-clip:text (guarded so base color is the
+     safe fallback). Loops with a rest between sweeps; static on reduced-motion. */
+  @supports ((-webkit-background-clip:text) or (background-clip:text)){
+    .hero h1 em.sweep{
+      color:transparent; -webkit-text-fill-color:transparent;
+      -webkit-background-clip:text; background-clip:text;
+      -webkit-box-decoration-break:clone; box-decoration-break:clone;
+      /* layer 1: moving bright band (transparent elsewhere) · layer 2: solid
+         terracotta base so the text is always fully filled at rest */
+      background-image:
+        linear-gradient(180deg, transparent 40%, #fff6da 46%, #ffffff 50%, #fff2cc 54%, transparent 60%),
+        linear-gradient(var(--terracotta), var(--terracotta));
+      background-repeat:no-repeat, no-repeat;
+      background-size:100% 260%, 100% 100%;
+      background-position:50% 130%, 0 0;
+      animation:hero-develop 2.5s cubic-bezier(.4,0,.2,1) .5s 2;
+    }
+  }
+  @keyframes hero-develop{
+    0%   {background-position:50% 130%, 0 0}
+    45%  {background-position:50% -30%, 0 0}
+    100% {background-position:50% -30%, 0 0}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .hero h1 em.sweep{animation:none; color:var(--terracotta); -webkit-text-fill-color:var(--terracotta); background:none}
+  }
 
   /* ── nav ────────────────────────────────────────────────── */
   nav{position:sticky; top:0; z-index:20; backdrop-filter:blur(10px);
       background:rgba(13,11,8,.82); border-bottom:1px solid var(--line-soft)}
+  .ref-banner{display:none; padding:7px 20px; text-align:center; color:var(--ink-soft);
+    background:rgba(232,98,44,.08); border-bottom:1px solid rgba(232,98,44,.18);
+    font:500 11px var(--mono); letter-spacing:.08em; text-transform:uppercase}
+  .ref-banner.on{display:block}
   nav .wrap{display:flex; align-items:center; justify-content:space-between; height:76px}
   .brand{display:flex; align-items:center; gap:10px; font:500 20px var(--serif); font-style:italic; letter-spacing:-.01em}
   .brand .mark{width:21px;height:21px;flex-shrink:0;color:var(--terracotta)}
@@ -138,7 +149,29 @@ window.PLUGICT = {
   .link-arrow{font:500 12.5px var(--mono); letter-spacing:.08em; color:var(--ink); text-decoration:none;
     border-bottom:1px solid rgba(242,234,217,.35); padding-bottom:3px; transition:color .2s}
   .link-arrow:hover{color:var(--terracotta)}
-  @media(max-width:760px){ .navlinks a:not(.btn){display:none} }
+  .nav-right{display:flex; align-items:center; gap:28px}
+  .nav-toggle{display:none; background:none; border:none; color:var(--ink); cursor:pointer;
+    padding:8px; margin:-8px; line-height:0}
+  .nav-toggle svg{width:26px; height:26px; display:block}
+  .nav-toggle:focus-visible{outline:2px solid var(--terracotta); outline-offset:2px; border-radius:6px}
+  @media(max-width:760px){
+    .nav-right{gap:14px}
+    .nav-toggle{display:inline-flex}
+    .navlinks{
+      position:absolute; top:100%; left:0; right:0; flex-direction:column; align-items:stretch;
+      gap:0; padding:6px 0; display:none;
+      background:rgba(13,11,8,.98); backdrop-filter:blur(10px);
+      border-bottom:1px solid var(--line-soft)}
+    nav.nav-open .navlinks{display:flex; z-index:2;
+      border:1px solid rgba(255,255,255,.5); border-top:none; border-radius:0 0 4px 4px;
+      box-shadow:0 0 22px rgba(255,255,255,.30), 0 14px 34px rgba(0,0,0,.55)}
+    /* blur the page behind the open menu */
+    nav.nav-open::before{content:""; position:fixed; left:0; right:0; top:76px; bottom:0; z-index:1;
+      background:rgba(7,6,5,.32); -webkit-backdrop-filter:blur(5px); backdrop-filter:blur(5px)}
+    .navlinks a{padding:15px 28px; font-size:16px; color:var(--ink);
+      border-top:1px solid var(--line-soft)}
+    .navlinks a:first-child{border-top:none}
+  }
 
   /* ── hero ───────────────────────────────────────────────── */
   .hero{position:relative; overflow:hidden; background:var(--paper)}
@@ -154,12 +187,27 @@ window.PLUGICT = {
     -webkit-mask-image:radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 78%);
     mask-image:radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 78%)}
   .hero .wrap{display:grid; grid-template-columns:1.05fr .95fr; gap:52px; align-items:center; padding:96px 28px 84px; position:relative; z-index:2}
-  @media(max-width:1000px){ .hero .wrap{grid-template-columns:1fr} }
   .eyebrow{font:500 11.5px var(--mono); letter-spacing:.18em; color:var(--terracotta); text-transform:uppercase}
   .hero h1{font:400 clamp(42px,6.3vw,86px)/1.03 var(--serif); letter-spacing:-.025em; margin-top:24px}
   .hero .sub{font-size:17px; line-height:1.7; color:var(--ink-soft); max-width:460px; margin-top:24px}
   .hero .cta{display:flex; align-items:center; gap:22px; flex-wrap:wrap; margin-top:34px}
+  /* slightly smaller hero buttons */
+  .hero .cta .btn{padding:13px 22px; font-size:14px}
+  .hero .cta .btn.telegram{font-size:12.5px}
   .hero .fine{font:400 12px var(--mono); letter-spacing:.05em; color:var(--ink-mut); margin-top:18px}
+  /* single-column: center the whole hero, buttons side-by-side even on phones */
+  @media(max-width:1000px){
+    .hero .wrap{grid-template-columns:1fr}
+    .hero .wrap > div:first-child{text-align:center}
+    .hero .sub{margin-left:auto; margin-right:auto}
+    .hero .cta{justify-content:center; flex-wrap:nowrap; gap:12px}
+    .hero .cta .btn{flex:1 1 0; min-width:0; justify-content:center; padding:12px 14px; text-align:center}
+  }
+  @media(max-width:400px){
+    .hero .cta{gap:9px}
+    .hero .cta .btn{padding:11px 10px; font-size:13px}
+    .hero .cta .btn.telegram{font-size:11px; letter-spacing:.03em}
+  }
 
   /* terminal panel */
   .terminal{background:var(--dark); border-radius:18px; border:1px solid rgba(232,98,44,.35); overflow:hidden;
@@ -177,52 +225,6 @@ window.PLUGICT = {
   .t-cite{margin-top:14px; border-left:2px solid var(--terracotta-bright); padding-left:14px}
   .t-cite .title{color:#F4EFE4; font-weight:500}
   .t-cite .ts{color:var(--terracotta-bright)}
-
-  /* ── live "try it" demo ─────────────────────────────────── */
-  .trydemo{padding:70px 28px 40px}
-  .trydemo .inner{max-width:860px}
-  .trydemo .eyebrow{text-align:center}
-  .trydemo h2{font:400 clamp(28px,4vw,44px)/1.12 var(--serif); letter-spacing:-.015em; text-align:center; margin-top:16px}
-  .trydemo .sub{text-align:center; margin:16px auto 0}
-  .demo-chips{display:flex; flex-wrap:wrap; justify-content:center; gap:9px; margin:26px auto 0; max-width:720px}
-  .demo-chip{font:500 13px var(--sans); color:var(--ink-soft); cursor:pointer;
-    background:var(--card); border:1px solid var(--line); border-radius:999px; padding:9px 16px;
-    transition:border-color .2s, color .2s, transform .15s}
-  .demo-chip:hover{border-color:var(--terracotta); color:var(--ink); transform:translateY(-1px)}
-  .demo-console{margin:26px auto 0; background:var(--dark); border:1px solid rgba(232,98,44,.32); border-radius:16px;
-    overflow:hidden; box-shadow:0 0 60px -22px var(--ember-glow), 0 30px 70px -40px rgba(0,0,0,.9)}
-  .demo-bar{display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid var(--dark-line)}
-  .demo-bar .t-prompt{font:500 13px var(--mono); flex-shrink:0}
-  .demo-input{flex:1; background:none; border:none; outline:none; color:#F4EFE4;
-    font:400 13.5px var(--mono); caret-color:var(--terracotta-bright)}
-  .demo-input::placeholder{color:rgba(244,239,228,.35)}
-  .demo-go{background:rgba(232,98,44,.14); border:1px solid rgba(232,98,44,.4); color:var(--terracotta-bright);
-    font:500 12px var(--mono); border-radius:8px; padding:7px 14px; cursor:pointer; flex-shrink:0; transition:background .2s}
-  .demo-go:hover{background:rgba(232,98,44,.24)}
-  .demo-out{padding:22px 24px 26px; font:400 13.5px/1.8 var(--mono); color:#F4EFE4; min-height:150px}
-  .demo-out .status{color:rgba(244,239,228,.45)}
-  .demo-answer{color:rgba(244,239,228,.92); font:400 14.5px/1.7 var(--sans); white-space:pre-wrap; margin-bottom:8px}
-  .demo-hit{margin-top:14px; border-left:2px solid var(--terracotta-bright); padding-left:14px}
-  .demo-hit .title{color:#F4EFE4; font-weight:600; font-size:13.5px}
-  .demo-hit .snip{color:rgba(244,239,228,.7); font-size:12.5px; margin-top:3px}
-  .demo-hit .snip b{color:var(--terracotta-bright); font-weight:600}
-  .demo-hit a.play{display:inline-flex; align-items:center; gap:6px; margin-top:6px;
-    color:var(--terracotta-bright); text-decoration:none; font:500 12px var(--mono)}
-  .demo-hit a.play:hover{text-decoration:underline}
-  .demo-note{max-width:640px; margin:20px auto 0; text-align:center; font-size:13px; line-height:1.6; color:var(--ink-mut)}
-  .demo-note b{color:var(--terracotta)}
-  .demo-empty{color:rgba(244,239,228,.5)}
-  /* streaming demo: idle hint, typing caret, staggered card reveal */
-  .demo-idle{color:rgba(244,239,228,.42); font:400 13.5px/1.7 var(--mono)}
-  .demo-idle .cur{display:inline-block; width:7px; height:15px; margin-left:2px;
-    background:var(--terracotta-bright); vertical-align:-2px; animation:blink 1s steps(1) infinite}
-  .demo-cur{display:inline-block; width:7px; height:15px; background:var(--terracotta-bright);
-    vertical-align:-2px; margin-left:1px; animation:blink 1s steps(1) infinite}
-  .demo-hit.rin{opacity:0; transform:translateY(8px); animation:demo-rise .34s ease forwards}
-  @keyframes demo-rise{to{opacity:1; transform:none}}
-  .demo-again{margin-top:16px; font:500 12px var(--mono); letter-spacing:.04em;
-    color:var(--ink-mut); background:none; border:none; cursor:pointer; padding:0}
-  .demo-again:hover{color:var(--terracotta-bright)}
 
   /* ── video placeholder ─────────────────────────────────── */
   .video-slot{margin:0 28px; position:relative}
@@ -252,6 +254,23 @@ window.PLUGICT = {
     color:var(--terracotta); background:rgba(232,98,44,.1); border:1px solid rgba(232,98,44,.28)}
   .stats .s-ic svg{width:18px; height:18px}
   @media(max-width:900px){ .stats{justify-content:flex-start; gap:20px} }
+
+  /* ── concept ticker (kinetic marquee) ─────────────────────── */
+  .ticker{padding:36px 0; margin-top:56px; overflow:hidden; background:var(--paper-alt);
+    border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft);
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+            mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+  .tk-row{overflow:hidden; white-space:nowrap}
+  .tk-row + .tk-row{margin-top:8px}
+  .tk-track{display:inline-block; will-change:transform}
+  .tk-track span{display:inline-block; font:500 clamp(11px,2.5vw,21px)/1 var(--serif);
+    font-style:italic; letter-spacing:-.01em; color:var(--ink); padding:0 .3em}
+  .tk-track .tk-dot{color:var(--terracotta); font-style:normal}
+  .tk-a{animation:tk-L 38s linear infinite}
+  .tk-b{animation:tk-R 44s linear infinite}
+  @keyframes tk-L{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @keyframes tk-R{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+  @media(prefers-reduced-motion:reduce){.tk-a,.tk-b{animation:none}}
 
   /* ── sections ───────────────────────────────────────────── */
   section{padding:88px 28px}
@@ -552,8 +571,6 @@ window.PLUGICT = {
   .price-card .now{font:400 clamp(52px,7vw,78px)/1 var(--serif); letter-spacing:-.02em; margin-top:8px}
   .price-card .onetime{font:400 12.5px var(--mono); color:var(--ink-mut); margin-top:8px}
   .price-card .btn{width:100%; justify-content:center; font-size:16px; padding:17px; margin-top:30px}
-  .price-card .demo-line{font-size:13px; color:var(--ink-mut); margin-top:14px}
-  .price-card .demo-line a{color:var(--terracotta); cursor:pointer; border-bottom:1px solid rgba(188,75,34,.4); text-decoration:none}
   .pay-row{display:flex; gap:8px; justify-content:center; margin-top:20px; flex-wrap:wrap}
   .pay-chip{font:400 11px var(--mono); color:var(--ink-mut); border:1px solid var(--line); border-radius:999px; padding:6px 12px}
 
@@ -726,16 +743,24 @@ window.PLUGICT = {
 <nav aria-label="Main">
   <div class="wrap">
     <div class="brand"><svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2v5"/><path d="M15 2v5"/><path d="M7 7h10v4a5 5 0 0 1-10 0V7z"/><path d="M12 16v3a3 3 0 0 1-3 3"/></svg> PlugICT</div>
-    <div class="navlinks">
-      <a href="#capabilities">What it does</a>
-      <a href="#setup">Setup</a>
-      <a href="#connect">Connect</a>
-      <a href="#pricing">Pricing</a>
-      <a href="#faq">FAQ</a>
+    <div class="nav-right">
+      <div class="navlinks" id="navmenu">
+        <a href="#capabilities">What it does</a>
+        <a href="#setup">Setup</a>
+        <a href="#connect">Connect</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+        <a href="/affiliate.html">Affiliate</a>
+      </div>
       <a class="btn primary small" href="#pricing">Get access</a>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="navmenu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg>
+      </button>
     </div>
   </div>
 </nav>
+
+<div class="ref-banner" id="ref-banner" role="status">Referred by an affiliate</div>
 
 <main>
 
@@ -745,11 +770,10 @@ window.PLUGICT = {
   <div class="wrap">
     <div>
       <div class="eyebrow fadeup">The ICT knowledge engine</div>
-      <h1 class="fadeup" data-delay=".08">Years of ICT lessons — <em>one instant answer.</em></h1>
+      <h1 class="fadeup" data-delay=".08">Years of ICT lessons — <em class="sweep">one instant answer.</em></h1>
       <p class="sub fadeup" data-delay=".16">576 videos transcribed, indexed and connected to your AI — every answer cited to the exact video and timestamp.</p>
       <div class="cta fadeup" data-delay=".24">
         <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access</a>
-        <a class="btn ghost" href="https://github.com/godzillacode0000/plugICT/releases/download/v1.0-demo/ict-vault-demo.zip" data-demo-link>TRY THE FREE DEMO →</a>
         <a class="btn ghost telegram" href="https://telegram.me/plugICT_here" target="_blank" rel="noopener noreferrer" aria-label="Visit the PlugICT Telegram channel">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.7 2.3a1 1 0 0 0-1-.2L2.6 9.1a1 1 0 0 0 .1 1.9l4.6 1.5 1.8 5.7a1 1 0 0 0 1.7.4l2.6-2.7 4.8 3.5a1 1 0 0 0 1.6-.6l3-15.5a1 1 0 0 0-1.1-1Zm-3.5 4.1-8.1 7.4-.8 2.5-1.2-3.8 10.1-6.1Z"/></svg>
           VIEW TELEGRAM
@@ -764,26 +788,6 @@ window.PLUGICT = {
   </div>
 </header>
 
-<!-- ═══ LIVE "TRY IT" DEMO — appears if demoIndexUrl or demoQA is configured ═══ -->
-<section class="trydemo fadeup" id="trydemo" hidden>
-  <div class="inner">
-    <div class="eyebrow">Try it — no download, no signup</div>
-    <h2>Ask the vault <em>right here.</em></h2>
-    <p class="sub">A live sample of 5 videos from the 2022 Mentorship. Type a question, or tap one:</p>
-    <div class="demo-chips" id="demo-chips"></div>
-    <div class="demo-console">
-      <div class="demo-bar">
-        <span class="t-prompt">ict&gt;</span>
-        <input class="demo-input" id="demo-input" type="text" autocomplete="off"
-               spellcheck="false" placeholder="e.g. what is a fair value gap?" aria-label="Ask the demo vault">
-        <button class="demo-go" id="demo-go" type="button">ask</button>
-      </div>
-      <div class="demo-out" id="demo-out"></div>
-    </div>
-    <p class="demo-note" id="demo-note"></p>
-  </div>
-</section>
-
 <!-- ═══ DEMO VIDEO — hidden until PLUGICT.demoVideoUrl is set in the config ═══ -->
 <div class="video-slot fadeup" id="video-slot" hidden>
   <div class="video-box" id="video-box"></div>
@@ -797,6 +801,12 @@ window.PLUGICT = {
   <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg></i><span><b>~3s</b>TO AN ANSWER</span></span>
   <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></i><span><b>100%</b>LOCAL</span></span>
   <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3z"/><path d="m9 11.5 2 2 4-4"/></svg></i><span><b>LIFETIME</b>LICENSE</span></span>
+</div>
+
+<!-- ═══ CONCEPT TICKER ═══ -->
+<div class="ticker fadeup" aria-hidden="true">
+  <div class="tk-row"><div class="tk-track tk-a" id="tk1"></div></div>
+  <div class="tk-row"><div class="tk-track tk-b" id="tk2"></div></div>
 </div>
 
 <!-- ═══ PROBLEM ═══ -->
@@ -1155,7 +1165,6 @@ window.PLUGICT = {
       <div class="onetime">one-time payment</div>
       <div class="countdown" id="countdown" role="timer" aria-live="off"></div>
       <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access</a>
-      <div class="demo-line">or <a href="https://github.com/godzillacode0000/plugICT/releases/download/v1.0-demo/ict-vault-demo.zip" data-demo-link>try the free demo</a> first — vault of 3 videos from the 2022 Mentorship, full engine, no license needed</div>
       <div class="pay-row">
         <span class="pay-chip">FPX</span>
         <span class="pay-chip">CARD</span>
@@ -1230,9 +1239,22 @@ window.PLUGICT = {
       sponsored by</b> The Inner Circle Trader or Michael J. Huddleston. All trademarks belong to their respective owners.
       Nothing here is financial advice.
       <div style="margin-top:12px">© <span data-year></span> PlugICT — Kota Bharu, Malaysia. <a href="mailto:hermesian0000@gmail.com" style="color:#8F8470; text-decoration:none">hermesian0000@gmail.com</a></div>
+      <div style="margin-top:8px"><a class="link-arrow" href="/affiliate.html">Affiliate →</a></div>
     </div>
   </div>
 </footer>
+
+<script>
+  (function(){
+    const value=new URLSearchParams(location.search).get('ref');
+    try{if(value&&/^[a-z0-9_-]{1,64}$/i.test(value))localStorage.setItem('plugict_ref',value);}
+    catch(e){}
+    let ref='';try{ref=localStorage.getItem('plugict_ref')||'';}catch(e){}
+    if(!ref)return;
+    document.getElementById('ref-banner').classList.add('on');
+    window.plugictStripeUrl=url=>{const target=new URL(url);target.searchParams.set('client_reference_id',ref);return target.href;};
+  })();
+</script>
 
 <!-- ═══ PAYMENT MODAL ═══ -->
 <div class="pay-overlay" id="pay-overlay" role="dialog" aria-modal="true" aria-labelledby="pay-title">
@@ -1244,11 +1266,11 @@ window.PLUGICT = {
       <div class="price-line" id="pay-price"></div>
       <div class="pay-methods">
         <button class="pay-method" type="button" data-method="billplz">
-          <span><span class="pm-name">FPX / DuitNow</span><br><span class="pm-desc">Malaysian online banking via Billplz — license emailed instantly</span></span>
+          <span><span class="pm-name">FPX / DuitNow</span><br><span class="pm-desc">Malaysian online banking via Billplz — license delivered within 24 hours</span></span>
           <span class="pm-tag" data-tag="billplz">INSTANT</span>
         </button>
         <button class="pay-method" type="button" data-method="stripe">
-          <span><span class="pm-name">Card</span><br><span class="pm-desc">International cards via Stripe — license emailed instantly</span></span>
+          <span><span class="pm-name">Card</span><br><span class="pm-desc">International cards via Stripe — license delivered within 24 hours</span></span>
           <span class="pm-tag" data-tag="stripe">INSTANT</span>
         </button>
         <button class="pay-method" type="button" data-method="duitnow">
@@ -1269,9 +1291,9 @@ window.PLUGICT = {
       <ol>
         <li>Scan the QR with any Malaysian bank app and pay <b id="duitnow-amt"></b>.</li>
         <li>Email your payment receipt to <a href="" class="support-mail"></a> from the address you want the license sent to.</li>
-        <li>Your <code style="font-size:.85em">license.key</code> + download link arrive by email — usually within a few hours.</li>
+        <li>Your <code style="font-size:.85em">license.key</code> + download link arrive by email — delivered within 24 hours.</li>
       </ol>
-      <div class="pay-note">DuitNow QR is verified manually, so delivery isn't instant like FPX/card — but it has zero fees.</div>
+      <div class="pay-note">DuitNow QR is verified manually — delivery within 24 hours, but zero fees.</div>
     </div>
 
     <div class="pay-pane" id="pane-usdt">
@@ -1302,6 +1324,33 @@ window.PLUGICT = {
   document.documentElement.classList.add('js');
   document.querySelectorAll('[data-year]').forEach(e=>e.textContent=new Date().getFullYear());
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Concept ticker: fill both marquee rows with real ICT concepts, duplicated
+  // once so the -50% translate loops seamlessly. Pauses when tab is hidden.
+  (function(){
+    function fill(el,w){el.innerHTML=(w.map(x=>'<span>'+x+'</span><span class="tk-dot">&bull;</span>').join('')).repeat(2);}
+    const t1=document.getElementById('tk1'), t2=document.getElementById('tk2'); if(!t1||!t2) return;
+    fill(t1,["FAIR VALUE GAP","ORDER BLOCK","LIQUIDITY","SILVER BULLET","BREAKER BLOCK","OPTIMAL TRADE ENTRY","MARKET STRUCTURE SHIFT"]);
+    fill(t2,["SMT DIVERGENCE","JUDAS SWING","POWER OF 3","MITIGATION BLOCK","KILL ZONE","BALANCED PRICE RANGE","CISD"]);
+    document.addEventListener('visibilitychange',function(){
+      [t1,t2].forEach(t=>t.style.animationPlayState=document.hidden?'paused':'running');});
+  })();
+
+  // Mobile nav: hamburger toggles the section links dropdown.
+  (function(){
+    const nav=document.querySelector('nav'), tog=document.querySelector('.nav-toggle');
+    if(!nav||!tog) return;
+    const setOpen=(o)=>{nav.classList.toggle('nav-open',o); tog.setAttribute('aria-expanded',o?'true':'false');
+      tog.setAttribute('aria-label',o?'Close menu':'Open menu');};
+    tog.addEventListener('click',()=>setOpen(!nav.classList.contains('nav-open')));
+    // Tapping a link jumps to the section and closes the menu.
+    document.querySelectorAll('#navmenu a').forEach(a=>a.addEventListener('click',()=>setOpen(false)));
+    // Close on Escape, on tapping the blurred backdrop, or on resize to desktop.
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false);});
+    document.addEventListener('click',e=>{
+      if(nav.classList.contains('nav-open') && !e.target.closest('.nav-right')) setOpen(false);});
+    matchMedia('(min-width:761px)').addEventListener('change',e=>{if(e.matches)setOpen(false);});
+  })();
 
   /* scroll fades + count-up */
   (function(){
@@ -1403,7 +1452,7 @@ window.PLUGICT = {
       const m=btn.dataset.method;
       if(m==='billplz'||m==='stripe'){
         const url=cfg[m+'Url'];
-        if(url){location.href=url;}
+        if(url){location.href=m==='stripe'&&window.plugictStripeUrl?window.plugictStripeUrl(url):url;}
         else{document.getElementById('fallback-title').textContent=
           (m==='billplz'?'FPX / DuitNow checkout':'Card checkout')+' is being set up';
           showPane(panes.fallback);}
@@ -1477,217 +1526,6 @@ window.PLUGICT = {
       run();
     }
     run();
-  })();
-
-  /* ── live "try it" demo: real client-side search over the demo vault ──
-     Powered by demo-index.json (built by store/export_web_demo.py) and/or
-     PLUGICT.demoQA (real captured Claude answers). Nothing here fabricates
-     ICT content — search results come from the actual demo transcripts, and
-     canned answers are only shown if you pasted real ones into the config. */
-  (function(){
-    const cfg=window.PLUGICT||{};
-    const sec=document.getElementById('trydemo'); if(!sec) return;
-    const out=document.getElementById('demo-out');
-    const input=document.getElementById('demo-input');
-    const go=document.getElementById('demo-go');
-    const chipsEl=document.getElementById('demo-chips');
-    const noteEl=document.getElementById('demo-note');
-    const qa=Array.isArray(cfg.demoQA)?cfg.demoQA.filter(x=>x&&x.q&&x.a):[];
-
-    let index=null;              // {shortforms, chunks:[{t,v,p,ts,x}], demo:{count,total}}
-    const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    const tsToSec=ts=>{const p=String(ts).split(':').map(Number);
-      return p.length===3?p[0]*3600+p[1]*60+p[2]:p.length===2?p[0]*60+p[1]:(p[0]||0);};
-    const ytLink=(v,ts)=>v?`https://youtu.be/${encodeURIComponent(v)}?t=${tsToSec(ts)}`:null;
-
-    // expand ALL-CAPS ICT acronyms exactly like the vault's expand_query()
-    const expand=q=>{const sf=(index&&index.shortforms)||{};
-      return q.split(/\s+/).map(tok=>{const core=tok.replace(/[?!.,;:()]/g,'');
-        if(core&&core===core.toUpperCase()&&sf[core])
-          return sf[core].split(' — ')[0].split(' / ')[0].trim();
-        return tok;}).join(' ');};
-
-    const STOP=new Set(['the','a','an','is','of','to','in','on','and','or','what','how','does','do','you','your','it','for','me','explain','define']);
-    const terms=q=>expand(q).toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>2&&!STOP.has(w));
-
-    function search(q){
-      if(!index||!index.chunks) return [];
-      const ts=terms(q); if(!ts.length) return [];
-      const scored=[];
-      for(const c of index.chunks){
-        const hay=(c.t+' '+c.x).toLowerCase();
-        let score=0; for(const t of ts){ let i=hay.indexOf(t);
-          while(i!==-1){ score+=(hay.indexOf(t)<c.t.length?3:1); i=hay.indexOf(t,i+t.length);} }
-        if(score>0) scored.push({c,score});
-      }
-      scored.sort((a,b)=>b.score-a.score);
-      const seen=new Set(),hits=[];
-      for(const {c} of scored){const k=c.t+'|'+c.ts; if(seen.has(k))continue; seen.add(k);
-        hits.push(c); if(hits.length>=3)break;}
-      return hits;
-    }
-
-    // strip transcript formatting noise so snippets read as clean prose:
-    // play markers, markdown table rules, stray backticks, and the inline
-    // per-line timestamps (the citation already shows the real one).
-    function cleanText(t){
-      return String(t)
-        .replace(/[▶►]️?/g,' ')
-        .replace(/`+/g,'')
-        .replace(/:-+:|-{3,}/g,' ')
-        .replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g,' ')
-        .replace(/\s+/g,' ')
-        .trim();
-    }
-
-    function snippet(text,q){
-      text=cleanText(text);
-      const ts=terms(q);
-      // trim around the first matched term occurrence
-      let firstIdx=-1;
-      for(const t of ts){const i=text.toLowerCase().indexOf(t); if(i!==-1&&(firstIdx===-1||i<firstIdx))firstIdx=i;}
-      let start=Math.max(0,firstIdx-60);
-      let frag=esc(text.slice(start,start+220));
-      for(const t of ts){frag=frag.replace(new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig'),'<b>$1</b>');}
-      return (start>0?'…':'')+frag+'…';
-    }
-
-    const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-    let runId=0;  // cancels an in-flight stream if the user asks again
-
-    function citeHtml(title,v,ts){
-      const link=ytLink(v,ts);
-      return '<div class="demo-hit"><div class="title">'+esc(title||'')+'</div>'
-        +(link?'<a class="play" href="'+link+'" target="_blank" rel="noopener">▶ watch at '+esc(ts||'')+'</a>':'')
-        +'</div>';
-    }
-    function againBtn(){
-      return '<button class="demo-again" type="button" data-again>↑ ask another question</button>';
-    }
-
-    // Stream real text word-by-word into el (ChatGPT-style). Honest: the text is
-    // real — a captured Claude answer or a real transcript snippet.
-    async function typeInto(el, text, myRun, wps){
-      if(REDUCED){ el.innerHTML=esc(text); return; }
-      const words=text.split(/(\s+)/); el.innerHTML='';
-      const cur=document.createElement('span'); cur.className='demo-cur';
-      el.appendChild(cur);
-      const delay=1000/((wps||42));
-      for(const w of words){
-        if(myRun!==runId) return;              // superseded — stop
-        cur.insertAdjacentText('beforebegin', w);
-        if(w.trim()) await sleep(delay);
-      }
-      cur.remove();
-    }
-
-    // Chip / captured-answer path: stream a REAL reasoned answer, then citations.
-    async function renderQA(item, myRun){
-      out.innerHTML='<div class="status">Answer from the vault</div>'
-        +'<div class="demo-answer" id="demo-ans"></div><div id="demo-cites"></div>';
-      await typeInto(document.getElementById('demo-ans'), item.a, myRun, 46);
-      if(myRun!==runId) return;
-      let c=''; (item.cites||[]).forEach(ct=>{c+=citeHtml(ct.title,ct.v,ct.ts);});
-      document.getElementById('demo-cites').innerHTML=c+againBtn();
-    }
-
-    // Typed-query path: real keyword search, results revealed one by one.
-    async function renderHits(hits,q,myRun){
-      if(!hits.length){
-        out.innerHTML='<div class="demo-empty">No match in this 5-video sample. '
-          +'Try “fair value gap”, “liquidity”, or a suggested question above — '
-          +'the full vault covers all 576 videos.</div>'; return;}
-      out.innerHTML='<div class="status">✓ '+hits.length+' result'+(hits.length>1?'s':'')
-        +' in the demo sample</div><div id="demo-hits"></div>';
-      const box=document.getElementById('demo-hits');
-      for(const c of hits){
-        if(myRun!==runId) return;
-        const link=ytLink(c.v,c.ts);
-        const el=document.createElement('div');
-        el.className='demo-hit'+(REDUCED?'':' rin');
-        el.innerHTML='<div class="title">'+esc(c.t)+'</div>'
-          +'<div class="snip">'+snippet(c.x,q)+'</div>'
-          +(link?'<a class="play" href="'+link+'" target="_blank" rel="noopener">▶ watch at '+esc(c.ts)+'</a>':'');
-        box.appendChild(el);
-        if(!REDUCED) await sleep(150);
-      }
-      if(myRun===runId) box.insertAdjacentHTML('beforeend', againBtn());
-    }
-
-    async function ask(q){
-      q=(q||'').trim(); if(!q) return;
-      input.value=q;
-      const myRun=++runId;
-      // exact-ish match against a captured Q&A first (real reasoned answer)
-      const hit=qa.find(x=>x.q.toLowerCase().replace(/[?.!]/g,'').trim()
-                          ===q.toLowerCase().replace(/[?.!]/g,'').trim());
-      if(hit){
-        out.innerHTML='<div class="status">Thinking…</div>';
-        if(!REDUCED) await sleep(450);
-        if(myRun!==runId) return;
-        return renderQA(hit, myRun);
-      }
-      out.innerHTML='<div class="status">Searching the demo sample…</div>';
-      if(!REDUCED) await sleep(400);
-      if(myRun!==runId) return;
-      await renderHits(search(q), q, myRun);
-    }
-
-    function buildChips(){
-      let qs;
-      if(qa.length){ qs=qa.map(x=>x.q); }
-      else {
-        // Only suggest questions that actually return a hit in THIS demo, so no
-        // chip ever leads to an empty result. Falls back if the index is thin.
-        const cand=['fair value gap','order block','liquidity','breaker block',
-          'optimal trade entry','market structure','displacement','equal highs',
-          'premium and discount','mitigation block','order flow','imbalance'];
-        qs=cand.filter(c=>search(c).length);
-        if(!qs.length) qs=['fair value gap','order block','liquidity'];
-      }
-      chipsEl.innerHTML='';
-      qs.slice(0,5).forEach(q=>{const b=document.createElement('button');
-        b.type='button'; b.className='demo-chip'; b.textContent=q;
-        b.addEventListener('click',()=>ask(q)); chipsEl.appendChild(b);});
-    }
-
-    function idle(){
-      // empty, inviting start — user types first (no pre-filled answer)
-      out.innerHTML='<div class="demo-idle">Ask anything about ICT, or tap a '
-        +'question above.<span class="cur"></span></div>';
-    }
-
-    function activate(){
-      sec.hidden=false;
-      buildChips();
-      input.placeholder = qa.length
-        ? 'Ask a question — e.g. ' + qa[0].q
-        : 'Ask anything about ICT — e.g. what is a fair value gap?';
-      go.addEventListener('click',()=>ask(input.value));
-      input.addEventListener('keydown',e=>{if(e.key==='Enter')ask(input.value);});
-      // "ask another" → clear + refocus the input for a fresh question
-      out.addEventListener('click',e=>{
-        if(e.target.closest('[data-again]')){ input.value=''; idle(); input.focus(); }
-      });
-      idle();   // start empty; nothing is answered until the user acts
-    }
-
-    // Try to load the search index; show the section if we have EITHER
-    // real search data OR captured Q&A. Never show an empty shell.
-    const url=cfg.demoIndexUrl;
-    const finish=()=>{ if(index||qa.length) activate(); };
-    if(url){
-      fetch(url,{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{
-        if(j&&Array.isArray(j.chunks)&&j.chunks.length){
-          index=j;
-          if(noteEl&&j.demo) noteEl.innerHTML='This is the <b>raw search</b> over '
-            +(j.demo.count||'5')+' sample videos. The full product connects your AI '
-            +'agent, which <b>reasons over these results</b> to answer in plain English '
-            +'— across all '+(j.demo.total||'576')+' videos.';
-        }
-        finish();
-      }).catch(finish);
-    } else { finish(); }
   })();
 
   /* ══════════════════════════════════════════════════════════════
