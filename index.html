@@ -88,6 +88,34 @@ window.PLUGICT = {
   ::selection{background:rgba(232,98,44,.3)}
   .wrap{max-width:var(--maxw); margin:0 auto; padding:0 28px}
   em{font-style:italic; color:var(--terracotta)}
+  /* hero "develop sweep": a bright bar passes top→bottom and the terracotta
+     text develops/glows as it passes. Font/size/color unchanged — only a
+     moving highlight via background-clip:text (guarded so base color is the
+     safe fallback). Loops with a rest between sweeps; static on reduced-motion. */
+  @supports ((-webkit-background-clip:text) or (background-clip:text)){
+    .hero h1 em.sweep{
+      color:transparent; -webkit-text-fill-color:transparent;
+      -webkit-background-clip:text; background-clip:text;
+      -webkit-box-decoration-break:clone; box-decoration-break:clone;
+      /* layer 1: moving bright band (transparent elsewhere) · layer 2: solid
+         terracotta base so the text is always fully filled at rest */
+      background-image:
+        linear-gradient(180deg, transparent 42%, #fff3cf 49%, var(--terracotta-bright) 51%, transparent 58%),
+        linear-gradient(var(--terracotta), var(--terracotta));
+      background-repeat:no-repeat, no-repeat;
+      background-size:100% 260%, 100% 100%;
+      background-position:50% 130%, 0 0;
+      animation:hero-develop 4.2s cubic-bezier(.4,0,.2,1) .5s infinite;
+    }
+  }
+  @keyframes hero-develop{
+    0%   {background-position:50% 130%, 0 0}
+    45%  {background-position:50% -30%, 0 0}
+    100% {background-position:50% -30%, 0 0}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .hero h1 em.sweep{animation:none; color:var(--terracotta); -webkit-text-fill-color:var(--terracotta); background:none}
+  }
 
   /* ── nav ────────────────────────────────────────────────── */
   nav{position:sticky; top:0; z-index:20; backdrop-filter:blur(10px);
@@ -722,7 +750,7 @@ window.PLUGICT = {
   <div class="wrap">
     <div>
       <div class="eyebrow fadeup">The ICT knowledge engine</div>
-      <h1 class="fadeup" data-delay=".08">Years of ICT lessons — <em>one instant answer.</em></h1>
+      <h1 class="fadeup" data-delay=".08">Years of ICT lessons — <em class="sweep">one instant answer.</em></h1>
       <p class="sub fadeup" data-delay=".16">576 videos transcribed, indexed and connected to your AI — every answer cited to the exact video and timestamp.</p>
       <div class="cta fadeup" data-delay=".24">
         <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access</a>
