@@ -1384,35 +1384,69 @@ window.PLUGICT = {
      All gated on prefers-reduced-motion and pointer capability.
      ══════════════════════════════════════════════════════════════ */
 
-  /* ── 1. animated hero particle field (rising embers + drift) ── */
+  /* ── 1. hero ripple field (pointer-reactive terracotta dot grid) ── */
   (function(){
     const cv=document.getElementById('hero-canvas'); if(!cv||REDUCED) return;
-    const ctx=cv.getContext('2d'); const hero=cv.parentElement;
-    let w=0,h=0,dpr=Math.min(devicePixelRatio||1,2),parts=[],raf=0,vis=true;
-    function size(){ w=hero.clientWidth; h=hero.clientHeight;
-      cv.width=w*dpr; cv.height=h*dpr; cv.style.width=w+'px'; cv.style.height=h+'px';
-      ctx.setTransform(dpr,0,0,dpr,0,0);
-      const n=Math.round(Math.min(90, w/16));
-      parts=Array.from({length:n},()=>mk()); }
-    function mk(){ return { x:Math.random()*w, y:Math.random()*h,
-      r:Math.random()*1.8+.4, vy:-(Math.random()*.35+.08), vx:(Math.random()-.5)*.18,
-      a:Math.random()*.5+.15, tw:Math.random()*Math.PI*2 }; }
-    function tick(t){
-      raf=requestAnimationFrame(tick); if(!vis) return;
-      ctx.clearRect(0,0,w,h);
-      for(const p of parts){
-        p.y+=p.vy; p.x+=p.vx; p.tw+=.02;
-        if(p.y<-8){ p.y=h+8; p.x=Math.random()*w; }
-        const flick=p.a*(.6+.4*Math.sin(p.tw));
-        const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*4);
-        g.addColorStop(0,'rgba(255,138,74,'+flick+')');
-        g.addColorStop(1,'rgba(255,138,74,0)');
-        ctx.fillStyle=g; ctx.beginPath(); ctx.arc(p.x,p.y,p.r*4,0,6.283); ctx.fill();
+    const x=cv.getContext('2d'); const hero=cv.parentElement;
+    const ACC=[232,98,44];                 // terracotta
+    const dpr=Math.min(2,devicePixelRatio||1), MAXR=6;
+    let W=0,H=0,gap=0,R=2,cols=0,rows=0,ox=0,oy=0,dots=[],ripples=[];
+    let running=true,raf=0,last=0,onscreen=true;
+    let vx=0,vy=0,px=0,py=0,real=false,lastMove=-1e9,lastFire=0,vt=0;
+    function resize(){
+      W=hero.clientWidth; H=hero.clientHeight;
+      cv.width=W*dpr; cv.height=H*dpr; cv.style.width=W+'px'; cv.style.height=H+'px';
+      x.setTransform(dpr,0,0,dpr,0,0);
+      gap=Math.max(20,Math.min(W,H)/14); R=Math.max(1.5,gap*0.14);
+      cols=Math.max(3,Math.floor(W/gap)-1); rows=Math.max(3,Math.floor(H/gap)-1);
+      ox=(W-(cols-1)*gap)/2; oy=(H-(rows-1)*gap)/2;
+      dots.length=0;
+      for(let j=0;j<rows;j++)for(let i=0;i<cols;i++)dots.push({hx:ox+i*gap,hy:oy+j*gap,x:0,y:0,s:1,o:0});
+    }
+    function fire(a,b){ if(ripples.length>=MAXR)ripples.shift(); ripples.push({x:a,y:b,t:0,life:1.5}); }
+    function lissa(t){ return [W*0.5+Math.sin(t*0.62)*W*0.32, H*0.5+Math.sin(t*0.41+0.9)*H*0.28]; }
+    function step(dt){
+      const now=performance.now(); if(real&&now-lastMove>2600)real=false; vt+=dt;
+      let tx,ty; if(real){tx=px;ty=py;} else {const p=lissa(vt);tx=p[0];ty=p[1];}
+      vx+=(tx-vx)*Math.min(1,dt*(real?14:5)); vy+=(ty-vy)*Math.min(1,dt*(real?14:5));
+      lastFire+=dt; if(lastFire>=(real?0.34:0.7)){lastFire=0; fire(vx,vy);}
+      for(let k=ripples.length-1;k>=0;k--){ripples[k].t+=dt; if(ripples[k].t>=ripples[k].life)ripples.splice(k,1);}
+      const rs=Math.max(W,H)*0.62;
+      for(let n=0;n<dots.length;n++){
+        const d=dots[n]; let dx=0,dy=0,sc=1,glow=0;
+        for(let k=0;k<ripples.length;k++){
+          const rp=ripples[k], e=rp.t/rp.life, rad=rp.t*rs;
+          const ddx=d.hx-rp.x, ddy=d.hy-rp.y, dist=Math.sqrt(ddx*ddx+ddy*ddy)||1;
+          const band=dist-rad, w=Math.exp(-(band*band)/(gap*gap*2.4)), amp=(1-e)*w;
+          if(amp>0.002){ const push=amp*gap*0.55/dist; dx+=ddx*push; dy+=ddy*push; sc+=amp*1.4; glow+=amp; }
+        }
+        d.x+=(dx-d.x)*Math.min(1,dt*16); d.y+=(dy-d.y)*Math.min(1,dt*16);
+        d.s+=(sc-d.s)*Math.min(1,dt*16); d.o+=(Math.min(1,glow)-d.o)*Math.min(1,dt*14);
       }
     }
-    addEventListener('resize',size,{passive:true});
-    document.addEventListener('visibilitychange',()=>{vis=!document.hidden;});
-    size(); raf=requestAnimationFrame(tick);
+    function draw(){
+      x.clearRect(0,0,W,H); const a=ACC;
+      for(let n=0;n<dots.length;n++){
+        const d=dots[n], r=R*d.s, base=(0.14+d.o*0.7).toFixed(3);
+        x.beginPath(); x.arc(d.hx+d.x,d.hy+d.y,r,0,6.2832);
+        x.fillStyle = d.o>0.04 ? 'rgba('+a[0]+','+a[1]+','+a[2]+','+base+')' : 'rgba(184,172,150,'+base+')';
+        x.fill();
+      }
+      const rs=Math.max(W,H)*0.62;
+      for(let k=0;k<ripples.length;k++){ const rp=ripples[k], e=rp.t/rp.life;
+        x.beginPath(); x.arc(rp.x,rp.y,rp.t*rs,0,6.2832);
+        x.strokeStyle='rgba('+a[0]+','+a[1]+','+a[2]+','+((1-e)*0.18).toFixed(3)+')'; x.lineWidth=1.1; x.stroke(); }
+    }
+    function loop(now){ if(!running)return; const dt=Math.min(0.05,(now-last)/1000); last=now; step(dt); draw(); raf=requestAnimationFrame(loop); }
+    function play(){ if(!running&&onscreen){running=true; last=performance.now(); raf=requestAnimationFrame(loop);} }
+    function pause(){ running=false; if(raf)cancelAnimationFrame(raf); raf=0; }
+    window.addEventListener('resize',resize,{passive:true});
+    window.addEventListener('pointermove',e=>{ const r=cv.getBoundingClientRect();
+      const lx=e.clientX-r.left, ly=e.clientY-r.top;
+      if(lx>=0&&ly>=0&&lx<=r.width&&ly<=r.height){ px=lx; py=ly; real=true; lastMove=performance.now(); } },{passive:true});
+    document.addEventListener('visibilitychange',()=>{ document.hidden?pause():play(); });
+    if('IntersectionObserver' in window){ new IntersectionObserver(es=>{ onscreen=es[0].isIntersecting; onscreen?play():pause(); },{threshold:0}).observe(hero); }
+    resize(); last=performance.now(); raf=requestAnimationFrame(loop);
   })();
 
   /* ── 2. cursor spotlight (fine-pointer only) ── */
