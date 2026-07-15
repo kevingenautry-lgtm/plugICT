@@ -38,8 +38,11 @@ VAULT_FILE = Path(os.environ.get("ICT_VAULT_FILE", VAULT_DIR / "ict-vault.kevin"
 LICENSE_FILE = Path(os.environ.get("ICT_VAULT_LICENSE", VAULT_DIR / "license.key"))
 
 TEMP_PREFIX = "ict_vault_"
+# Force temp to D: drive to avoid filling system C: (too small / 2GB free)
+_TEMP_BASE = os.environ.get("ICT_TEMP_DIR", r"D:\tmp")
+os.makedirs(_TEMP_BASE, exist_ok=True)
 _CHUNK = 4 * 1024 * 1024  # 4 MB streaming chunk
-MIN_RERANK_SCORE = -6.0
+MIN_RERANK_SCORE = -10.0
 MMR_LAMBDA = 0.7
 SEARCH_CACHE_MAX = 100
 SNIPPET_DEFAULT_CHARS = 500
@@ -140,7 +143,7 @@ def sweep_stale_temp():
     atexit does not fire on SIGKILL / power loss, so a crashed session can
     leave a full plaintext copy of the vault on disk. Clean those on startup.
     """
-    root = tempfile.gettempdir()
+    root = _TEMP_BASE  # Use D:\tmp instead of C:\Users\...\Temp
     for path in glob.glob(os.path.join(root, TEMP_PREFIX + "*")):
         if path in _temp_dirs:
             continue
@@ -206,6 +209,7 @@ ICT_GLOSSARY = {
         'PML': 'Previous Month Low — Last month\'s lowest price',
         'BS': 'Buy Stops — Buy orders triggered above current price (stop losses)',
         'SS': 'Sell Stops — Sell orders triggered below current price (stop losses)',
+        'LIQUIDITY': 'Liquidity — Pool of stop-loss orders above highs (BSL) or below lows (SSL)',
         'LS': 'Liquidity Sweep — Price briefly moves into liquidity before reversing',
         'DOL': 'Draw on Liquidity — Price probing toward a liquidity pool before reacting',
     },
@@ -220,6 +224,7 @@ ICT_GLOSSARY = {
     "Order Blocks": {
         'OB': 'Order Block — A consolidation zone where institutional orders sit',
         'BB': 'Breaker Block — An order block that has been broken and now acts as flipped support/resistance',
+        'BREAKER BLOCK': 'Breaker Block — A specific candlestick pattern indicating a shift in market structure',
         'MB': 'Mitigation Block — An order block partly mitigated by price returning to it',
         'RB': 'Rejection Block — An order block where price strongly rejected on first touch',
         'PB': 'Propulsion Block — A strong order block that propelled price through multiple levels',
@@ -229,6 +234,7 @@ ICT_GLOSSARY = {
         'OTE': 'Optimal Trade Entry — Entry zone at 61.8-79% retracement of a move',
         'EQ': 'Equilibrium — Midpoint of a range (50% level), acts as magnet for price',
         'OTE Zone': 'Optimal Trade Entry Zone — 62%-79% retracement region for entries',
+        'OTE RANGE': 'OTE Range — The 62-79% retracement zone for Optimal Trade Entry',
         'M50': 'Mean Threshold 50% — The 50% retracement level, midpoint of a range',
         'PD': 'Premium / Discount — Above equilibrium (premium/sell) vs below (discount/buy)',
     },
@@ -248,6 +254,7 @@ ICT_GLOSSARY = {
     "Kill Zones / Sessions": {
         'AZ': 'Asian Range — Price range during the Asian trading session',
         'KZ': 'Kill Zone — Specific time window when ICT expects institutional moves',
+        'KILL ZONE': 'Kill Zone — Specific time windows (London, New York, Asian) where ICT trades',
         'LO': 'London Open — The opening of the London session (key ICT timing)',
         'NYO': 'New York Open — The opening of the NY session, often after London',
         'LC': 'London Close — The close of the London session, often overlapping with NY',
@@ -275,6 +282,7 @@ ICT_GLOSSARY = {
         'NQOB': 'New Quarter Opening Balance — Opening range of the new quarter',
         'DOP': 'Daily Open Price — The opening price of the current daily candle',
         'PO3': 'Power of 3 — Accumulation, Manipulation, Distribution market cycle',
+        'POWER OF 3': 'Power of 3 — Accumulation, Manipulation, Distribution (AMD) cycle',
         'CISD': 'Change In State of Delivery — Shift in how price is being delivered (fast vs slow)',
         'ORB': 'Opening Range Break — A break of the range set at the open of a session',
     },
@@ -940,7 +948,7 @@ def open_vault(vault_file=VAULT_FILE, license_file=LICENSE_FILE, on_progress=Non
     vault_key = _unwrap_vault_key(info)
     expected_hash = info.get('VAULT_HASH', '')
 
-    tmpdir = tempfile.mkdtemp(prefix=TEMP_PREFIX)
+    tmpdir = tempfile.mkdtemp(prefix=TEMP_PREFIX, dir=_TEMP_BASE)
     _temp_dirs.append(tmpdir)
     db_fd, db_path = tempfile.mkstemp(prefix='sqlite_', suffix='.db', dir=tmpdir)
     os.close(db_fd)
@@ -1454,44 +1462,30 @@ def chroma_store_usable(chroma_dir):
 
 
 def warm_reranker():
-    """Best-effort preload of the cross-encoder so the buyer's FIRST real query
-    isn't stalled by a model download. Called from run_doctor (setup). Returns
-    True if the model is ready, False if unavailable (rerank then no-ops)."""
+    """Cross-encoder disabled — buyer's LLM does relevance filtering instead.
+    Returns False to signal RRF fallback should always be used."""
     global _reranker
-    if _reranker is not None:
-        return True
-    try:
-        from sentence_transformers import CrossEncoder
-        _reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
-        return True
-    except Exception:
-        return False
+    _reranker = None
+    return False
 
 
 def rerank(query, candidates, top_k):
-    """Cross-encoder rerank; degrades gracefully if the model isn't available."""
+    """RRF-only rerank. Cross-encoder disabled — buyer's LLM filters relevance.
+    Sorts candidates by fused RRF score (FTS + semantic + KG signals)."""
     global _reranker
-    if len(candidates) <= 1 and _reranker is None:
-        return candidates[:top_k]
+    if _reranker is not None:
+        # Dead code path — warm_reranker always returns False now.
+        # Kept to avoid breaking imports for any external callers.
+        pass
     rrf_norm = _normalized_rrf(candidates)
-    try:
-        if _reranker is None:
-            from sentence_transformers import CrossEncoder
-            _reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
-        scores = _reranker.predict([(query, _cand_text(c)[:1500]) for c in candidates])
-        for c, s in zip(candidates, scores):
-            boosted = float(s) + (0.5 if c.get('dual_hit') else 0.0)
-            c['rerank_score'] = boosted
-            c['final_score'] = boosted + (0.1 * rrf_norm[id(c)])
-        candidates.sort(key=lambda c: c.get('final_score', c.get('rerank_score', 0.0)), reverse=True)
-        filtered = [c for c in candidates if c.get('rerank_score', 0.0) >= MIN_RERANK_SCORE]
-        if not filtered:
-            return []
-        return apply_mmr(filtered, top_k)
-    except Exception as e:
-        print(f"(rerank skipped: {e})", file=sys.stderr)
-        candidates.sort(key=lambda c: c.get('rrf_score', 0.0), reverse=True)
-        return candidates[:top_k]
+    for c in candidates:
+        c['rerank_score'] = rrf_norm.get(id(c), 0.0)
+        c['final_score'] = c['rerank_score']
+    candidates.sort(key=lambda c: c.get('final_score', 0.0), reverse=True)
+    filtered = [c for c in candidates if c.get('final_score', 0.0) >= MIN_RERANK_SCORE]
+    if not filtered:
+        return []
+    return filtered[:top_k]
 
 
 def _clamp_chars(value, default, hard_cap):
@@ -1502,11 +1496,58 @@ def _clamp_chars(value, default, hard_cap):
     return max(1, min(value, hard_cap))
 
 
-def make_snippet(text, max_chars=SNIPPET_DEFAULT_CHARS):
+def make_snippet(text, max_chars=SNIPPET_DEFAULT_CHARS, query=""):
+    """Build a snippet. When query is provided, find the most relevant
+    sentence window inside the text instead of returning the first chars."""
     max_chars = _clamp_chars(max_chars, SNIPPET_DEFAULT_CHARS, SNIPPET_MAX_CHARS)
     clean = (text or "").replace("<b>", "").replace("</b>", "").strip()
     clean = re.sub(r"\s+", " ", clean)
-    return clean[:max_chars]
+    q = (query or "").strip()
+    if not q or len(clean) <= max_chars:
+        return clean[:max_chars]
+
+    # Split into sentences on . ! ? followed by whitespace + capital/quote
+    sents = re.split(r"(?<=[.!?])\s+(?=[A-Z\"\'(])", clean)
+    if len(sents) <= 2:
+        return clean[:max_chars]
+
+    # Score each sentence by word overlap with query (ignoring case)
+    q_words = set(q.lower().split())
+    q_len = len(q_words)
+    best_i = 0
+    best_s = -1
+    for i, s in enumerate(sents):
+        common = len(q_words & set(s.lower().split()))
+        score = common / q_len if q_len else 0.0
+        if score > best_s:
+            best_s = score
+            best_i = i
+
+    # If no query match found, fall back to first chars
+    if best_s <= 0:
+        return clean[:max_chars]
+
+    # Build a window of ±2 sentences around the best sentence
+    start = max(0, best_i - 2)
+    end = min(len(sents), best_i + 3)
+    window = " ".join(sents[start:end])
+
+    # If window fits within max_chars, return it
+    if len(window) <= max_chars:
+        return window
+
+    # Trim edges while keeping the best sentence centred
+    half = max_chars // 2
+    best_start = window.find(sents[best_i])
+    best_end = best_start + len(sents[best_i])
+    before = min(half, best_start)
+    after = min(half, len(window) - best_end)
+    trimmed = window[best_start - before:best_end + after]
+    if len(trimmed) > max_chars:
+        trimmed = trimmed[:max_chars - 3] + "..."
+    if best_start > 0:
+        trimmed = "..." + trimmed
+    return trimmed
 
 
 def _cand_score(c):
@@ -1670,10 +1711,16 @@ def diversify_by_video(candidates, top_k=5,
     return selected, meta
 
 
-def finalize_ranked_results(ranked, snippet_chars=SNIPPET_DEFAULT_CHARS):
+def finalize_ranked_results(ranked, snippet_chars=SNIPPET_DEFAULT_CHARS, query=""):
     out = []
     for c in ranked:
         sources = _merge_unique_values(c.get('retrieval_sources'), c.get('source'), c.get('method'))
+        # Use passed query, or fall back to matched_queries from the candidate
+        sq = query or ""
+        if not sq:
+            mq = _merge_unique_values(c.get('matched_queries'))
+            if mq:
+                sq = mq[0] if isinstance(mq, list) else str(mq)
         item = {
             'title': c.get('title', ''),
             'video_id': c.get('video_id', ''),
@@ -1684,7 +1731,7 @@ def finalize_ranked_results(ranked, snippet_chars=SNIPPET_DEFAULT_CHARS):
             'method': "+".join(sources) if sources else (c.get('method') or c.get('source') or ''),
             'retrieval_sources': sources,
             'matched_queries': _merge_unique_values(c.get('matched_queries')),
-            'snippet': make_snippet(_cand_text(c), snippet_chars),
+            'snippet': make_snippet(_cand_text(c), snippet_chars, query=sq),
         }
         if c.get('result_ref'):
             item['result_ref'] = c['result_ref']
@@ -1974,14 +2021,14 @@ class VaultSession:
             print(f"(semantic search unavailable: {e})", file=sys.stderr)
         return out
 
-    def search(self, query, playlist=None, session=None, top_k=5):
+    def search(self, query, playlist=None, session=None, top_k=15):
         """Return (ranked_candidates, expanded_query, expansion_changed)."""
         expanded, changed = expand_query(query)
         cached = get_cached_results(query, top_k, playlist)
         if cached is not None:
             return cached, expanded, changed
         candidates = []
-        pool = top_k + 5
+        pool = top_k + 10
 
         candidates.extend(self._fts_candidates(expanded, pool, playlist, matched_query=query))
         candidates.extend(self._semantic_candidates(query, pool, playlist, 'semantic', query))
@@ -2002,7 +2049,7 @@ class VaultSession:
         put_cached_results(query, top_k, playlist, ranked)
         return ranked, expanded, changed
 
-    def multi_search(self, question, queries, playlist=None, top_k=5, snippet_chars=SNIPPET_DEFAULT_CHARS):
+    def multi_search(self, question, queries, playlist=None, top_k=15, snippet_chars=SNIPPET_DEFAULT_CHARS):
         ranked, meta = collect_multi_search_candidates(
             self.db, self._semantic_candidates, question, queries, top_k, playlist)
         return finalize_ranked_results(ranked, snippet_chars), meta
@@ -2091,3 +2138,31 @@ def _safe_extractall(tar, path):
         tar.extractall(path=path, members=safe, filter='data')  # Python 3.12+ / backports
     except TypeError:
         tar.extractall(path=path, members=safe)  # older Python — already vetted above
+
+
+
+def fast_search(db, semantic_retriever, query, top_k=3):
+    """Fast single-query: FTS + BGE + RRF only. No KG, no reranker, no diversity."""
+    t0 = time.perf_counter()
+    fts = fts_candidates(db, query, limit=10)
+    sem = semantic_candidates(db, semantic_retriever, query, top_k=10)
+    combined = apply_rrf_scores(fts, sem)
+    combined = dedup_candidates(combined)
+    combined.sort(key=lambda c: c.get('_rrf_score', 0) or 0, reverse=True)
+    top = combined[:top_k]
+    results = []
+    for c in top:
+        h = hydrate_candidate_text(db, c)
+        snip = (h.get('_full_text') or c.get('text') or '')[:500]
+        ts = c.get('start_ts') or c.get('timestamp') or ''
+        results.append({
+            'video_id': c.get('video_id'),
+            'timestamp': ts,
+            'title': (c.get('title') or '')[:150],
+            'snippet': snip,
+            'video_url': youtube_link(c.get('video_id'), ts),
+            'retrieval_sources': ['keyword', 'semantic'],
+            'matched_queries': [query],
+        })
+    elapsed_ms = round((time.perf_counter() - t0) * 1000)
+    return {'results': results, 'total_ms': elapsed_ms, 'n_results': len(results)}
