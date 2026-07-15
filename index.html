@@ -226,21 +226,6 @@ window.PLUGICT = {
   .t-cite .title{color:#F4EFE4; font-weight:500}
   .t-cite .ts{color:var(--terracotta-bright)}
 
-  /* ── video placeholder ─────────────────────────────────── */
-  .video-slot{margin:0 28px; position:relative}
-  .video-slot::before{content:""; position:absolute; left:-10%; right:-10%; top:30%; bottom:-90px; pointer-events:none;
-    background:
-      radial-gradient(60% 55% at 50% 100%, rgba(232,98,44,.14), transparent 70%),
-      repeating-linear-gradient(90deg, rgba(232,98,44,.10) 0 1px, transparent 1px 72px),
-      repeating-linear-gradient(0deg, rgba(232,98,44,.10) 0 1px, transparent 1px 46px);
-    transform:perspective(700px) rotateX(58deg); transform-origin:50% 100%;
-    -webkit-mask-image:radial-gradient(65% 80% at 50% 90%, #000 30%, transparent 75%);
-    mask-image:radial-gradient(65% 80% at 50% 90%, #000 30%, transparent 75%)}
-  .video-box{max-width:calc(var(--maxw) - 56px); margin:0 auto; aspect-ratio:16/9;
-    border:1px solid var(--line); border-radius:20px; background:rgba(10,8,6,.88); position:relative;
-    overflow:hidden; box-shadow:0 30px 80px -30px rgba(0,0,0,.9)}
-  .video-box iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
-  .video-cap{font:400 12px var(--mono); color:var(--ink-mut); max-width:var(--maxw); margin:12px auto 0; padding:0 28px}
 
   /* ── stats strip ────────────────────────────────────────── */
   .stats{display:flex; gap:14px; flex-wrap:wrap; justify-content:space-between; align-items:center;
@@ -619,13 +604,6 @@ window.PLUGICT = {
     line-height:1.65; color:var(--ink-soft)}
   .pay-note a{color:var(--terracotta)}
 
-  /* ── testimonials (hidden until real quotes exist in config) ── */
-  .quotes-band{padding:0 28px 74px}
-  .quotes{max-width:var(--maxw); margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px}
-  .quote-card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:26px 28px}
-  .quote-card .qmark{font:500 34px var(--serif); color:var(--terracotta); line-height:1}
-  .quote-card p{font-size:15px; line-height:1.7; color:var(--ink-soft); margin-top:10px; font-style:italic}
-  .quote-card .who{margin-top:14px; font:500 12px var(--mono); letter-spacing:.08em; color:var(--ink-mut)}
 
   /* ── final CTA + email capture ──────────────────────────── */
   .final-cta{background:var(--dark); color:#F4EFE4; border-top:1px solid var(--line-soft); position:relative; overflow:hidden}
@@ -700,34 +678,6 @@ window.PLUGICT = {
   .glow:hover::before{opacity:1}
   .glow > *{position:relative; z-index:1}
 
-  /* ── x.ai-style code-snippet tabs ───────────────────────── */
-  .codeblock{margin-top:48px; display:grid; grid-template-columns:1.02fr 1.18fr; gap:44px; align-items:center; max-width:var(--maxw)}
-  @media(max-width:900px){ .codeblock{grid-template-columns:1fr; gap:30px} }
-  .codeblock .lead h3{font:400 clamp(26px,3.4vw,40px)/1.12 var(--serif); letter-spacing:-.02em}
-  .codeblock .lead p{font-size:15.5px; line-height:1.7; color:var(--ink-soft); max-width:440px; margin-top:16px}
-  .code-langs{display:flex; gap:14px; margin-top:22px; flex-wrap:wrap}
-  .code-lang{display:flex; align-items:center; gap:9px; font:500 13px var(--sans); color:var(--ink-soft)}
-  .code-lang i{width:7px; height:7px; border-radius:50%; background:var(--terracotta); box-shadow:0 0 10px 1px var(--ember-glow)}
-  .code-panel{background:linear-gradient(180deg,#0A0806,#050403); border:1px solid rgba(232,98,44,.28); border-radius:16px;
-    overflow:hidden; box-shadow:0 0 80px -30px var(--ember-glow), 0 40px 90px -50px rgba(0,0,0,.95)}
-  .code-tabs{display:flex; gap:2px; padding:10px 12px 0; border-bottom:1px solid var(--dark-line); overflow-x:auto; scrollbar-width:none}
-  .code-tabs::-webkit-scrollbar{display:none}
-  .code-tab{font:500 12.5px var(--mono); color:var(--ink-mut); background:none; border:none; cursor:pointer;
-    padding:10px 15px; border-radius:9px 9px 0 0; white-space:nowrap; transition:color .2s, background .2s; position:relative}
-  .code-tab:hover{color:var(--ink-soft)}
-  .code-tab.on{color:var(--terracotta-bright); background:rgba(232,98,44,.08)}
-  .code-tab.on::after{content:""; position:absolute; left:12px; right:12px; bottom:-1px; height:2px; background:var(--terracotta-bright); border-radius:2px}
-  .code-head{display:flex; align-items:center; justify-content:space-between; padding:12px 18px 4px}
-  .code-file{font:400 11.5px var(--mono); color:var(--ink-mut)}
-  .code-copy{font:500 11px var(--mono); color:rgba(244,239,228,.5); border:1px solid rgba(244,239,228,.18);
-    border-radius:6px; padding:5px 11px; cursor:pointer; background:none; transition:color .2s,border-color .2s}
-  .code-copy:hover{color:var(--terracotta-bright); border-color:var(--terracotta-bright)}
-  .code-body{margin:0; padding:8px 20px 24px; font:400 13px/1.85 var(--mono); color:rgba(244,239,228,.86);
-    overflow-x:auto; white-space:pre; scrollbar-width:thin}
-  .code-body .cm{color:var(--ink-mut)} .code-body .ky{color:var(--terracotta-bright)}
-  .code-body .st{color:#9BD39B} .code-body .fn{color:#7FB8FF}
-  .code-pane{display:none} .code-pane.on{display:block; animation:code-fade .3s ease}
-  @keyframes code-fade{from{opacity:0; transform:translateY(6px)}}
 
   @media (prefers-reduced-motion: reduce){
     *,*::before,*::after{animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important}
@@ -747,7 +697,6 @@ window.PLUGICT = {
       <div class="navlinks" id="navmenu">
         <a href="#capabilities">What it does</a>
         <a href="#setup">Setup</a>
-        <a href="#connect">Connect</a>
         <a href="#pricing">Pricing</a>
         <a href="#faq">FAQ</a>
         <a href="/affiliate.html">Affiliate</a>
@@ -788,11 +737,6 @@ window.PLUGICT = {
   </div>
 </header>
 
-<!-- ═══ DEMO VIDEO — hidden until PLUGICT.demoVideoUrl is set in the config ═══ -->
-<div class="video-slot fadeup" id="video-slot" hidden>
-  <div class="video-box" id="video-box"></div>
-  <div class="video-cap">↑ A real query, answered and cited in ~3 seconds.</div>
-</div>
 
 <!-- ═══ STATS ═══ -->
 <div class="stats fadeup">
@@ -1066,7 +1010,7 @@ window.PLUGICT = {
       <div class="move-card fadeup glow" data-delay=".16">
         <div class="num">03</div>
         <h3>Ask your AI</h3>
-        <p>It searches, walks the graph, and answers with cited timestamps.</p>
+        <p>It searches, walks the graph, and answers in plain English.</p>
         <div class="move-chips">
           <span>Claude Desktop</span>
           <span>Cursor</span>
@@ -1078,69 +1022,6 @@ window.PLUGICT = {
   </div>
 </section>
 
-<!-- ═══ CONNECT / CODE TABS (x.ai-style developer block) ═══ -->
-<section id="connect">
-  <div class="inner">
-    <div class="eyebrow rv rv-up">Connect your agent</div>
-    <div class="codeblock">
-      <div class="lead rv rv-left">
-        <h3>One config. <em>Any MCP agent.</em></h3>
-        <p>Paste the vault into your agent and every answer comes back cited to the exact video and timestamp — no glue code, no cloud round-trip. Copy the snippet for your tool and you're live.</p>
-        <div class="code-langs">
-          <span class="code-lang"><i></i>Claude Desktop</span>
-          <span class="code-lang"><i></i>Cursor</span>
-          <span class="code-lang"><i></i>CLI</span>
-          <span class="code-lang"><i></i>any agent</span>
-        </div>
-      </div>
-      <div class="code-panel glow rv rv-right">
-        <div class="code-tabs" role="tablist">
-          <button class="code-tab on" type="button" data-tab="claude" role="tab">Claude&nbsp;Desktop</button>
-          <button class="code-tab" type="button" data-tab="cursor" role="tab">Cursor</button>
-          <button class="code-tab" type="button" data-tab="cli" role="tab">CLI</button>
-          <button class="code-tab" type="button" data-tab="ask" role="tab">Ask</button>
-        </div>
-        <div class="code-head">
-          <span class="code-file" data-file>claude_desktop_config.json</span>
-          <button class="code-copy" type="button" data-code-copy>copy</button>
-        </div>
-
-        <div class="code-pane on" data-pane="claude"><pre class="code-body">{
-  <span class="ky">"mcpServers"</span>: {
-    <span class="ky">"ict-vault"</span>: {
-      <span class="ky">"command"</span>: <span class="st">"ict-vault-mcp"</span>,
-      <span class="ky">"args"</span>: [<span class="st">"--vault"</span>, <span class="st">"~/PlugICT/ict-vault"</span>],
-      <span class="ky">"env"</span>: { <span class="ky">"ICT_LICENSE"</span>: <span class="st">"~/PlugICT/license.key"</span> }
-    }
-  }
-}</pre></div>
-
-        <div class="code-pane" data-pane="cursor"><pre class="code-body"><span class="cm"># ~/.cursor/mcp.json — same shape, drop it in and reload</span>
-{
-  <span class="ky">"mcpServers"</span>: {
-    <span class="ky">"ict-vault"</span>: {
-      <span class="ky">"command"</span>: <span class="st">"ict-vault-mcp"</span>,
-      <span class="ky">"args"</span>: [<span class="st">"--vault"</span>, <span class="st">"~/PlugICT/ict-vault"</span>]
-    }
-  }
-}</pre></div>
-
-        <div class="code-pane" data-pane="cli"><pre class="code-body"><span class="cm"># unlock once, then let the doctor verify everything</span>
-<span class="fn">$</span> ict-vault unlock --license license.key
-<span class="fn">$</span> ict-vault doctor
-<span class="ky">✓</span> vault decrypted  <span class="cm">· 576 videos · 12,438 chunks</span>
-<span class="ky">✓</span> knowledge graph loaded  <span class="cm">· reranker ready</span>
-<span class="ky">✓</span> MCP server listening on stdio</pre></div>
-
-        <div class="code-pane" data-pane="ask"><pre class="code-body"><span class="fn">you&gt;</span> difference between an order block and a breaker?
-<span class="ky">ict-vault&gt;</span> An order block is the last down-candle before an
-          up-move; a breaker is that block after price fails
-          and breaks back through it…
-          <span class="cm">↳ 2023 Mentorship — Ep 31 · 41:07 (97% confidence)</span></pre></div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- ═══ PRICING ═══ -->
 <section id="pricing" class="alt">
@@ -1198,10 +1079,6 @@ window.PLUGICT = {
   </div>
 </section>
 
-<!-- ═══ TESTIMONIALS — hidden until PLUGICT.testimonials has real quotes ═══ -->
-<div class="quotes-band fadeup" id="quotes-band" hidden>
-  <div class="quotes" id="quotes"></div>
-</div>
 
 <!-- ═══ FINAL CTA ═══ -->
 <section id="get-access" class="final-cta center">
@@ -1391,33 +1268,6 @@ window.PLUGICT = {
 
     document.getElementById('pay-price').textContent=
       (cfg.priceUsd||'$1.00')+' one-time'+(cfg.priceMyr?' · '+cfg.priceMyr:'');
-
-    /* demo walkthrough video — appears only when a real URL is configured */
-    if(cfg.demoVideoUrl){
-      const slot=document.getElementById('video-slot');
-      const box=document.getElementById('video-box');
-      const f=document.createElement('iframe');
-      f.src=cfg.demoVideoUrl; f.title='PlugICT demo walkthrough';
-      f.loading='lazy'; f.allowFullscreen=true;
-      f.allow='accelerometer; encrypted-media; picture-in-picture';
-      box.appendChild(f); slot.hidden=false;
-    }
-
-    /* testimonials — real quotes only, rendered from config */
-    if(Array.isArray(cfg.testimonials)&&cfg.testimonials.length){
-      const wrap=document.getElementById('quotes');
-      cfg.testimonials.forEach(t=>{
-        if(!t||!t.quote)return;
-        const card=document.createElement('figure'); card.className='quote-card';
-        const mark=document.createElement('div'); mark.className='qmark'; mark.textContent='“';
-        const p=document.createElement('p'); p.textContent=t.quote;
-        card.appendChild(mark); card.appendChild(p);
-        if(t.who){const who=document.createElement('figcaption'); who.className='who';
-          who.textContent='— '+t.who; card.appendChild(who);}
-        wrap.appendChild(card);
-      });
-      if(wrap.children.length)document.getElementById('quotes-band').hidden=false;
-    }
     document.querySelectorAll('.support-mail').forEach(a=>{
       a.href='mailto:'+(cfg.supportEmail||'');a.textContent=cfg.supportEmail||'us';});
     document.querySelectorAll('.usd-amt').forEach(e=>e.textContent=cfg.priceUsd||'$1.00');
@@ -1619,27 +1469,6 @@ window.PLUGICT = {
     items.forEach(el=>io.observe(el));
   })();
 
-  /* ── 6. code-snippet tabs ── */
-  (function(){
-    const panel=document.querySelector('.code-panel'); if(!panel) return;
-    const tabs=panel.querySelectorAll('.code-tab');
-    const panes=panel.querySelectorAll('.code-pane');
-    const fileEl=panel.querySelector('[data-file]');
-    const copyBtn=panel.querySelector('[data-code-copy]');
-    const files={claude:'claude_desktop_config.json',cursor:'~/.cursor/mcp.json',cli:'terminal',ask:'your agent'};
-    function select(name){
-      tabs.forEach(t=>t.classList.toggle('on',t.dataset.tab===name));
-      panes.forEach(p=>p.classList.toggle('on',p.dataset.pane===name));
-      if(fileEl) fileEl.textContent=files[name]||'';
-    }
-    tabs.forEach(t=>t.addEventListener('click',()=>select(t.dataset.tab)));
-    if(copyBtn) copyBtn.addEventListener('click',()=>{
-      const active=panel.querySelector('.code-pane.on .code-body');
-      const txt=active?active.innerText:'';
-      if(navigator.clipboard) navigator.clipboard.writeText(txt).catch(()=>{});
-      copyBtn.textContent='copied'; setTimeout(()=>copyBtn.textContent='copy',1200);
-    });
-  })();
 
   /* ── 7. knowledge graph traversal ── */
   (function(){
