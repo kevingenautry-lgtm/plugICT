@@ -207,6 +207,23 @@ window.PLUGICT = {
   .stats .s-ic svg{width:18px; height:18px}
   @media(max-width:900px){ .stats{justify-content:flex-start; gap:20px} }
 
+  /* ── concept ticker (kinetic marquee) ─────────────────────── */
+  .ticker{padding:36px 0; margin-top:56px; overflow:hidden; background:var(--paper-alt);
+    border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft);
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+            mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+  .tk-row{overflow:hidden; white-space:nowrap}
+  .tk-row + .tk-row{margin-top:8px}
+  .tk-track{display:inline-block; will-change:transform}
+  .tk-track span{display:inline-block; font:500 clamp(22px,5vw,42px)/1 var(--serif);
+    font-style:italic; letter-spacing:-.01em; color:var(--ink); padding:0 .3em}
+  .tk-track .tk-dot{color:var(--terracotta); font-style:normal}
+  .tk-a{animation:tk-L 38s linear infinite}
+  .tk-b{animation:tk-R 44s linear infinite}
+  @keyframes tk-L{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @keyframes tk-R{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+  @media(prefers-reduced-motion:reduce){.tk-a,.tk-b{animation:none}}
+
   /* ── sections ───────────────────────────────────────────── */
   section{padding:88px 28px}
   section.alt{background:var(--paper-alt); border-top:1px solid var(--line-soft)}
@@ -738,6 +755,12 @@ window.PLUGICT = {
   <span><i class="s-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3z"/><path d="m9 11.5 2 2 4-4"/></svg></i><span><b>LIFETIME</b>LICENSE</span></span>
 </div>
 
+<!-- ═══ CONCEPT TICKER ═══ -->
+<div class="ticker fadeup" aria-hidden="true">
+  <div class="tk-row"><div class="tk-track tk-a" id="tk1"></div></div>
+  <div class="tk-row"><div class="tk-track tk-b" id="tk2"></div></div>
+</div>
+
 <!-- ═══ PROBLEM ═══ -->
 <section id="problem">
   <div class="inner">
@@ -1248,6 +1271,17 @@ window.PLUGICT = {
   document.documentElement.classList.add('js');
   document.querySelectorAll('[data-year]').forEach(e=>e.textContent=new Date().getFullYear());
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Concept ticker: fill both marquee rows with real ICT concepts, duplicated
+  // once so the -50% translate loops seamlessly. Pauses when tab is hidden.
+  (function(){
+    function fill(el,w){el.innerHTML=(w.map(x=>'<span>'+x+'</span><span class="tk-dot">&bull;</span>').join('')).repeat(2);}
+    const t1=document.getElementById('tk1'), t2=document.getElementById('tk2'); if(!t1||!t2) return;
+    fill(t1,["FAIR VALUE GAP","ORDER BLOCK","LIQUIDITY","SILVER BULLET","BREAKER BLOCK","OPTIMAL TRADE ENTRY","MARKET STRUCTURE SHIFT"]);
+    fill(t2,["SMT DIVERGENCE","JUDAS SWING","POWER OF 3","MITIGATION BLOCK","KILL ZONE","BALANCED PRICE RANGE","CISD"]);
+    document.addEventListener('visibilitychange',function(){
+      [t1,t2].forEach(t=>t.style.animationPlayState=document.hidden?'paused':'running');});
+  })();
 
   // Mobile nav: hamburger toggles the section links dropdown.
   (function(){
