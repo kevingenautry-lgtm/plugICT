@@ -162,7 +162,12 @@ window.PLUGICT = {
       gap:0; padding:6px 0; display:none;
       background:rgba(13,11,8,.98); backdrop-filter:blur(10px);
       border-bottom:1px solid var(--line-soft)}
-    nav.nav-open .navlinks{display:flex}
+    nav.nav-open .navlinks{display:flex; z-index:2;
+      border:1px solid rgba(255,255,255,.5); border-top:none; border-radius:0 0 4px 4px;
+      box-shadow:0 0 22px rgba(255,255,255,.30), 0 14px 34px rgba(0,0,0,.55)}
+    /* blur the page behind the open menu */
+    nav.nav-open::before{content:""; position:fixed; left:0; right:0; top:76px; bottom:0; z-index:1;
+      background:rgba(7,6,5,.32); -webkit-backdrop-filter:blur(5px); backdrop-filter:blur(5px)}
     .navlinks a{padding:15px 28px; font-size:16px; color:var(--ink);
       border-top:1px solid var(--line-soft)}
     .navlinks a:first-child{border-top:none}
@@ -182,12 +187,27 @@ window.PLUGICT = {
     -webkit-mask-image:radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 78%);
     mask-image:radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 78%)}
   .hero .wrap{display:grid; grid-template-columns:1.05fr .95fr; gap:52px; align-items:center; padding:96px 28px 84px; position:relative; z-index:2}
-  @media(max-width:1000px){ .hero .wrap{grid-template-columns:1fr} }
   .eyebrow{font:500 11.5px var(--mono); letter-spacing:.18em; color:var(--terracotta); text-transform:uppercase}
   .hero h1{font:400 clamp(42px,6.3vw,86px)/1.03 var(--serif); letter-spacing:-.025em; margin-top:24px}
   .hero .sub{font-size:17px; line-height:1.7; color:var(--ink-soft); max-width:460px; margin-top:24px}
   .hero .cta{display:flex; align-items:center; gap:22px; flex-wrap:wrap; margin-top:34px}
+  /* slightly smaller hero buttons */
+  .hero .cta .btn{padding:13px 22px; font-size:14px}
+  .hero .cta .btn.telegram{font-size:12.5px}
   .hero .fine{font:400 12px var(--mono); letter-spacing:.05em; color:var(--ink-mut); margin-top:18px}
+  /* single-column: center the whole hero, buttons side-by-side even on phones */
+  @media(max-width:1000px){
+    .hero .wrap{grid-template-columns:1fr}
+    .hero .wrap > div:first-child{text-align:center}
+    .hero .sub{margin-left:auto; margin-right:auto}
+    .hero .cta{justify-content:center; flex-wrap:nowrap; gap:12px}
+    .hero .cta .btn{flex:1 1 0; min-width:0; justify-content:center; padding:12px 14px; text-align:center}
+  }
+  @media(max-width:400px){
+    .hero .cta{gap:9px}
+    .hero .cta .btn{padding:11px 10px; font-size:13px}
+    .hero .cta .btn.telegram{font-size:11px; letter-spacing:.03em}
+  }
 
   /* terminal panel */
   .terminal{background:var(--dark); border-radius:18px; border:1px solid rgba(232,98,44,.35); overflow:hidden;
@@ -1320,8 +1340,10 @@ window.PLUGICT = {
     tog.addEventListener('click',()=>setOpen(!nav.classList.contains('nav-open')));
     // Tapping a link jumps to the section and closes the menu.
     document.querySelectorAll('#navmenu a').forEach(a=>a.addEventListener('click',()=>setOpen(false)));
-    // Close on Escape or when resizing back to desktop.
+    // Close on Escape, on tapping the blurred backdrop, or on resize to desktop.
     document.addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false);});
+    document.addEventListener('click',e=>{
+      if(nav.classList.contains('nav-open') && !e.target.closest('.nav-right')) setOpen(false);});
     matchMedia('(min-width:761px)').addEventListener('change',e=>{if(e.matches)setOpen(false);});
   })();
 
