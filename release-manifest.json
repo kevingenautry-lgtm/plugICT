@@ -1,0 +1,13 @@
+{
+  "latest": "v3.2.0",
+  "artifacts": {
+    "0db15c1421a2da35b34b5fb5a355ad21e9c038e0035256098951b2bf3b723236": {
+      "version": "3.2.0",
+      "tag": "v3.2.0",
+      "url": "https://github.com/godzillacode0000/plugICT/releases/download/v3.2.0/ict-vault.kevin",
+      "size": 124018325,
+      "sha256": "0db15c1421a2da35b34b5fb5a355ad21e9c038e0035256098951b2bf3b723236",
+      "notes": "V3 SQL-first retrieval. 581 videos, 14757 chunks, semantic chunking v3."
+    }
+  }
+}
