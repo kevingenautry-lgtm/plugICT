@@ -686,6 +686,7 @@ window.PLUGICT = {
     #hero-canvas{display:none} #spotlight{display:none !important}
   }
 </style>
+<link rel="stylesheet" href="assets/coderabbit-v2.css">
 </head>
 <body>
 <div id="spotlight" aria-hidden="true"></div>
@@ -695,15 +696,16 @@ window.PLUGICT = {
     <div class="brand"><svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2v5"/><path d="M15 2v5"/><path d="M7 7h10v4a5 5 0 0 1-10 0V7z"/><path d="M12 16v3a3 3 0 0 1-3 3"/></svg> PlugICT</div>
     <div class="nav-right">
       <div class="navlinks" id="navmenu">
+        <a href="#capabilities">Product</a>
+        <a href="#agents">Your AI</a>
+        <a href="#setup">How it works</a>
         <a href="#about">About</a>
-        <a href="#capabilities">What it does</a>
-        <a href="#setup">Setup</a>
         <a href="#pricing">Pricing</a>
         <a href="#faq">FAQ</a>
         <a href="/affiliate.html">Affiliate</a>
       </div>
       <a class="btn primary small" href="#pricing">Get access</a>
-      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="navmenu">
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="navmenu">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg>
       </button>
     </div>
@@ -717,32 +719,82 @@ window.PLUGICT = {
 <!-- ═══ HERO ═══ -->
 <header class="hero">
   <canvas id="hero-canvas" aria-hidden="true"></canvas>
-  <div class="wrap">
-    <div>
-      <div class="eyebrow fadeup">The ICT reference. In your AI.</div>
-      <h1 class="fadeup" data-delay=".08">You know ICT taught it. <em class="sweep">Now find it.</em></h1>
-      <p class="sub fadeup" data-delay=".16">581 videos indexed and waiting. Ask what you need — get the exact clip where ICT said it, timestamped and cited. No more scrubbing two-hour videos at 2x speed.</p>
-      <div class="cta fadeup" data-delay=".24">
-        <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access</a>
-        <a class="btn ghost telegram" href="https://telegram.me/plugICT_here" target="_blank" rel="noopener noreferrer" aria-label="Visit the PlugICT Telegram channel">
+  <div class="wrap hero-stack">
+    <div class="hero-copy">
+      <div class="eyebrow fadeup">581 ICT videos. Searchable by your AI.</div>
+      <h1 class="fadeup" data-delay=".06"><span class="hero-line">Stop scrubbing.</span><em>Find what ICT actually said.</em></h1>
+      <p class="sub fadeup" data-delay=".12">PlugICT gives your own AI a local vault of ICT lessons. Ask normally, get the matching video, exact timestamp, and enough context to verify it yourself.</p>
+      <div class="cta fadeup" data-delay=".18">
+        <a class="btn primary" href="#pricing" data-buy-link>Get PlugICT — $18.99</a>
+        <a class="btn ghost telegram" href="https://telegram.me/plugICT_here" target="_blank" rel="noopener noreferrer">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.7 2.3a1 1 0 0 0-1-.2L2.6 9.1a1 1 0 0 0 .1 1.9l4.6 1.5 1.8 5.7a1 1 0 0 0 1.7.4l2.6-2.7 4.8 3.5a1 1 0 0 0 1.6-.6l3-15.5a1 1 0 0 0-1.1-1Zm-3.5 4.1-8.1 7.4-.8 2.5-1.2-3.8 10.1-6.1Z"/></svg>
-          VIEW TELEGRAM
+          View Telegram
         </a>
       </div>
-      <div class="fine fadeup" data-delay=".3">$18.99 one-time · runs on your machine · bring your own AI — free options work</div>
+      <div class="fine fadeup" data-delay=".24">One payment · local vault · buyer-owned AI · timestamped sources</div>
     </div>
-    <div class="terminal fadeup" data-delay=".2" role="img" aria-label="Terminal demo: searching the ICT Vault">
-      <div class="term-head"><i></i><i></i><i></i><span>ict-vault — search</span></div>
-      <div class="term-body" id="term"></div>
+
+    <div class="product-stage fadeup" data-delay=".28" role="img" aria-label="Illustrative PlugICT research session showing a question, a cited answer, and exact video timestamps">
+      <div class="stage-topbar">
+        <span class="stage-dot"></span><span class="stage-dot"></span><span class="stage-dot"></span>
+        <span class="stage-title">PlugICT · research session</span>
+        <span class="stage-status">vault connected</span>
+      </div>
+      <div class="stage-grid">
+        <div class="stage-sidebar" aria-hidden="true">
+          <div class="stage-label">Workspace</div>
+          <div class="stage-nav-item on"><i>01</i><span>Ask the vault</span></div>
+          <div class="stage-nav-item"><i>02</i><span>Recent questions</span></div>
+          <div class="stage-nav-item"><i>03</i><span>Saved sources</span></div>
+          <div class="stage-collection">
+            <div class="stage-label">Collections</div>
+            <div class="stage-nav-item"><i>22</i><span>2022 Mentorship</span></div>
+            <div class="stage-nav-item"><i>CC</i><span>Core Content</span></div>
+            <div class="stage-nav-item"><i>24</i><span>2024 Lectures</span></div>
+          </div>
+        </div>
+
+        <div class="stage-main">
+          <div class="stage-query"><span class="prompt">YOU</span><span>How does ICT explain CISD?</span><span class="kbd">ENTER</span></div>
+          <div class="stage-run"><b>PLUGICT</b><span>searched several related phrases across 581 videos</span></div>
+          <div class="stage-response">
+            <div class="stage-response-head"><span>Answer built from the retrieved lessons</span><span>3 SOURCES</span></div>
+            <div class="stage-response-copy">
+              <strong>Your AI handles the explanation. PlugICT handles the evidence.</strong>
+              It retrieves the relevant transcript sections, keeps the surrounding context, and attaches the video timestamps so you can check the teaching yourself.
+              <div class="stage-citation"><b>Matching ICT lesson</b><span>exact timestamp · open the video at the matched moment</span></div>
+            </div>
+            <div class="stage-actions"><span class="stage-action primary">Open timestamp</span><span class="stage-action">Expand context</span><span class="stage-action">Search deeper</span></div>
+          </div>
+          <div class="stage-footnote">Illustrative search session. The buyer chooses the AI model.</div>
+        </div>
+
+        <div class="stage-sources" aria-hidden="true">
+          <div class="stage-label">Sources <span class="source-count">3</span></div>
+          <div class="source-card"><span class="src-num">SOURCE 01</span><b>Primary matching lesson</b><time>EXACT TIMESTAMP</time><p>Best transcript match for the question.</p></div>
+          <div class="source-card"><span class="src-num">SOURCE 02</span><b>Related lesson</b><time>EXACT TIMESTAMP</time><p>Additional explanation with more context.</p></div>
+          <div class="source-card"><span class="src-num">SOURCE 03</span><b>Connected concept</b><time>EXACT TIMESTAMP</time><p>A related section found in the vault.</p></div>
+        </div>
+      </div>
     </div>
   </div>
 </header>
 
 
-<!-- ═══ STATS ═══ -->
-<div class="stats fadeup">
-  <span>581 Videos</span><i>·</i><span>Exact Timestamps</span><i>·</i><span>Runs Locally</span><i>·</i><span>One Payment</span>
-</div>
+<!-- ═══ PROOF ═══ -->
+<section class="proof-band" aria-labelledby="proof-title">
+  <div class="proof-wrap">
+    <div class="eyebrow fadeup">The ICT reference, now searchable</div>
+    <h2 id="proof-title" class="fadeup" data-delay=".05">The lessons are already there. PlugICT makes them usable when you need them.</h2>
+    <div class="proof-grid fadeup" data-delay=".1">
+      <div class="proof-item"><span class="proof-value">581</span><span class="proof-label">ICT videos indexed</span></div>
+      <div class="proof-item"><span class="proof-value green">Exact</span><span class="proof-label">Video timestamps</span></div>
+      <div class="proof-item"><span class="proof-value">Local</span><span class="proof-label">Vault search</span></div>
+      <div class="proof-item"><span class="proof-value">Yours</span><span class="proof-label">Choose the AI model</span></div>
+    </div>
+    <div class="integration-rail fadeup" data-delay=".14"><b>Works through MCP with</b><span>Claude Desktop</span><span>Cursor</span><span>Hermes</span><span>Codex</span></div>
+  </div>
+</section>
 
 <!-- ═══ CONCEPT TICKER ═══ -->
 <div class="ticker fadeup" aria-hidden="true">
@@ -754,25 +806,26 @@ window.PLUGICT = {
 <section id="problem">
   <div class="inner">
     <div class="eyebrow fadeup">The problem</div>
-    <h2 class="fadeup" data-delay=".05">Finding an ICT lesson shouldn't take <em>20 minutes.</em></h2>
-    <p class="sub fadeup" data-delay=".1">You know ICT explained it somewhere. But which video? Which minute? Scrubbing kills your flow — and generic AI models just make stuff up, because they never watched the lessons.</p>
+    <h2 class="fadeup" data-delay=".05">ICT study was already hard. <em>Finding one sentence makes it worse.</em></h2>
+    <p class="sub fadeup" data-delay=".1">You remember the idea, but not the video. You try YouTube search, open five tabs, scrub at 2x, and still wonder whether you found the right explanation.</p>
 
     <div class="story">
       <div class="panel chaos fadeup">
-        <span class="panel-label">Before</span>
-        <div class="dlg"><b>Trader:</b> “I swear ICT explained FVG entries somewhere in the 2022 videos…”</div>
-        <div class="dlg"><b>Friend:</b> “Which video number?”</div>
-        <div class="dlg"><b>Trader:</b> “No idea. I’ve been scrubbing for 20 minutes.”</div>
-        <div class="dlg"><b>Friend:</b> “At 2x speed?”</div>
-        <div class="dlg"><b>Trader:</b> “At this point, just guessing.”</div>
+        <span class="panel-label">Without PlugICT</span>
+        <div class="dlg"><b>Trader:</b> "ICT explained this exact setup somewhere."</div>
+        <div class="dlg"><b>Friend:</b> "Which mentorship? Which episode?"</div>
+        <div class="dlg"><b>Trader:</b> "No idea. I'm opening every video with FVG in the title."</div>
+        <div class="dlg"><b>Friend:</b> "Did YouTube search find it?"</div>
+        <div class="dlg"><b>Trader:</b> "It found the title. Not the sentence."</div>
       </div>
       <div class="panel answer fadeup" data-delay=".08">
         <span class="panel-label">With PlugICT</span>
-        <div class="q">You: How does ICT define CISD?</div>
-        <div class="a">A Change In State of Delivery is confirmed when price closes past the opening of the candle series that created the last swing — signalling delivery has flipped…</div>
-        <div class="cite">📍 <span><b>2022 Mentorship · Ep 147</b> — watch at <span class="ts">18:24</span></span></div>
+        <div class="q">You: Find where ICT connects CISD with a shift in delivery.</div>
+        <div class="a">PlugICT searches related wording across the vault, returns the matching transcript sections, and keeps the source attached.</div>
+        <div class="cite"><span><b>Matching lesson found</b> · video title, exact timestamp, and surrounding context ready to verify</span></div>
       </div>
     </div>
+  </div>
 </section>
 
 <!-- ═══ ABOUT ═══ -->
@@ -783,16 +836,11 @@ window.PLUGICT = {
         <div class="eyebrow">Who built this</div>
         <h2>Hey, I'm <em>Kevin.</em></h2>
         <p class="sub about-sub">Yes, I'm selling you something. What did you expect, free? lol.</p>
-        <p class="sub about-sub">But I'm not selling you a course. I'm not selling signals. I'm not selling a Discord room where someone posts a screenshot after the move already happened.</p>
-        <p class="sub about-sub">ICT already gave us the lessons. The problem is finding the right one when you actually need it.</p>
-        <p class="sub about-sub">I'm a civil engineer from Malaysia. Most days, I'm on a construction site dealing with rebar, concreting, and the chaos of keeping an 18-floor project moving. Late at night, I study ICT.</p>
-        <p class="sub about-sub">I've blown accounts. Questioned everything. <em>Almost quit twice.</em></p>
-        <p class="sub about-sub">And I know the frustration of remembering that ICT explained something somewhere, then spending 45 minutes scrubbing through a two-hour video at 2x speed trying to find one sentence.</p>
-        <p class="sub about-sub">That's why I built PlugICT.</p>
-        <p class="sub about-sub">Not another mentor. Not another theory. Not someone telling you what to trade.</p>
-        <p class="sub about-sub">It's a tool for finding the material you're already trying to learn. Search a concept, find the lesson, jump to the timestamp, and get back to the chart.</p>
-        <p class="sub about-sub">I'm not promising to make you profitable. That part is still on you. I'm selling you a way to waste less time looking for answers.</p>
-        <p class="sub about-sub" style="margin-top:18px">I'm just Kevin, a guy in Kelantan who got tired of searching and built the thing he wanted.</p>
+        <p class="sub about-sub">I'm a civil engineer from Malaysia. Most days I'm dealing with rebar, concreting, and an 18-floor project. Late at night, I'm the same as every other self-taught trader trying to make sense of ICT.</p>
+        <p class="sub about-sub">I've blown accounts, questioned everything, and nearly quit. I also got tired of remembering that ICT explained something somewhere, then losing way too much time trying to find one sentence.</p>
+        <p class="sub about-sub">So I built the tool I wanted: ask the question, pull the matching lesson, open the timestamp, and check ICT's words yourself.</p>
+        <p class="sub about-sub">This isn't a course, signals room, or promise that you'll become profitable. PlugICT just helps you waste less time searching and spend more time studying the actual material.</p>
+        <p class="sub about-sub" style="margin-top:18px">It's still just me, a guy in Kelantan who got tired of scrubbing videos.</p>
         <div class="about-signoff fadeup" data-delay=".15">
           <span class="about-name">— Kevin</span>
           <span class="about-loc">Kota Bharu, Malaysia</span>
@@ -806,8 +854,8 @@ window.PLUGICT = {
             </svg>
           </div>
           <div class="about-card-stat">
-            <span class="about-card-num">6<span class="about-card-plus">+</span></span>
-            <span class="about-card-label">years studying ICT</span>
+            <span class="about-card-num">MY</span>
+            <span class="about-card-label">built in Malaysia</span>
           </div>
           <div class="about-card-stat">
             <span class="about-card-num">581</span>
@@ -827,7 +875,11 @@ window.PLUGICT = {
 <!-- ═══ CAPABILITIES ═══ -->
 <section id="capabilities" class="alt">
   <div class="inner">
-    <h2 class="fadeup">What it does <em>that YouTube can't.</em></h2>
+    <div class="cap-head">
+      <div class="eyebrow fadeup">PlugICT_quality</div>
+      <h2 class="fadeup" data-delay=".05">Ask naturally. <em>Verify everything.</em></h2>
+      <p class="sub fadeup" data-delay=".1">The value isn't a confident AI answer. It's getting the right evidence underneath that answer, with a source you can open yourself.</p>
+    </div>
 
     <div class="cap-list">
 
@@ -837,7 +889,7 @@ window.PLUGICT = {
         <div class="cap-visual cv-term">
           <div><span class="q">ict&gt;</span> silver bullet entry window</div>
           <div class="dim">searching 581 videos…</div>
-          <div class="q">✓ 26 lessons · 1.2s</div>
+          <div class="q">✓ matching lessons · source-linked</div>
         </div>
       </div>
 
@@ -846,8 +898,8 @@ window.PLUGICT = {
         <div class="cap-text"><h3>See the exact source.</h3><p>Every answer shows you which video and which second. Click, watch ICT say it yourself — you're not trusting a black box.</p></div>
         <div class="cap-visual cv-cite">
           <div class="line">
-            <div class="title">2022 Mentorship — Ep 147</div>
-            <div class="ts">▶ 18:24</div>
+            <div class="title">Matching ICT lesson</div>
+            <div class="ts">▶ exact timestamp</div>
             <div class="note">opens at the exact moment</div>
           </div>
         </div>
@@ -893,24 +945,24 @@ window.PLUGICT = {
 
       <div class="cap-row fadeup glow">
         <div class="cap-num">5.</div>
-        <div class="cap-text"><h3>Your machine, your data.</h3><p>The vault is encrypted and runs completely offline. No cloud, no monthly fee, no one tracking what you search.</p></div>
+        <div class="cap-text"><h3>The vault stays local.</h3><p>PlugICT searches the encrypted vault on your machine. Your chosen AI model is a separate layer, so the knowledge base itself does not need to live on our server.</p></div>
         <div class="cap-visual cv-badges">
           <span>runs on your machine</span>
-          <span>no cloud</span>
+          <span>no PlugICT cloud</span>
           <span class="on">encrypted</span>
-          <span>zero vault fees</span>
+          <span>no PlugICT subscription</span>
           <span style="border:none;padding:4px 2px;color:var(--terracotta)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
         </div>
       </div>
 
       <div class="cap-row fadeup glow">
         <div class="cap-num">6.</div>
-        <div class="cap-text"><h3>Buy once. That's it.</h3><p>One payment, one license, lifetime access. No subscription. No surprise charges. It always works.</p></div>
+        <div class="cap-text"><h3>Buy the vault once.</h3><p>One payment gives you the PlugICT vault and license. Your AI provider, if it charges anything, remains your choice and stays separate from PlugICT.</p></div>
         <div class="cap-visual cv-license">
           <span class="cv-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8.5 8.5C5.5 8.5 3.5 10 3.5 12s2 3.5 5 3.5c3.5 0 4.5-7 8-7 3 0 5 1.5 5 3.5s-2 3.5-5 3.5c-3.5 0-4.5-7-8-7z" transform="scale(.86) translate(2 2)"/></svg></span>
           <div class="lbl">LICENSE.KEY</div>
           <div class="price">$18.99 · one-time</div>
-          <div class="note">lifetime access · always works</div>
+          <div class="note">lifetime vault access · no PlugICT subscription</div>
         </div>
       </div>
 
@@ -918,14 +970,51 @@ window.PLUGICT = {
   </div>
 </section>
 
+<!-- ═══ BUYER-OWNED AI WORKFLOW ═══ -->
+<section id="agents" class="agent-section">
+  <div class="inner">
+    <div class="agent-head">
+      <div>
+        <div class="eyebrow fadeup">PlugICT_flexibility</div>
+        <h2 class="fadeup" data-delay=".05">Use the AI you already have.</h2>
+      </div>
+      <p class="sub fadeup" data-delay=".1">PlugICT is the evidence layer, not another chatbot subscription. MCP lets a supported AI client search the local vault, while the model you choose handles the explanation.</p>
+    </div>
+
+    <div class="agent-grid">
+      <div class="agent-picker fadeup">
+        <div class="stage-label">Supported agent paths</div>
+        <div class="agent-option on"><span class="agent-logo">CL</span><span>Claude Desktop<small>Local MCP connection</small></span></div>
+        <div class="agent-option"><span class="agent-logo">CU</span><span>Cursor<small>Ask from your editor</small></span></div>
+        <div class="agent-option"><span class="agent-logo">HE</span><span>Hermes<small>Agent-driven research</small></span></div>
+        <div class="agent-option"><span class="agent-logo">CX</span><span>Codex<small>Tool-connected workflow</small></span></div>
+      </div>
+
+      <div class="agent-flow fadeup glow" data-delay=".08">
+        <div class="flow-head"><span>PLUGICT · LOCAL RESEARCH PATH</span><b>BUYER-OWNED MODEL</b></div>
+        <div class="flow-body">
+          <div class="flow-lane">
+            <div class="flow-node"><span class="node-kicker">01 · Your question</span><h3>Ask normally</h3><p>You do not need to remember the exact phrase ICT used.</p></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node"><span class="node-kicker">02 · PlugICT</span><h3>Retrieve evidence</h3><p>The vault finds transcript sections, context, videos, and timestamps.</p></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node"><span class="node-kicker">03 · Your AI</span><h3>Explain with sources</h3><p>Your chosen model reads the evidence and writes the answer.</p></div>
+          </div>
+          <div class="flow-note"><span>●</span><span><b>MCP is the connector.</b> It gives the AI controlled search tools. It does not expose raw SQL or turn the vault into a cloud database.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ═══ TRUST BANNER ═══ -->
 <div class="banner-band fadeup">
   <div class="band-card">
-    <div class="priv-head">Built for privacy.</div>
+    <div class="priv-head">Private by design, not by promise.</div>
     <div class="priv-grid">
-      <div class="priv-item"><b>🔒 Encrypted vault</b><span>AES-encrypted + your personal license key.</span></div>
-      <div class="priv-item"><b>🛡️ No cloud needed</b><span>Runs entirely on your machine.</span></div>
-      <div class="priv-item"><b>💳 No subscription</b><span>One payment, lifetime access.</span></div>
+      <div class="priv-item"><b>Encrypted and licensed</b><span>The packaged vault is protected and paired with the buyer's license.</span></div>
+      <div class="priv-item"><b>The vault stays local</b><span>Search runs on the buyer's machine instead of a PlugICT cloud database.</span></div>
+      <div class="priv-item"><b>No PlugICT subscription</b><span>Pay once for the vault. Your chosen AI provider remains separate.</span></div>
     </div>
   </div>
 </div>
@@ -933,8 +1022,9 @@ window.PLUGICT = {
 <!-- ═══ SETUP ═══ -->
 <section id="setup">
   <div class="inner">
-    <h2 class="fadeup">Three moves to set up.</h2>
-    <p class="sub fadeup" data-delay=".05" style="margin-top:14px"><span style="font:500 12px var(--mono);letter-spacing:.1em;color:var(--terracotta);border:1px solid rgba(34,197,94,.4);border-radius:6px;padding:6px 14px">≈ 3 MINUTES · NO CODE</span></p>
+    <div class="eyebrow fadeup">PlugICT_finish</div>
+    <h2 class="fadeup" data-delay=".05">From download to your first cited answer.</h2>
+    <p class="sub fadeup" data-delay=".1">The setup script handles the vault. You paste one client config, restart the AI app, and ask your first question.</p>
     <div class="moves">
       <div class="move-card fadeup glow">
         <div class="num">01</div>
@@ -985,7 +1075,7 @@ window.PLUGICT = {
         <div><span class="tick">✓</span>&nbsp; Runs locally — private by design</div>
         <div><span class="tick">✓</span>&nbsp; Lifetime access — one payment</div>
       </div>
-      <p style="margin-top:18px;font-size:13px;line-height:1.6;color:var(--ink-mut);max-width:400px">The vault has zero ongoing fees. Your AI agent brings its own key — free Google Gemini (1,500 queries/day) or ~$2/month DeepSeek both work.</p>
+      <p style="margin-top:18px;font-size:13px;line-height:1.6;color:var(--ink-mut);max-width:420px">PlugICT does not charge for the AI model. Use a supported client and whichever model or provider fits your budget.</p>
     </div>
     <div class="price-card fadeup glow" data-delay=".1">
       <div class="tag">LIFETIME LICENSE</div>
@@ -1012,17 +1102,17 @@ window.PLUGICT = {
       <details class="fadeup"><summary>Does it work without internet? <span class="chev">+</span></summary>
         <div class="faq-body"><div><p>The vault's search runs locally on your machine — it never sends your queries to a cloud. But your AI agent and the YouTube links do need internet. Think of it like this: the library is on your shelf, but you need wifi to ask the librarian.</p></div></div></details>
       <details class="fadeup"><summary>Can I use it with ChatGPT or Claude on the web? <span class="chev">+</span></summary>
-        <div class="faq-body"><div><p>It works today with Claude Desktop (free download), Cursor (free) and Hermes Agent (free) — any local MCP agent. Web-based ChatGPT and Claude don't support MCP yet; a hosted connector for web AIs is on the roadmap.</p></div></div></details>
+        <div class="faq-body"><div><p>PlugICT is designed for local MCP-capable clients. The included setup examples cover the supported paths, including Claude Desktop, Cursor, Hermes, and Codex. A normal browser chat cannot reach a local vault unless that product supports a compatible local tool connection.</p></div></div></details>
       <details class="fadeup"><summary>What exactly do I download? <span class="chev">+</span></summary>
         <div class="faq-body"><div><p>Three things: an encrypted knowledge vault file, a setup file that handles everything automatically, and your personal <code>license.key</code> (emailed to you). No app, no installer, no bloat. The license is tied to you and traceable, so please don't share it.</p></div></div></details>
       <details class="fadeup"><summary>Do I need to pay for anything else? <span class="chev">+</span></summary>
-        <div class="faq-body"><div><p>The vault is one-time $18.99 with zero ongoing fees. Your AI agent needs its own API key — free options include Google Gemini (1,500 queries/day free), and DeepSeek runs about $2/month. Claude Desktop's free plan works too.</p></div></div></details>
+        <div class="faq-body"><div><p>PlugICT itself is a one-time $18.99 purchase. The AI model is separate: you use your own supported client and provider, so any model cost depends on what you choose.</p></div></div></details>
       <details class="fadeup"><summary>How can I pay? <span class="chev">+</span></summary>
         <div class="faq-body"><div><p>DuitNow QR and FPX online banking for Malaysia, international cards via Stripe, or USDT (Solana / TRC20) for crypto. However you pay, your license is emailed to you and the product works exactly the same.</p></div></div></details>
       <details class="fadeup"><summary>What are the system requirements? <span class="chev">+</span></summary>
-        <div class="faq-body"><div><p>Windows, macOS or Linux with Python 3.9+. The setup script handles the rest in an isolated environment, so it won't interfere with anything else on your computer.</p></div></div></details>
+        <div class="faq-body"><div><p>Windows, macOS or Linux with Python 3.10+. The setup script handles the rest in an isolated environment, so it won't interfere with anything else on your computer.</p></div></div></details>
     </div>
-    <p class="faq-more fadeup">Still have questions? <a href="" class="support-mail"></a> — it's just me, a guy in Malaysia who replies.</p>
+    <p class="faq-more fadeup">Still have questions? <a href="mailto:hermesian0000@gmail.com" class="support-mail">hermesian0000@gmail.com</a> — it's just me, a guy in Malaysia who replies.</p>
   </div>
 </section>
 
@@ -1031,19 +1121,19 @@ window.PLUGICT = {
 <section id="get-access" class="final-cta center">
   <div class="inner">
     <h2 class="fadeup">Stop wondering where he said it. <em>Find it and get back to the chart.</em></h2>
-    <p class="sub fadeup" data-delay=".08">581 videos, one license, you for life. Set up in three minutes.</p>
+    <p class="sub fadeup" data-delay=".08">581 videos, one local vault, and a setup guide that takes you from install to your first search.</p>
     <div class="fadeup" data-delay=".16" style="margin-top:34px">
       <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access — $18.99</a>
     </div>
     <div class="fine fadeup" data-delay=".22">ONE-TIME · LIFETIME ACCESS · NO SUBSCRIPTION</div>
 
     <div class="capture fadeup" data-delay=".28">
-      <div class="cap-lbl">NOT READY YET? GET LAUNCH UPDATES</div>
+      <div class="cap-lbl">NOT BUYING YET? GET PRODUCT UPDATES</div>
       <form id="capture-form" novalidate>
         <input type="email" name="email" placeholder="you@example.com" required autocomplete="email" aria-label="Email address">
         <button type="submit">Keep me posted</button>
       </form>
-      <div class="cap-done" id="capture-done">✓ Noted — you'll hear from us before the launch price ends.</div>
+      <div class="cap-done" id="capture-done">✓ Noted — I'll send PlugICT product updates to this address.</div>
     </div>
   </div>
 </section>
@@ -1062,7 +1152,7 @@ window.PLUGICT = {
       Educational research tool. PlugICT is an independent product and is <b>not affiliated with, endorsed by, or
       sponsored by</b> The Inner Circle Trader or Michael J. Huddleston. All trademarks belong to their respective owners.
       Nothing here is financial advice.
-      <div style="margin-top:12px">© <span data-year></span> PlugICT — Kota Bharu, Malaysia. <a href="mailto:hermesian0000@gmail.com" style="color:#6b7280; text-decoration:none">hermesian0000@gmail.com</a></div>
+      <div style="margin-top:12px">© <span data-year></span> PlugICT — Kota Bharu, Malaysia. <a href="mailto:hermesian0000@gmail.com" style="color:#a1a1aa; text-decoration:underline; text-underline-offset:2px">hermesian0000@gmail.com</a></div>
     </div>
   </div>
 </footer>
@@ -1090,11 +1180,11 @@ window.PLUGICT = {
       <div class="pay-methods">
         <button class="pay-method" type="button" data-method="billplz">
           <span><span class="pm-name">FPX / DuitNow</span><br><span class="pm-desc">Malaysian online banking via Billplz — license delivered within 24 hours</span></span>
-          <span class="pm-tag" data-tag="billplz">INSTANT</span>
+          <span class="pm-tag" data-tag="billplz">ONLINE</span>
         </button>
         <button class="pay-method" type="button" data-method="stripe">
           <span><span class="pm-name">Card</span><br><span class="pm-desc">International cards via Stripe — license delivered within 24 hours</span></span>
-          <span class="pm-tag" data-tag="stripe">INSTANT</span>
+          <span class="pm-tag" data-tag="stripe">ONLINE</span>
         </button>
         <button class="pay-method" type="button" data-method="duitnow">
           <span><span class="pm-name">DuitNow QR</span><br><span class="pm-desc">Scan &amp; pay from any Malaysian bank app — 0% fees</span></span>
@@ -1110,10 +1200,10 @@ window.PLUGICT = {
     <div class="pay-pane" id="pane-duitnow">
       <button class="back" type="button" data-pay-back>← all payment methods</button>
       <h4>Pay with DuitNow QR</h4>
-      <img class="qr" id="duitnow-qr" alt="DuitNow QR code" hidden>
+      <img class="qr" id="duitnow-qr" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="DuitNow QR code" hidden>
       <ol>
         <li>Scan the QR with any Malaysian bank app and pay <b id="duitnow-amt"></b>.</li>
-        <li>Email your payment receipt to <a href="" class="support-mail"></a> from the address you want the license sent to.</li>
+        <li>Email your payment receipt to <a href="mailto:hermesian0000@gmail.com" class="support-mail">hermesian0000@gmail.com</a> from the address you want the license sent to.</li>
         <li>Your <code style="font-size:.85em">license.key</code> + download link arrive by email — delivered within 24 hours.</li>
       </ol>
       <div class="pay-note">DuitNow QR is verified manually — delivery within 24 hours, but zero fees.</div>
@@ -1128,7 +1218,7 @@ window.PLUGICT = {
       <div class="pay-addr" id="usdt-sol-row" hidden><span id="usdt-sol"></span><button class="copy-btn" type="button" data-cmd="">copy</button></div>
       <div class="pay-addr" id="usdt-trc-row" hidden><span id="usdt-trc"></span><button class="copy-btn" type="button" data-cmd="">copy</button></div>
       <ol start="2">
-        <li>Email the transaction hash to <a href="" class="support-mail"></a> from the address you want the license sent to.</li>
+        <li>Email the transaction hash to <a href="mailto:hermesian0000@gmail.com" class="support-mail">hermesian0000@gmail.com</a> from the address you want the license sent to.</li>
         <li>Once the tx confirms, your <code style="font-size:.85em">license.key</code> + download link arrive by email.</li>
       </ol>
     </div>
@@ -1137,7 +1227,7 @@ window.PLUGICT = {
       <button class="back" type="button" data-pay-back>← all payment methods</button>
       <h4 id="fallback-title">Checkout is being set up</h4>
       <div class="pay-note">This payment method goes live shortly. In the meantime, email
-        <a href="" class="support-mail"></a> and we'll sort your order out directly — or pick another method.</div>
+        <a href="mailto:hermesian0000@gmail.com" class="support-mail">hermesian0000@gmail.com</a> and we'll sort your order out directly — or pick another method.</div>
     </div>
 
   </div>
@@ -1161,18 +1251,23 @@ window.PLUGICT = {
 
   // Mobile nav: hamburger toggles the section links dropdown.
   (function(){
-    const nav=document.querySelector('nav'), tog=document.querySelector('.nav-toggle');
-    if(!nav||!tog) return;
-    const setOpen=(o)=>{nav.classList.toggle('nav-open',o); tog.setAttribute('aria-expanded',o?'true':'false');
-      tog.setAttribute('aria-label',o?'Close menu':'Open menu');};
+    const nav=document.querySelector('nav'), tog=document.querySelector('.nav-toggle'), menu=document.getElementById('navmenu');
+    if(!nav||!tog||!menu) return;
+    const isMobile=()=>matchMedia('(max-width:960px)').matches;
+    const setOpen=(o,returnFocus=false)=>{nav.classList.toggle('nav-open',o); tog.setAttribute('aria-expanded',o?'true':'false');
+      tog.setAttribute('aria-label',o?'Close menu':'Open menu');
+      menu.inert=isMobile()&&!o;
+      if(menu.inert)menu.setAttribute('aria-hidden','true');else menu.removeAttribute('aria-hidden');
+      if(returnFocus)tog.focus();};
+    setOpen(false);
     tog.addEventListener('click',()=>setOpen(!nav.classList.contains('nav-open')));
     // Tapping a link jumps to the section and closes the menu.
     document.querySelectorAll('#navmenu a').forEach(a=>a.addEventListener('click',()=>setOpen(false)));
     // Close on Escape, on tapping the blurred backdrop, or on resize to desktop.
-    document.addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false);});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&nav.classList.contains('nav-open'))setOpen(false,true);});
     document.addEventListener('click',e=>{
       if(nav.classList.contains('nav-open') && !e.target.closest('.nav-right')) setOpen(false);});
-    matchMedia('(min-width:761px)').addEventListener('change',e=>{if(e.matches)setOpen(false);});
+    matchMedia('(min-width:961px)').addEventListener('change',e=>{if(e.matches)setOpen(false);});
   })();
 
   /* scroll fades + count-up */
@@ -1228,21 +1323,51 @@ window.PLUGICT = {
       if(!cfg[m+'Url'])document.querySelector('[data-tag="'+m+'"]').classList.add('soon'),
         document.querySelector('[data-tag="'+m+'"]').textContent='SOON';});
 
-    let lastFocus=null;
-    const showPane=(id)=>{home.style.display=id?'none':'block';
+    let lastFocus=null,backgroundState=[],previousBodyOverflow='';
+    const focusable=()=>[...overlay.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
+      .filter(el=>!el.hidden&&el.getClientRects().length&&getComputedStyle(el).visibility!=='hidden');
+    const lockBackground=(locked)=>{
+      if(locked){
+        backgroundState=[...document.body.children]
+          .filter(el=>el!==overlay&&el instanceof HTMLElement&&el.tagName!=='SCRIPT')
+          .map(el=>({el,inert:el.inert,ariaHidden:el.getAttribute('aria-hidden')}));
+        backgroundState.forEach(({el})=>{el.inert=true;el.setAttribute('aria-hidden','true');});
+      }else{
+        backgroundState.forEach(({el,inert,ariaHidden})=>{
+          el.inert=inert;
+          if(ariaHidden===null)el.removeAttribute('aria-hidden');else el.setAttribute('aria-hidden',ariaHidden);
+        });
+        backgroundState=[];
+      }
+    };
+    const showPane=(id,moveFocus=false)=>{home.style.display=id?'none':'block';
       Object.values(panes).forEach(p=>document.getElementById(p).classList.remove('open'));
-      if(id)document.getElementById(id).classList.add('open');};
+      if(id)document.getElementById(id).classList.add('open');
+      if(moveFocus){
+        const target=id?document.getElementById(id).querySelector('[data-pay-back]'):home.querySelector('.pay-method');
+        target&&target.focus();
+      }};
     const open=()=>{lastFocus=document.activeElement;showPane(null);
-      overlay.classList.add('open');document.body.style.overflow='hidden';
+      previousBodyOverflow=document.body.style.overflow;
+      overlay.classList.add('open');lockBackground(true);document.body.style.overflow='hidden';
       overlay.querySelector('.close').focus();};
-    const close=()=>{overlay.classList.remove('open');document.body.style.overflow='';
+    const close=()=>{if(!overlay.classList.contains('open'))return;
+      overlay.classList.remove('open');lockBackground(false);document.body.style.overflow=previousBodyOverflow;
+      previousBodyOverflow='';
       lastFocus&&lastFocus.focus();};
 
     document.querySelectorAll('[data-buy-link]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();open();}));
     overlay.querySelector('[data-pay-close]').addEventListener('click',close);
     overlay.addEventListener('click',e=>{if(e.target===overlay)close();});
+    overlay.addEventListener('keydown',e=>{
+      if(e.key!=='Tab'||!overlay.classList.contains('open'))return;
+      const items=focusable();if(!items.length){e.preventDefault();return;}
+      const first=items[0],last=items[items.length-1],active=document.activeElement;
+      if(e.shiftKey&&(active===first||!overlay.contains(active))){e.preventDefault();last.focus();}
+      else if(!e.shiftKey&&active===last){e.preventDefault();first.focus();}
+    });
     addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open'))close();});
-    overlay.querySelectorAll('[data-pay-back]').forEach(b=>b.addEventListener('click',()=>showPane(null)));
+    overlay.querySelectorAll('[data-pay-back]').forEach(b=>b.addEventListener('click',()=>showPane(null,true)));
 
     overlay.querySelectorAll('.pay-method').forEach(btn=>btn.addEventListener('click',()=>{
       const m=btn.dataset.method;
@@ -1251,8 +1376,8 @@ window.PLUGICT = {
         if(url){location.href=m==='stripe'&&window.plugictStripeUrl?window.plugictStripeUrl(url):url;}
         else{document.getElementById('fallback-title').textContent=
           (m==='billplz'?'FPX / DuitNow checkout':'Card checkout')+' is being set up';
-          showPane(panes.fallback);}
-      } else showPane(panes[m]);
+          showPane(panes.fallback,true);}
+      } else showPane(panes[m],true);
     }));
 
     /* countdown — renders only for a real, future deadline */
@@ -1279,53 +1404,14 @@ window.PLUGICT = {
           body:JSON.stringify({email})}).catch(()=>{});
         form.style.display='none';document.getElementById('capture-done').style.display='block';
       }else{
-        location.href='mailto:'+(cfg.supportEmail||'')+'?subject='+encodeURIComponent('PlugICT launch updates')+
+        location.href='mailto:'+(cfg.supportEmail||'')+'?subject='+encodeURIComponent('PlugICT product updates')+
           '&body='+encodeURIComponent('Keep me posted: '+email);
       }
     });
   })();
 
-  /* terminal typing demo */
-  (function(){
-    const term=document.getElementById('term'); if(!term) return;
-    const scenarios=[
-      {cmd:'explain CISD', found:'18 lessons', title:'2022 Mentorship — Video 147', ts:'18:24', conf:'99%'},
-      {cmd:'silver bullet entry window', found:'26 lessons', title:'2023 Mentorship — Episode 31', ts:'41:07', conf:'97%'},
-      {cmd:'order block vs breaker', found:'34 lessons', title:'ICT Core Content — Month 4', ts:'12:52', conf:'98%'},
-    ];
-    const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
-    if(REDUCED){const s=scenarios[0];
-      term.innerHTML=`<div><span class="t-prompt">ict&gt;</span> <span class="t-cmd">${esc(s.cmd)}</span></div>
-        <div class="t-dim">Searching 581 videos…</div>
-        <div><span class="t-warm">✓</span> Found ${s.found}</div>
-        <div class="t-cite"><div class="title">${esc(s.title)}</div>
-        <div><span class="ts">${s.ts}</span>&nbsp;·&nbsp; ${s.conf} confidence</div></div>`;
-      return;}
-    let si=0;
-    const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-    async function run(){
-      const s=scenarios[si]; si=(si+1)%scenarios.length;
-      term.innerHTML=`<div><span class="t-prompt">ict&gt;</span> <span class="t-cmd" id="tcmd"></span><span class="t-cursor"></span></div>`;
-      const cmdEl=term.querySelector('#tcmd');
-      for(const ch of s.cmd){cmdEl.textContent+=ch; await sleep(45+Math.random()*55);}
-      await sleep(400);
-      term.querySelector('.t-cursor')?.remove();
-      term.insertAdjacentHTML('beforeend',`<div class="t-dim">Searching 581 videos…</div>`);
-      await sleep(750);
-      term.insertAdjacentHTML('beforeend',`<div><span class="t-warm">✓</span> Found ${s.found} <span class="t-dim">· found in 0.3s</span></div>`);
-      await sleep(450);
-      term.insertAdjacentHTML('beforeend',
-        `<div class="t-cite"><div class="title">${esc(s.title)}</div>
-         <div><span class="ts">${s.ts}</span>&nbsp;·&nbsp; ${s.conf} confidence</div>
-         <div class="t-dim" style="margin-top:4px">▶ youtu.be/… opens at the exact moment</div></div>`);
-      await sleep(4200);
-      run();
-    }
-    run();
-  })();
-
   /* ══════════════════════════════════════════════════════════════
-     x.ai-INSPIRED MOTION LAYER
+     CODERABBIT-INSPIRED MOTION LAYER
      — animated hero particle field, cursor spotlight, parallax,
        directional scroll-reveal, and the code-snippet tabs.
      All gated on prefers-reduced-motion and pointer capability.
@@ -1335,7 +1421,7 @@ window.PLUGICT = {
   (function(){
     const cv=document.getElementById('hero-canvas'); if(!cv||REDUCED) return;
     const x=cv.getContext('2d'); const hero=cv.parentElement;
-    const ACC=[34,197,94];                 // terracotta
+    const ACC=[34,197,94];                 // PlugICT green
     const dpr=Math.min(2,devicePixelRatio||1), MAXR=6;
     let W=0,H=0,gap=0,R=2,cols=0,rows=0,ox=0,oy=0,dots=[],ripples=[];
     let running=true,raf=0,last=0,onscreen=true;
