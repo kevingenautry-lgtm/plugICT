@@ -57,9 +57,9 @@ window.PLUGICT = {
      an empty value hides the countdown entirely. No fake scarcity. */
   saleEndsAt: '',          // e.g. '2026-08-01T00:00:00+08:00'
 
-  /* "Email me updates" form endpoint (Formspree/Buttondown/etc.).
-     Empty = falls back to a plain mailto: to supportEmail. */
-  emailFormAction: ''
+  /* Where "not buying yet" visitors get sent to follow along instead of an email capture. */
+  telegramUrl: 'https://telegram.me/plugICT_here',
+  twitterUrl: ''           // e.g. 'https://x.com/yourhandle' — link stays hidden until this is set
 };
 </script>
 <style>
@@ -579,7 +579,7 @@ window.PLUGICT = {
   .pay-note a{color:var(--terracotta)}
 
 
-  /* ── final CTA + email capture ──────────────────────────── */
+  /* ── final CTA + follow links ──────────────────────────── */
   .final-cta{background:var(--dark); color:#f9fafb; border-top:1px solid var(--line-soft); position:relative; overflow:hidden}
   .final-cta::before{content:""; position:absolute; left:20%; right:20%; bottom:-40%; height:80%; pointer-events:none;
     background:radial-gradient(50% 50% at 50% 50%, rgba(34,197,94,.14), transparent 70%)}
@@ -590,15 +590,13 @@ window.PLUGICT = {
   .final-cta .fine{font:400 12px var(--mono); letter-spacing:.05em; color:rgba(249,250,251,.45); margin-top:18px}
   .capture{max-width:440px; margin:44px auto 0; padding-top:34px; border-top:1px solid var(--dark-line)}
   .capture .cap-lbl{font:500 11.5px var(--mono); letter-spacing:.14em; color:rgba(249,250,251,.5)}
-  .capture form{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap}
-  .capture input{flex:1; min-width:200px; background:rgba(249,250,251,.06); border:1px solid var(--dark-line);
-    border-radius:6px; padding:13px 20px; font:400 14px var(--sans); color:#f9fafb; outline:none}
-  .capture input::placeholder{color:rgba(249,250,251,.35)}
-  .capture input:focus{border-color:var(--terracotta-bright)}
-  .capture button{background:none; border:1px solid rgba(249,250,251,.25); border-radius:6px; padding:13px 24px;
-    font:500 14px var(--sans); color:#f9fafb; cursor:pointer; transition:border-color .2s}
-  .capture button:hover{border-color:var(--terracotta-bright); color:var(--terracotta-bright)}
-  .capture .cap-done{display:none; margin-top:14px; font-size:14px; color:var(--terracotta-bright)}
+  .social-follow{display:flex; gap:10px; margin-top:14px; justify-content:center; flex-wrap:wrap}
+  .social-link{display:inline-flex; align-items:center; gap:9px; background:rgba(249,250,251,.06); border:1px solid var(--dark-line);
+    border-radius:999px; padding:12px 22px; font:500 14px var(--sans); color:#f9fafb; text-decoration:none; transition:border-color .2s, color .2s}
+  .social-link[hidden]{display:none}
+  .social-link:hover{border-color:var(--terracotta-bright); color:var(--terracotta-bright)}
+  .social-icon{width:18px; height:18px; flex-shrink:0}
+  .social-icon svg{width:100%; height:100%}
 
   /* ── FAQ ────────────────────────────────────────────────── */
   .faq{max-width:720px; margin:36px 0 0; background:#0F0D0A; border:1px solid var(--line);
@@ -1099,12 +1097,17 @@ window.PLUGICT = {
     <div class="fine fadeup" data-delay=".22">ONE-TIME · LIFETIME ACCESS · NO SUBSCRIPTION</div>
 
     <div class="capture fadeup" data-delay=".28">
-      <div class="cap-lbl">NOT BUYING YET? GET PRODUCT UPDATES</div>
-      <form id="capture-form" novalidate>
-        <input type="email" name="email" placeholder="you@example.com" required autocomplete="email" aria-label="Email address">
-        <button type="submit">Keep me posted</button>
-      </form>
-      <div class="cap-done" id="capture-done">✓ Noted — I'll send PlugICT product updates to this address.</div>
+      <div class="cap-lbl">NOT BUYING YET? FOLLOW ALONG</div>
+      <div class="social-follow">
+        <a class="social-link" id="follow-telegram" href="#" target="_blank" rel="noopener noreferrer" hidden>
+          <span class="social-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.7 2.3a1 1 0 0 0-1-.2L2.6 9.1a1 1 0 0 0 .1 1.9l4.6 1.5 1.8 5.7a1 1 0 0 0 1.7.4l2.6-2.7 4.8 3.5a1 1 0 0 0 1.6-.6l3-15.5a1 1 0 0 0-1.1-1Zm-3.5 4.1-8.1 7.4-.8 2.5-1.2-3.8 10.1-6.1Z"/></svg></span>
+          <span>Telegram</span>
+        </a>
+        <a class="social-link" id="follow-twitter" href="#" target="_blank" rel="noopener noreferrer" hidden>
+          <span class="social-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.6 8.7L23.3 22h-6.8l-5.3-6.9L5 22H1.9l8.1-9.3L1 2h7l4.8 6.3L18.9 2Zm-1.2 18h1.9L7.4 3.9H5.4L17.7 20Z"/></svg></span>
+          <span>X (Twitter)</span>
+        </a>
+      </div>
     </div>
   </div>
 </section>
@@ -1385,21 +1388,11 @@ window.PLUGICT = {
       tick();
     }
 
-    /* email capture */
-    const form=document.getElementById('capture-form');
-    if(form)form.addEventListener('submit',e=>{
-      e.preventDefault();
-      const email=form.email.value.trim();
-      if(!email||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){form.email.focus();return;}
-      if(cfg.emailFormAction){
-        fetch(cfg.emailFormAction,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
-          body:JSON.stringify({email})}).catch(()=>{});
-        form.style.display='none';document.getElementById('capture-done').style.display='block';
-      }else{
-        location.href='mailto:'+(cfg.supportEmail||'')+'?subject='+encodeURIComponent('PlugICT product updates')+
-          '&body='+encodeURIComponent('Keep me posted: '+email);
-      }
-    });
+    /* "not buying yet" follow links */
+    const telegramLink=document.getElementById('follow-telegram');
+    if(telegramLink&&cfg.telegramUrl){telegramLink.href=cfg.telegramUrl;telegramLink.hidden=false;}
+    const twitterLink=document.getElementById('follow-twitter');
+    if(twitterLink&&cfg.twitterUrl){twitterLink.href=cfg.twitterUrl;twitterLink.hidden=false;}
   })();
 
   /* ══════════════════════════════════════════════════════════════
