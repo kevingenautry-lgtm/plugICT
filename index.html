@@ -734,46 +734,15 @@ window.PLUGICT = {
       <div class="fine fadeup" data-delay=".24">One payment · local vault · buyer-owned AI · timestamped sources</div>
     </div>
 
-    <div class="product-stage fadeup" data-delay=".28" role="img" aria-label="Illustrative PlugICT research session showing a question, a cited answer, and exact video timestamps">
-      <div class="stage-topbar">
-        <span class="stage-dot"></span><span class="stage-dot"></span><span class="stage-dot"></span>
-        <span class="stage-title">PlugICT · research session</span>
-        <span class="stage-status">vault connected</span>
+    <div class="hero-video fadeup" data-delay=".28">
+      <div class="hero-video-frame">
+        <span class="hero-video-dot"></span><span class="hero-video-dot"></span><span class="hero-video-dot"></span>
+        <span class="hero-video-title">PlugICT — demo walkthrough</span>
       </div>
-      <div class="stage-grid">
-        <div class="stage-sidebar" aria-hidden="true">
-          <div class="stage-label">Workspace</div>
-          <div class="stage-nav-item on"><i>01</i><span>Ask the vault</span></div>
-          <div class="stage-nav-item"><i>02</i><span>Recent questions</span></div>
-          <div class="stage-nav-item"><i>03</i><span>Saved sources</span></div>
-          <div class="stage-collection">
-            <div class="stage-label">Collections</div>
-            <div class="stage-nav-item"><i>22</i><span>2022 Mentorship</span></div>
-            <div class="stage-nav-item"><i>CC</i><span>Core Content</span></div>
-            <div class="stage-nav-item"><i>24</i><span>2024 Lectures</span></div>
-          </div>
-        </div>
-
-        <div class="stage-main">
-          <div class="stage-query"><span class="prompt">YOU</span><span>How does ICT explain CISD?</span><span class="kbd">ENTER</span></div>
-          <div class="stage-run"><b>PLUGICT</b><span>searched several related phrases across 581 videos</span></div>
-          <div class="stage-response">
-            <div class="stage-response-head"><span>Answer built from the retrieved lessons</span><span>3 SOURCES</span></div>
-            <div class="stage-response-copy">
-              <strong>Your AI handles the explanation. PlugICT handles the evidence.</strong>
-              It retrieves the relevant transcript sections, keeps the surrounding context, and attaches the video timestamps so you can check the teaching yourself.
-              <div class="stage-citation"><b>Matching ICT lesson</b><span>exact timestamp · open the video at the matched moment</span></div>
-            </div>
-            <div class="stage-actions"><span class="stage-action primary">Open timestamp</span><span class="stage-action">Expand context</span><span class="stage-action">Search deeper</span></div>
-          </div>
-          <div class="stage-footnote">Illustrative search session. The buyer chooses the AI model.</div>
-        </div>
-
-        <div class="stage-sources" aria-hidden="true">
-          <div class="stage-label">Sources <span class="source-count">3</span></div>
-          <div class="source-card"><span class="src-num">SOURCE 01</span><b>Primary matching lesson</b><time>EXACT TIMESTAMP</time><p>Best transcript match for the question.</p></div>
-          <div class="source-card"><span class="src-num">SOURCE 02</span><b>Related lesson</b><time>EXACT TIMESTAMP</time><p>Additional explanation with more context.</p></div>
-          <div class="source-card"><span class="src-num">SOURCE 03</span><b>Connected concept</b><time>EXACT TIMESTAMP</time><p>A related section found in the vault.</p></div>
+      <div class="hero-video-body" id="hero-video-body">
+        <div class="hero-video-placeholder" id="hero-video-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M10 8.5v7l6-3.5z" fill="currentColor" stroke="none"/></svg>
+          <p>Demo video coming soon — a real walkthrough of how PlugICT plugs into your AI and searches the vault.</p>
         </div>
       </div>
     </div>
@@ -1299,6 +1268,27 @@ window.PLUGICT = {
       setTimeout(()=>{btn.textContent=prev;},1200);
     });
   });
+
+  /* ── hero demo video: embeds once PLUGICT.demoVideoUrl is set, else shows an honest placeholder ── */
+  (function(){
+    const cfg=window.PLUGICT||{};
+    const body=document.getElementById('hero-video-body');
+    if(!body||!cfg.demoVideoUrl) return;
+    const url=cfg.demoVideoUrl;
+    const isFile=/\.(mp4|webm|ogv)(\?.*)?$/i.test(url);
+    body.innerHTML='';
+    if(isFile){
+      const v=document.createElement('video');
+      v.src=url; v.controls=true; v.playsInline=true; v.preload='metadata';
+      body.appendChild(v);
+    }else{
+      const f=document.createElement('iframe');
+      f.src=url; f.title='PlugICT demo video'; f.loading='lazy'; f.frameBorder='0';
+      f.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      f.allowFullscreen=true;
+      body.appendChild(f);
+    }
+  })();
 
   /* ── payments: modal, countdown, email capture (config in <head>) ── */
   (function(){
