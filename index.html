@@ -31,16 +31,9 @@
    See store/issue_license.py for local license generation after verifying payment. */
 window.PLUGICT = {
   priceUsd: '$18.99',
-  priceMyr: '',            // optional MYR shown on DuitNow QR pane, e.g. 'RM 105'
 
-  /* Manual checkout (you confirm payment, then run store/issue_license.py) */
-  billplzUrl: '',          // Billplz payment form URL — FPX + DuitNow, Malaysia
-  stripeUrl: 'https://buy.stripe.com/7sY14oeiC06QdVX9Hm6Ri01',           // Stripe Payment Link — international cards
-
-  /* Manual methods (you confirm payment, then run store/issue_license.py) */
-  duitnowQrImg: '',        // path to your DuitNow QR image, e.g. 'assets/duitnow-qr.png'
-  usdtSol: 'BJ1WrwvzymYEJAcJHQdX2k4H6X689hEMV7ZizvF5wLBw',             // your USDT address (Solana)
-  usdtTrc20: '',           // your USDT address (TRC20)
+  /* Checkout — Stripe Payment Link (international cards) */
+  stripeUrl: 'https://buy.stripe.com/7sY14oeiC06QdVX9Hm6Ri01',
 
   supportEmail: 'hermesian0000@gmail.com',  // where buyers send payment proof / questions
 
@@ -325,9 +318,6 @@ window.PLUGICT = {
   .cv-graph.cv-video{min-height:0; background:#04060a}
   .cv-video .kg-video{display:block; width:100%; height:auto; aspect-ratio:16/9;
     object-fit:cover; border-radius:inherit; background:#04060a}
-  .cv-video .kg-coords span:first-child{color:rgba(120,190,255,.5)}
-  .cv-video .kg-badge:before{border-color:rgba(120,190,255,.85); box-shadow:0 0 8px rgba(90,150,255,.55)}
-  .cv-video .kg-badge .live{color:rgba(150,205,255,.9)}
   .cv-graph .kg-surface{position:relative; width:100%; height:520px; isolation:isolate; overflow:hidden; border-radius:inherit}
   .kg-surface:before{content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
     background:
@@ -898,8 +888,6 @@ window.PLUGICT = {
                  aria-label="PlugICT knowledge graph: ICT concepts such as FVG, Liquidity, Order Block and Displacement lighting up and connecting into a living network, then converging into the plug ICT wordmark.">
             <source src="assets/video/plugict-knowledge-graph.mp4" type="video/mp4">
           </video>
-          <div class="kg-coords" aria-hidden="true"><span>ICT-04 · KNOWLEDGE GRAPH</span><span>0,0</span></div>
-          <div class="kg-badge">GRAPH · <span class="live">LIVE</span></div>
         </div>
       </div>
 
@@ -1046,9 +1034,8 @@ window.PLUGICT = {
       <div class="countdown" id="countdown" role="timer" aria-live="off"></div>
       <a class="btn primary" href="#pricing" data-buy-link>Get Lifetime Access</a>
       <div class="pay-row">
-        <span class="pay-chip">FPX</span>
         <span class="pay-chip">CARD</span>
-        <span class="pay-chip">USDT</span>
+        <span class="pay-chip">STRIPE</span>
       </div>
     </div>
   </div>
@@ -1070,7 +1057,7 @@ window.PLUGICT = {
       <details class="fadeup"><summary>Do I need to pay for anything else? <span class="chev">+</span></summary>
         <div class="faq-body"><div><p>PlugICT itself is a one-time $18.99 purchase. The AI model is separate: you use your own supported client and provider, so any model cost depends on what you choose.</p></div></div></details>
       <details class="fadeup"><summary>How can I pay? <span class="chev">+</span></summary>
-        <div class="faq-body"><div><p>DuitNow QR and FPX online banking for Malaysia, international cards via Stripe, or USDT (Solana / TRC20) for crypto. However you pay, your license is emailed to you and the product works exactly the same.</p></div></div></details>
+        <div class="faq-body"><div><p>International cards via Stripe. Your license is emailed to you after purchase, and the product works exactly the same however you paid.</p></div></div></details>
       <details class="fadeup"><summary>What are the system requirements? <span class="chev">+</span></summary>
         <div class="faq-body"><div><p>Windows, macOS or Linux with Python 3.10+. The setup script handles the rest in an isolated environment, so it won't interfere with anything else on your computer.</p></div></div></details>
     </div>
@@ -1145,49 +1132,11 @@ window.PLUGICT = {
       <h3 id="pay-title">Get Lifetime Access</h3>
       <div class="price-line" id="pay-price"></div>
       <div class="pay-methods">
-        <button class="pay-method" type="button" data-method="billplz">
-          <span><span class="pm-name">FPX / DuitNow</span><br><span class="pm-desc">Malaysian online banking via Billplz — license delivered within 24 hours</span></span>
-          <span class="pm-tag" data-tag="billplz">ONLINE</span>
-        </button>
         <button class="pay-method" type="button" data-method="stripe">
           <span><span class="pm-name">Card</span><br><span class="pm-desc">International cards via Stripe — license delivered within 24 hours</span></span>
           <span class="pm-tag" data-tag="stripe">ONLINE</span>
         </button>
-        <button class="pay-method" type="button" data-method="duitnow">
-          <span><span class="pm-name">DuitNow QR</span><br><span class="pm-desc">Scan &amp; pay from any Malaysian bank app — 0% fees</span></span>
-          <span class="pm-tag soon">MANUAL</span>
-        </button>
-        <button class="pay-method" type="button" data-method="usdt">
-          <span><span class="pm-name">USDT</span><br><span class="pm-desc">Solana or TRC20 — crypto, international</span></span>
-          <span class="pm-tag soon">MANUAL</span>
-        </button>
       </div>
-    </div>
-
-    <div class="pay-pane" id="pane-duitnow">
-      <button class="back" type="button" data-pay-back>← all payment methods</button>
-      <h4>Pay with DuitNow QR</h4>
-      <img class="qr" id="duitnow-qr" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="DuitNow QR code" hidden>
-      <ol>
-        <li>Scan the QR with any Malaysian bank app and pay <b id="duitnow-amt"></b>.</li>
-        <li>Email your payment receipt to <a href="mailto:hermesian0000@gmail.com" class="support-mail">hermesian0000@gmail.com</a> from the address you want the license sent to.</li>
-        <li>Your <code style="font-size:.85em">license.key</code> + download link arrive by email — delivered within 24 hours.</li>
-      </ol>
-      <div class="pay-note">DuitNow QR is verified manually — delivery within 24 hours, but zero fees.</div>
-    </div>
-
-    <div class="pay-pane" id="pane-usdt">
-      <button class="back" type="button" data-pay-back>← all payment methods</button>
-      <h4>Pay with USDT</h4>
-      <ol>
-        <li>Send the equivalent of <b class="usd-amt"></b> in USDT to either address:</li>
-      </ol>
-      <div class="pay-addr" id="usdt-sol-row" hidden><span id="usdt-sol"></span><button class="copy-btn" type="button" data-cmd="">copy</button></div>
-      <div class="pay-addr" id="usdt-trc-row" hidden><span id="usdt-trc"></span><button class="copy-btn" type="button" data-cmd="">copy</button></div>
-      <ol start="2">
-        <li>Email the transaction hash to <a href="mailto:hermesian0000@gmail.com" class="support-mail">hermesian0000@gmail.com</a> from the address you want the license sent to.</li>
-        <li>Once the tx confirms, your <code style="font-size:.85em">license.key</code> + download link arrive by email.</li>
-      </ol>
     </div>
 
     <div class="pay-pane" id="pane-fallback">
@@ -1293,21 +1242,13 @@ window.PLUGICT = {
     const cfg=window.PLUGICT||{};
     const overlay=document.getElementById('pay-overlay'); if(!overlay) return;
     const home=document.getElementById('pay-home');
-    const panes={duitnow:'pane-duitnow',usdt:'pane-usdt',fallback:'pane-fallback'};
+    const panes={fallback:'pane-fallback'};
 
     document.getElementById('pay-price').textContent=
-      (cfg.priceUsd||'$18.99')+' one-time'+(cfg.priceMyr?' · '+cfg.priceMyr:'');
+      (cfg.priceUsd||'$18.99')+' one-time';
     document.querySelectorAll('.support-mail').forEach(a=>{
       a.href='mailto:'+(cfg.supportEmail||'');a.textContent=cfg.supportEmail||'us';});
-    document.querySelectorAll('.usd-amt').forEach(e=>e.textContent=cfg.priceUsd||'$18.99');
-    document.getElementById('duitnow-amt').textContent=cfg.priceMyr||('the equivalent of '+(cfg.priceUsd||'$18.99')+' in MYR');
-    if(cfg.duitnowQrImg){const img=document.getElementById('duitnow-qr');img.src=cfg.duitnowQrImg;img.hidden=false;}
-    const solRow=document.getElementById('usdt-sol-row'),trcRow=document.getElementById('usdt-trc-row');
-    if(cfg.usdtSol){solRow.hidden=false;document.getElementById('usdt-sol').textContent=cfg.usdtSol;
-      solRow.querySelector('.copy-btn').dataset.cmd=cfg.usdtSol;}
-    if(cfg.usdtTrc20){trcRow.hidden=false;document.getElementById('usdt-trc').textContent=cfg.usdtTrc20;
-      trcRow.querySelector('.copy-btn').dataset.cmd=cfg.usdtTrc20;}
-    ['billplz','stripe'].forEach(m=>{
+    ['stripe'].forEach(m=>{
       if(!cfg[m+'Url'])document.querySelector('[data-tag="'+m+'"]').classList.add('soon'),
         document.querySelector('[data-tag="'+m+'"]').textContent='SOON';});
 
@@ -1359,13 +1300,10 @@ window.PLUGICT = {
 
     overlay.querySelectorAll('.pay-method').forEach(btn=>btn.addEventListener('click',()=>{
       const m=btn.dataset.method;
-      if(m==='billplz'||m==='stripe'){
-        const url=cfg[m+'Url'];
-        if(url){location.href=m==='stripe'&&window.plugictStripeUrl?window.plugictStripeUrl(url):url;}
-        else{document.getElementById('fallback-title').textContent=
-          (m==='billplz'?'FPX / DuitNow checkout':'Card checkout')+' is being set up';
-          showPane(panes.fallback,true);}
-      } else showPane(panes[m],true);
+      const url=cfg[m+'Url'];
+      if(url){location.href=m==='stripe'&&window.plugictStripeUrl?window.plugictStripeUrl(url):url;}
+      else{document.getElementById('fallback-title').textContent='Card checkout is being set up';
+        showPane(panes.fallback,true);}
     }));
 
     /* countdown — renders only for a real, future deadline */
