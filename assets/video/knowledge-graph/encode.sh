@@ -1,19 +1,30 @@
 #!/usr/bin/env bash
 # Encode the rendered frame sequence into the final film with an ambient score.
 # Usage: ./encode.sh <frames_dir> <out.mp4>
+#
+# Optional: HEAD=<seconds> drops that many seconds from the FRONT of the film
+# (video + audio kept in sync, fades recomputed). HEAD=0 is the full 26 s
+# master; the shipped web version uses HEAD=1.5 so the network appears sooner.
+#   HEAD=1.5 ./encode.sh frames out.mp4
 set -euo pipefail
 
 FRAMES_DIR="${1:?frames dir}"
 OUT="${2:?output mp4}"
+HEAD="${HEAD:-0}"
 
-# Ambient bed, synthesized (26 s):
+TOTAL=26.0                                   # full rendered length (780f @ 30fps)
+FADE_OUT_ST=$(awk "BEGIN{printf \"%.3f\", $TOTAL-$HEAD-2.6}")
+
+# Ambient bed, synthesized (26 s, event times are absolute film time):
 #   a0  55 Hz drone with slow tremolo        — foundation
 #   a1  82.41 Hz (E2) detune layer           — warmth
 #   a2  brown noise, lowpassed, slow swell   — air / space
 #   a3  wind riser into the convergence      — 17.2 s .. 20.35 s
 #   a4  soft sub impact at the flash         — 20.3 s
+# The head trim is applied AFTER the layers are mixed (atrim), so every event
+# stays locked to its picture; fades are then applied on the trimmed timeline.
 ffmpeg -y \
-  -framerate 30 -i "$FRAMES_DIR/frame_%04d.png" \
+  -ss "$HEAD" -framerate 30 -i "$FRAMES_DIR/frame_%04d.png" \
   -f lavfi -i "sine=frequency=55:duration=26" \
   -f lavfi -i "sine=frequency=82.41:duration=26" \
   -f lavfi -i "anoisesrc=color=brown:duration=26:seed=42:sample_rate=44100" \
@@ -26,11 +37,13 @@ ffmpeg -y \
 [4]lowpass=f=1800,highpass=f=250,volume='if(between(t,17.2,20.35),0.05*pow((t-17.2)/3.15,2),0)':eval=frame[a3];\
 [5]volume='if(lt(t,20.30),0,if(lt(t,20.36),(t-20.30)/0.06,exp(-(t-20.36)*1.7)))*0.5':eval=frame[a4];\
 [a0][a1][a2][a3][a4]amix=inputs=5:normalize=0,\
-lowpass=f=2400,volume=2.0,afade=t=in:d=2.5,afade=t=out:st=23.4:d=2.6,\
+lowpass=f=2400,volume=2.0,\
+atrim=start=${HEAD},asetpts=N/SR/TB,\
+afade=t=in:d=2.0,afade=t=out:st=${FADE_OUT_ST}:d=2.6,\
 alimiter=limit=0.6,aformat=sample_rates=44100:channel_layouts=stereo[aout]" \
   -map 0:v -map "[aout]" \
   -c:v libx264 -preset slow -crf 17 -pix_fmt yuv420p -movflags +faststart \
   -c:a aac -b:a 192k -shortest \
   "$OUT"
 
-echo "wrote $OUT"
+echo "wrote $OUT (HEAD=${HEAD}s)"
