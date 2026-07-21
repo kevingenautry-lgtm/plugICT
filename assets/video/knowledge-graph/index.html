@@ -262,7 +262,7 @@ const noiseCv=document.createElement('canvas'); noiseCv.width=noiseCv.height=512
 const LOCKUP = {
   plug:{ text:'plug', font:'italic 300 158px "Inter"',  ls:'3px'  },
   ict: { text:'ICT',  font:'700 196px "Space Grotesk"', ls:'10px' },
-  gap: 26, cx: W/2, baseY: 552, tilt: -3.5*Math.PI/180,
+  gap: 26, cx: W/2, baseY: 552, tilt: 0,
 };
 const TAGLINE = { text:'Search the ICT vault', font:'300 30px "Inter"',
                   track: 9, y: 672 };
@@ -614,6 +614,7 @@ function renderFrame(frame){
   /* ----- labels (near-first, with collision avoidance) ----- */
   if(labelOut>0.01){
     ctx.globalCompositeOperation='source-over';
+    ctx.globalAlpha=1;   /* labels own their opacity; don't inherit node blit alpha */
     const placed=[];
     const cand=nodes
       .map(n=>({n, info:P[n.name]}))
@@ -622,11 +623,13 @@ function renderFrame(frame){
     for(const c of cand){
       const {pr,ig}=c.info, n=c.n;
       const blur=dof(pr.z);
-      const lblA=smooth(0.35,1.0,t-n.tIgn)*(1-0.75*blur)*labelOut;
+      /* text stays legible regardless of node focus-blur: high opacity floor,
+         only a slight depth dimming so it still reads as part of the 3D scene */
+      const lblA=smooth(0.35,1.0,t-n.tIgn)*(0.86+0.14*(1-blur))*labelOut;
       if(lblA<=0.02) continue;
-      const fs=clamp(16.5*pr.s,11.5,24);
-      ctx.font=`500 ${fs.toFixed(1)}px "Inter"`;
-      ctx.letterSpacing='1.5px';
+      const fs=clamp(17*pr.s,12.5,25);
+      ctx.font=`600 ${fs.toFixed(1)}px "Inter"`;
+      ctx.letterSpacing='1.3px';
       ctx.textAlign='left'; ctx.textBaseline='middle';
       const off=clamp(n.r*pr.s*2.6,9,20);
       const tw=ctx.measureText(n.name).width;
@@ -637,13 +640,25 @@ function renderFrame(frame){
       }
       if(hit) continue;   /* farther label yields to nearer one */
       placed.push(rect);
-      /* soft dark backing for legibility */
-      ctx.shadowColor='rgba(0,8,20,0.95)'; ctx.shadowBlur=7;
-      ctx.fillStyle=`rgba(226,240,255,${(0.92*lblA).toFixed(3)})`;
-      ctx.fillText(n.name, pr.x+off+7, pr.y-2);
-      ctx.shadowBlur=0;
+      const lx=pr.x+off+7, ly=pr.y-2;
+      /* bright white glyphs wrapped in a bold black outline for legibility */
+      const oA=Math.min(1,1.15*lblA);
+      ctx.save();
+      ctx.lineJoin='round'; ctx.miterLimit=2;
+      /* outer soft-black halo (drawn as a slightly wider, faint stroke) */
+      ctx.strokeStyle=`rgba(0,0,0,${(0.55*oA).toFixed(3)})`;
+      ctx.lineWidth=clamp(fs*0.34,4,7);
+      ctx.strokeText(n.name, lx, ly);
+      /* crisp black keyline */
+      ctx.strokeStyle=`rgba(0,0,0,${oA.toFixed(3)})`;
+      ctx.lineWidth=clamp(fs*0.20,3,4.4);
+      ctx.strokeText(n.name, lx, ly);
+      /* solid bright-white fill on top */
+      ctx.fillStyle=`rgba(255,255,255,${oA.toFixed(3)})`;
+      ctx.fillText(n.name, lx, ly);
+      ctx.restore();
       /* tick from node to label */
-      ctx.strokeStyle=rgba(n.col,0.4*lblA);
+      ctx.strokeStyle=rgba(n.col,0.45*lblA);
       ctx.lineWidth=1;
       ctx.beginPath();
       ctx.moveTo(pr.x+off, pr.y-2); ctx.lineTo(pr.x+off+5, pr.y-2);
