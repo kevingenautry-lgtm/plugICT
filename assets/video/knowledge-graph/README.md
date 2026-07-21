@@ -47,3 +47,14 @@ node render.mjs frames          # ~3 min, 780 PNGs
 
 Requires Node ≥ 20 with Playwright (Chromium) and ffmpeg with libx264/aac.
 Typefaces: Space Grotesk (wordmark), Inter (labels/tagline) — OFL licensed.
+
+## Editing references
+
+Saved references for future edits to this film.
+
+- **Auto zoom / zoom-in on interaction** — video-editing technique reference
+  (Reddit): https://www.reddit.com/a/answers/s/P9EC6xb7zk
+  Context: a smoother, intention-driven auto-zoom approach. NB: an earlier
+  reactive per-frame auto-fit (zoom/re-centre on every node ignition) was
+  removed because it stuttered on each concept; revisit this reference for a
+  properly eased "zoom toward the active area" instead of a bounds-reactive fit.
