@@ -164,53 +164,25 @@ const byName = {}; nodes.forEach(n=>byName[n.name]=n);
 edges = EDGES.map(e=>({a:byName[e[0]], b:byName[e[1]], key:e[2],
                        ph:rng(), cyc:2.4+rng()*1.2, prog:0}));
 
-/* ---------- diamond (berlian) layout ----------
-   Reshape the concept nodes onto a 3D brilliant-cut gem so the whole graph
-   slowly forms a diamond as nodes ignite, then collapses into the wordmark.
-   Rings, in ignition order: girdle (widest) → culet (bottom point) → crown
-   → table (flat top). Facet edges trace the gem's silhouette. */
-const DIA = { cx: 30, cy: -30, cz: 0 };
-const RG=365, RC=288, RT=198;                 // girdle / crown / table radii
-const YG=70, YC=150, YT=214, YCU=-330;        // ring heights + culet depth
-const GN=12, CN=8, TN=6;
-function diaPt(r,y,ang){ return [DIA.cx+r*Math.cos(ang), DIA.cy+y, DIA.cz+r*Math.sin(ang)]; }
-const diaVerts=[], ring=[];
-for(let k=0;k<GN;k++){ diaVerts.push(diaPt(RG,YG, k/GN*2*Math.PI)); ring.push('g'); }
-diaVerts.push([DIA.cx, DIA.cy+YCU, DIA.cz]); ring.push('cu');
-for(let k=0;k<CN;k++){ diaVerts.push(diaPt(RC,YC, (k+0.5)/CN*2*Math.PI)); ring.push('c'); }
-for(let k=0;k<TN;k++){ diaVerts.push(diaPt(RT,YT, k/TN*2*Math.PI)); ring.push('t'); }
-nodes.forEach((n,i)=>{ if(diaVerts[i]){ n.base=diaVerts[i].slice(); n.ring=ring[i]; n.vi=i; } });
-
-/* structural facet wireframe (indices into nodes[]) */
-const GI=i=>i, CU=GN, CI=i=>GN+1+i, TI=i=>GN+1+CN+i;
-let facetEdges=[];
-const fe=(a,b,kind)=>facetEdges.push({a:nodes[a], b:nodes[b], kind, ph:rng()});
-for(let k=0;k<GN;k++) fe(GI(k), GI((k+1)%GN), 'girdle');   // widest outline
-for(let k=0;k<GN;k++) fe(GI(k), CU, 'pav');                // pavilion → culet point
-for(let k=0;k<TN;k++) fe(TI(k), TI((k+1)%TN), 'table');    // flat top outline
-for(let k=0;k<CN;k++){                                     // crown facets
-  const ang=(k+0.5)/CN;
-  fe(CI(k), GI(Math.round(ang*GN)%GN), 'crown');
-  fe(CI(k), TI(Math.round(ang*TN)%TN), 'crown');
-}
-
-/* satellites: sparkle riding the gem's facet edges */
+/* satellites: minor unlabeled nodes clustered near concepts */
 for(let i=0;i<46;i++){
-  const f = facetEdges[Math.floor(rng()*facetEdges.length)];
-  const tt = 0.18 + rng()*0.64;
-  const host = tt<0.5 ? f.a : f.b;
+  const host = nodes[Math.floor(rng()*nodes.length)];
   const s = {
-    base:[ lerp(f.a.base[0],f.b.base[0],tt)+(rng()*2-1)*22,
-           lerp(f.a.base[1],f.b.base[1],tt)+(rng()*2-1)*22,
-           lerp(f.a.base[2],f.b.base[2],tt)+(rng()*2-1)*22 ],
-    col: mix3(host.col, PAL.ice, rng()*0.5),
-    tIgn: 3.2 + rng()*8.4,
+    base:[ host.base[0]+(rng()*2-1)*185,
+           host.base[1]+(rng()*2-1)*165,
+           host.base[2]+(rng()*2-1)*185 ],
+    col: mix3(host.col, PAL.blue, rng()*0.5),
+    tIgn: 3.2 + rng()*9.0,
     ph: rng()*Math.PI*2,
-    r: 1.9 + rng()*1.5,
+    r: 2.1 + rng()*1.7,
     host,
   };
   sats.push(s);
   satEdges.push({a:s, b:host, ph:rng()});
+  if(rng()<0.35){
+    const other = nodes[Math.floor(rng()*nodes.length)];
+    if(other!==host) satEdges.push({a:s, b:other, ph:rng()});
+  }
 }
 
 /* ambient dust field */
@@ -231,12 +203,11 @@ for(let i=0;i<380;i++){
 }
 
 /* ---------- camera : catmull-rom orbit path ---------- */
-const CAM_KEYS = { /* t : [azimuth, elevation, radius] — settles to a side-on
-   pull-back so the diamond silhouette reads, with a gentle facet-catching turn */
-  t:[0,     3,     7,     11,    13.5,  16.0,  17.2,  20.7,  26],
-  az:[-0.30,-0.02, 0.42,  0.82,  1.02,  1.20,  1.34,  1.46,  1.50],
-  el:[0.10,  0.05, 0.14,  0.03,  0.006, 0.0,   0.012, 0.03,  0.03],
-  r:[2100,  1520,  1080,  980,   1300,  1540,  1560,  1600,  1650],
+const CAM_KEYS = { /* t : [azimuth, elevation, radius] */
+  t:[0,     3,     7,    11,    14.5,  17.2,  20.7,  26],
+  az:[-0.25,-0.05, 0.45, 1.05,  1.50,  1.72,  1.82,  1.86],
+  el:[0.06,  0.02, 0.14,-0.04,  0.12,  0.05,  0.03,  0.03],
+  r:[2100,  1500,  950,  820,  1050,  1450,  1600,  1650],
 };
 function camChannel(ch, t){
   const ts = CAM_KEYS.t, vs = CAM_KEYS[ch];
@@ -250,8 +221,7 @@ const FOV = 950, NEAR = 60;
 let cam = null;
 function computeCamera(t){
   const az=camChannel('az',t), el=camChannel('el',t), r=camChannel('r',t);
-  /* frame on the gem's centre (between table and culet) with a gentle drift */
-  const tgt=[30+26*Math.sin(0.12*t), -60+20*Math.sin(0.09*t+1.3), 20*Math.sin(0.07*t)];
+  const tgt=[45*Math.sin(0.12*t), 30*Math.sin(0.09*t+1.3), 25*Math.sin(0.07*t)];
   const pos=[ tgt[0]+r*Math.sin(az)*Math.cos(el),
               tgt[1]+r*Math.sin(el),
               tgt[2]-r*Math.cos(az)*Math.cos(el) ];
@@ -263,13 +233,42 @@ function computeCamera(t){
 function sub3(a,b){return [a[0]-b[0],a[1]-b[1],a[2]-b[2]];}
 function cross3(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];}
 function norm3(a){const l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l,a[2]/l];}
+/* auto-fit frame: keeps the whole lit graph inside the 1920×1080 frame while
+   filling it — scale + centre computed each frame from the lit-node bounds */
+let frameScale=1, CCX=W/2, CCY=H/2;
 function project(p){
   const d=sub3(p,cam.pos);
   const x=d[0]*cam.right[0]+d[1]*cam.right[1]+d[2]*cam.right[2];
   const y=d[0]*cam.up[0]   +d[1]*cam.up[1]   +d[2]*cam.up[2];
   const z=d[0]*cam.f[0]    +d[1]*cam.f[1]    +d[2]*cam.f[2];
   if(z<NEAR) return null;
-  return { x: W/2 + FOV*x/z, y: H/2 - FOV*y/z, z, s: FOV/z };
+  const rx=W/2 + FOV*x/z, ry=H/2 - FOV*y/z;
+  return { x: W/2 + (rx-CCX)*frameScale, y: H/2 + (ry-CCY)*frameScale, z, s: FOV/z*frameScale };
+}
+function fitFrame(t){
+  /* project lit nodes with identity transform, then choose a scale + centre
+     so the cloud fills the frame but never crosses a safe margin */
+  const sPrev=frameScale, cxPrev=CCX, cyPrev=CCY;
+  frameScale=1; CCX=W/2; CCY=H/2;
+  let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9,any=false;
+  for(const n of nodes){
+    const ib=ignite(t,n.tIgn).b;
+    if(ib<0.08) continue;
+    const pr=project(nodeWorld(n,t)); if(!pr) continue;
+    /* grow each node's reach from centre as it ignites → smooth expansion */
+    const w=smooth(0.08,0.7,ib);
+    const px=W/2+(pr.x-W/2)*w, py=H/2+(pr.y-H/2)*w;
+    const pad=clamp(n.r*pr.s*9,18,54)*w;
+    if(px-pad<minX)minX=px-pad; if(px+pad>maxX)maxX=px+pad;
+    if(py-pad<minY)minY=py-pad; if(py+pad>maxY)maxY=py+pad;
+    any=true;
+  }
+  if(!any){ frameScale=sPrev; CCX=cxPrev; CCY=cyPrev; return; }
+  const SM=48;                                   /* safe margin from frame edge */
+  const bw=Math.max(120,(maxX-minX)+150);        /* +room for side labels */
+  const bh=Math.max(120,(maxY-minY)+56);
+  frameScale=clamp(Math.min((W-2*SM)/bw,(H-2*SM)/bh),0.6,1.18);
+  CCX=(minX+maxX)/2; CCY=(minY+maxY)/2;
 }
 function dof(z){ return clamp(Math.abs(z-cam.focus)/680, 0, 1); }
 
@@ -317,12 +316,12 @@ const noiseCv=document.createElement('canvas'); noiseCv.width=noiseCv.height=512
 
 /* ---------- golden "plug ICT" lockup + morph targets ---------- */
 const LOCKUP = {
-  plug:{ text:'plug', font:'italic 300 158px "Inter"',  ls:'3px'  },
-  ict: { text:'ICT',  font:'700 196px "Space Grotesk"', ls:'10px' },
-  gap: 26, cx: W/2, baseY: 552, tilt: 0,
+  plug:{ text:'plug', font:'italic 300 200px "Inter"',  ls:'4px'  },
+  ict: { text:'ICT',  font:'700 250px "Space Grotesk"', ls:'12px' },
+  gap: 32, cx: W/2, baseY: 556, tilt: 0,
 };
-const TAGLINE = { text:'Search the ICT vault', font:'300 30px "Inter"',
-                  track: 9, y: 672 };
+const TAGLINE = { text:'Search the ICT vault', font:'300 33px "Inter"',
+                  track: 10, y: 690 };
 const SWEEP_T0 = 20.6, SWEEP_T1 = 21.9;   /* forge-reveal sweep window */
 let lockGeom = null;
 let sweepOn = false, sweepX = 0;
@@ -334,7 +333,7 @@ function measureLockup(g){
   const wIct=g.measureText(LOCKUP.ict.text).width;
   const total=wPlug+LOCKUP.gap+wIct;
   lockGeom={ wPlug, wIct, total, x0:LOCKUP.cx-total/2,
-             top:LOCKUP.baseY-172, bottom:LOCKUP.baseY+26 };
+             top:LOCKUP.baseY-218, bottom:LOCKUP.baseY+34 };
 }
 function goldGrad(g){
   const gr=g.createLinearGradient(0,lockGeom.top,0,lockGeom.bottom);
@@ -368,8 +367,8 @@ function buildTargets(){
   const pts=[];
   const jr=mulberry32(31);
   const gTop=[255,243,214], gMid=[255,181,74], gBot=[168,90,14];
-  for(let y=320;y<720;y+=5){
-    for(let x=360;x<1580;x+=5){
+  for(let y=300;y<740;y+=5){
+    for(let x=330;x<1600;x+=5){
       if(id[(y*W+x)*4]>120){
         const v=clamp((y-lockGeom.top)/(lockGeom.bottom-lockGeom.top),0,1);
         const col = v<0.5 ? mix3(gTop,gMid,v*2) : mix3(gMid,gBot,(v-0.5)*2);
@@ -433,9 +432,9 @@ function buildPool(){
 
 /* ---------- world-position helpers ---------- */
 function nodeWorld(n,t){
-  return [ n.base[0]+2.6*Math.sin(t*0.5+n.ph),
-           n.base[1]+2.6*Math.sin(t*0.43+n.ph*1.7),
-           n.base[2]+2.6*Math.sin(t*0.37+n.ph*2.3) ];
+  return [ n.base[0]+6*Math.sin(t*0.5+n.ph),
+           n.base[1]+6*Math.sin(t*0.43+n.ph*1.7),
+           n.base[2]+6*Math.sin(t*0.37+n.ph*2.3) ];
 }
 function dustWorld(d,t){
   return [ d.base[0]+d.vel[0]*t+14*Math.sin(t*0.11+d.ph),
@@ -456,14 +455,19 @@ function ignite(t,t0){
 function renderFrame(frame){
   const t = frame / FPS;
   computeCamera(t);
+  fitFrame(t);                 /* keep the expanding graph framed, never leaking */
+  if(t > T_CONV){              /* ease back to plain screen space for the wordmark */
+    const e = smooth(T_CONV, T_CONV+1.2, t);
+    frameScale = lerp(frameScale, 1, e);
+    CCX = lerp(CCX, W/2, e);
+    CCY = lerp(CCY, H/2, e);
+  }
 
   /* ----- phase envelopes ----- */
   const nebEnv   = smooth(0.4,6,t) * (1 - 0.93*smooth(T_CARD,22.5,t));
   const dustEnv  = smooth(0.3,2.4,t);
   const convW    = smooth(T_CONV, T_CONV+0.1, t);       /* morph active */
-  /* labels read during the build, then fade as the gem completes so the
-     final reveal is a clean glowing diamond before it collapses */
-  const labelOut = 1 - smooth(15.3, 16.5, t);
+  const labelOut = 1 - smooth(T_CONV, T_CONV+0.9, t);
   const edgeOut  = 1 - smooth(T_CONV+0.4, T_CONV+1.5, t);
   const partOut  = 1 - smooth(21.4, 22.9, t);           /* morph particles fade */
 
@@ -510,25 +514,6 @@ function renderFrame(frame){
   });
 
   if(convW<1){
-    /* ----- diamond facet wireframe (structural gem silhouette) ----- */
-    for(const f of facetEdges){
-      const A=P[f.a.name], B=P[f.b.name];
-      if(!A.pr||!B.pr) continue;
-      const igA=A.ig.b, igB=B.ig.b;
-      const prog = smooth(0, 0.7, t - Math.max(f.a.tIgn, f.b.tIgn) + 0.1);
-      if(prog<=0.01) continue;
-      const bx=lerp(A.pr.x,B.pr.x,prog), by=lerp(A.pr.y,B.pr.y,prog);
-      const blur=(dof(A.pr.z)+dof(B.pr.z))/2;
-      const base = f.kind==='girdle'?0.17 : f.kind==='pav'?0.12 : 0.075;
-      const shimmer = 0.72 + 0.28*Math.sin(t*1.5 + f.ph*6.28);
-      const a = base*Math.min(igA,igB)*(1-0.55*blur)*edgeOut*shimmer;
-      if(a<=0.004) continue;
-      ctx.strokeStyle=rgba(PAL.ice, a);
-      ctx.lineWidth=clamp((f.kind==='girdle'?1.15:0.8)*(A.pr.s+B.pr.s)/2, 0.3, 1.7);
-      ctx.globalAlpha=1;
-      ctx.beginPath(); ctx.moveTo(A.pr.x,A.pr.y); ctx.lineTo(bx,by); ctx.stroke();
-    }
-
     /* ----- edges ----- */
     for(const e of edges){
       const A=P[e.a.name], B=P[e.b.name];
@@ -708,17 +693,26 @@ function renderFrame(frame){
       const fs=clamp(17*pr.s,12.5,25);
       ctx.font=`600 ${fs.toFixed(1)}px "Inter"`;
       ctx.letterSpacing='1.3px';
-      ctx.textAlign='left'; ctx.textBaseline='middle';
+      ctx.textBaseline='middle';
       const off=clamp(n.r*pr.s*2.6,9,20);
       const tw=ctx.measureText(n.name).width;
-      const rect={x0:pr.x+off, y0:pr.y-2-fs*0.75, x1:pr.x+off+7+tw+6, y1:pr.y-2+fs*0.75};
+      const M=30;                                   /* keep labels off the frame edge */
+      /* flip the label to the node's left when the right side would leak off-frame */
+      const flip = (pr.x+off+7+tw+6) > (W-M);
+      const ly = clamp(pr.y-2, M+fs*0.6, H-M-fs*0.6);
+      const rect = flip
+        ? {x0:pr.x-off-7-tw-6, y0:ly-fs*0.75, x1:pr.x-off,       y1:ly+fs*0.75}
+        : {x0:pr.x+off,        y0:ly-fs*0.75, x1:pr.x+off+7+tw+6, y1:ly+fs*0.75};
+      /* skip if even the flipped side leaks (node itself too close to an edge) */
+      if(rect.x0 < M || rect.x1 > W-M) continue;
       let hit=false;
       for(const r of placed){
         if(rect.x0<r.x1 && rect.x1>r.x0 && rect.y0<r.y1 && rect.y1>r.y0){hit=true;break;}
       }
       if(hit) continue;   /* farther label yields to nearer one */
       placed.push(rect);
-      const lx=pr.x+off+7, ly=pr.y-2;
+      ctx.textAlign = flip ? 'right' : 'left';
+      const lx = flip ? (pr.x-off-7) : (pr.x+off+7);
       /* bright white glyphs wrapped in a bold black outline for legibility */
       const oA=Math.min(1,1.15*lblA);
       ctx.save();
@@ -739,7 +733,8 @@ function renderFrame(frame){
       ctx.strokeStyle=rgba(n.col,0.45*lblA);
       ctx.lineWidth=1;
       ctx.beginPath();
-      ctx.moveTo(pr.x+off, pr.y-2); ctx.lineTo(pr.x+off+5, pr.y-2);
+      const tk = flip ? -1 : 1;
+      ctx.moveTo(pr.x+off*tk, ly); ctx.lineTo(pr.x+(off+5)*tk, ly);
       ctx.stroke();
     }
     ctx.globalCompositeOperation='lighter';
@@ -808,7 +803,7 @@ function renderFrame(frame){
     const dg=smooth(21.5,22.4,t);
     if(dg>0.01){
       ctx.globalCompositeOperation='source-over';
-      const span=760, gx=W/2-0.16*span, dy=LOCKUP.baseY+56;
+      const span=900, gx=W/2-0.16*span, dy=LOCKUP.baseY+78;
       const halfL=0.42*span*easeOutCubic(dg), halfR=0.58*span*easeOutCubic(dg);
       const lg=ctx.createLinearGradient(gx-halfL,0,gx+halfR,0);
       lg.addColorStop(0,'rgba(200,120,30,0)');

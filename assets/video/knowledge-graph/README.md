@@ -20,9 +20,9 @@ SMT Divergence, Liquidity Sweep, Turtle Soup, Power of 3, BPR, Equal Highs/Lows.
 | Time | Beat |
 |---|---|
 | 0.0 – 2.4 s | Darkness; ambient particles fade in over midnight-blue haze |
-| 2.4 – 13.5 s | Concept nodes ignite one by one and connect, assembling onto a 3D brilliant-cut **diamond** (girdle ring → culet point → crown → table); bright-white, black-outlined labels fade in; facet wireframe traces the gem |
-| 13.5 – 17.2 s | The camera settles to a side-on pull-back; labels fade so the full graph reads as a glowing diamond of light, facets shimmering |
-| 17.2 – 20.6 s | The diamond collapses inward, every light streaming in and turning gold as it condenses into the *plug* **ICT** letterforms; warm flash + sub-bass impact |
+| 2.4 – 12.5 s | Concept nodes ignite one by one (FVG → Distribution) and connect, the cloud expanding to fill the frame; bright-white, black-outlined labels fade in (auto-flipping to a node's left near the edge so nothing leaks off-frame) |
+| 12.5 – 17.2 s | Full network alive — pulses travel key relationships (Liquidity ↔ Draw on Liquidity, Accumulation → Manipulation → Distribution, Kill Zone ↔ Silver Bullet…) while the camera glides through |
+| 17.2 – 20.6 s | Every light in the scene streams inward, turning gold as it condenses into the (enlarged) *plug* **ICT** letterforms; warm flash + sub-bass impact |
 | 20.6 – 26.0 s | Forge reveal: a flare sweeps left→right transmuting the particle-word into the solid golden lockup; divider draws from a glint; "Search the ICT vault" cascades in letter by letter; embers rise; fade out |
 
 ## How it's made
