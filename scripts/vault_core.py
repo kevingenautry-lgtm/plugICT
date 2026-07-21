@@ -87,7 +87,7 @@ CONTEXT_MAX_KEY = "context_max_chars"
 DEFAULT_EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
 DEFAULT_EMBEDDING_REVISION = "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a"
 QUERY_INSTRUCTION_VERSION = "bge-v1.5-no-query-instruction-v1"
-VECTOR_SCHEMA_VERSION = "2"
+VECTOR_SCHEMA_VERSION = "3"  # v3 = documentless Chroma (transcript text lives only in the SQLite/FTS DB)
 CHUNK_SCHEMA_VERSION = "3"
 CHUNK_ID_STRATEGY = "sha1-source-chunker-times-content-v3"
 
@@ -2258,15 +2258,20 @@ class VaultSession:
             if not chroma_store_usable(self.chroma_dir):
                 raise RuntimeError("chroma store is not a valid sqlite database")
             where = {'playlist': playlist} if playlist else None
-            result = self._get_collection().query(query_texts=[query_text], n_results=limit, where=where)
-            ids = result.get('ids', [[]])[0]
-            docs = result.get('documents', [[]])[0]
-            metas = result.get('metadatas', [[]])[0]
-            for i, doc in enumerate(docs):
+            # v3 vaults are documentless: request ids/metadatas only and hydrate the
+            # transcript text from the in-memory SQLite/FTS. Iterating over ids (not
+            # documents) keeps this working for both v2 (documents present) and v3.
+            result = self._get_collection().query(
+                query_texts=[query_text], n_results=limit, where=where,
+                include=['metadatas', 'distances'])
+            ids = (result.get('ids') or [[]])[0]
+            docs = (result.get('documents') or [[]])[0]
+            metas = (result.get('metadatas') or [[]])[0]
+            for i, chunk_id in enumerate(ids):
                 m = metas[i] if i < len(metas) else {}
                 out.append({'source': 'semantic', 'title': m.get('title', ''),
                             'method': 'semantic',
-                            'chunk_id': ids[i] if i < len(ids) else m.get('chunk_id', ''),
+                            'chunk_id': chunk_id or m.get('chunk_id', ''),
                             'video_id': m.get('video_id', ''),
                             'start_ts': m.get('start_ts', ''),
                             'timestamp': m.get('start_ts', ''),
@@ -2277,7 +2282,7 @@ class VaultSession:
                             'chunk_index': m.get('chunk_index'),
                             'playlist': m.get('playlist', ''),
                             'source_file': m.get('source_file', ''),
-                            '_full_text': doc,
+                            '_full_text': docs[i] if i < len(docs) else '',
                             '_rank_in_source': i,
                             '_rrf_source': rrf_source,
                             'retrieval_sources': ['semantic'],

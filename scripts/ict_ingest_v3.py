@@ -43,6 +43,18 @@ CHUNKER_VERSION = "semantic-v3.0.0"
 RESUME_BUILD = os.environ.get("ICT_RESUME", "0") == "1"
 EXPECTED_FINAL_CHUNKS = int(os.environ.get("ICT_EXPECTED_FINAL_CHUNKS", "0"))
 RESUME_SEMANTIC_BOUNDARIES = int(os.environ.get("ICT_RESUME_SEMANTIC_BOUNDARIES", "0"))
+
+# Vector schema v3 (documentless Chroma) does not store transcript text in the
+# vector store, so resume verification — which re-reads Chroma documents to check
+# content hashes — cannot run. Require a clean rebuild until resume is redesigned
+# to validate against regenerated source chunks. Do NOT silently weaken this.
+if RESUME_BUILD:
+    sys.exit(
+        "ERROR: ICT_RESUME=1 is not supported by the documentless vector schema "
+        f"(v{vc.VECTOR_SCHEMA_VERSION}).\n"
+        "  Resume verification depends on transcript text stored inside Chroma, which\n"
+        "  this schema deliberately omits. Run a clean rebuild (unset ICT_RESUME)."
+    )
 if BUILD_DIR.resolve() == SOURCE_DIR.resolve() and os.environ.get("ICT_ALLOW_INPLACE") != "1":
     sys.exit("ERROR: v3 build must use an isolated ICT_BUILD_DIR (refusing in-place mutation)")
 BUILD_DIR.mkdir(parents=True, exist_ok=True)
@@ -308,9 +320,15 @@ for i in range(0, len(all_chunks), BATCH_SIZE):
     batch = [c for c in candidate_batch if c['id'] not in existing_ids]
     if not batch:
         continue
+    # Documentless vector store (schema v3): compute embeddings explicitly and
+    # store vectors + metadata only. The transcript text is NEVER written to the
+    # Chroma store — it lives solely in the encrypted SQLite/FTS DB and is hydrated
+    # at query time. Metadata below is non-sensitive (public titles / video ids /
+    # timestamps) and is kept so playlist filtering and provenance keep working.
+    batch_embeddings = ef([c['text'] for c in batch])
     collection.upsert(
         ids=[c['id'] for c in batch],
-        documents=[c['text'] for c in batch],
+        embeddings=batch_embeddings,
         metadatas=[{
             'title': c['title'],
             'video_id': c['video_id'],
@@ -331,38 +349,28 @@ for i in range(0, len(all_chunks), BATCH_SIZE):
     if (i // BATCH_SIZE) % 5 == 0:
         print(f"  ChromaDB now contains {collection.count()}/{effective_expected_chunks or '?'} chunks...")
 
-# Reconstruct the complete canonical chunk list from ChromaDB so FTS creation is
-# correct even when the first part of the build came from a previous process.
-snapshot = collection.get(include=["documents", "metadatas"])
-all_chunks = []
-for chunk_id, text, metadata in zip(
-    snapshot.get("ids") or [],
-    snapshot.get("documents") or [],
-    snapshot.get("metadatas") or [],
-):
-    metadata = metadata or {}
-    all_chunks.append({
-        'id': chunk_id,
-        'text': text,
-        'title': metadata.get('title', ''),
-        'video_id': metadata.get('video_id', ''),
-        'playlist': metadata.get('playlist', ''),
-        'source_file': metadata.get('source_file', ''),
-        'start_ts': metadata.get('start_ts', ''),
-        'end_ts': metadata.get('end_ts', ''),
-        'start_seconds': int(metadata.get('start_seconds', 0)),
-        'end_seconds': int(metadata.get('end_seconds', 0)),
-        'timing_precision': metadata.get('timing_precision', 'unknown'),
-        'chunker_version': metadata.get('chunker_version', CHUNKER_VERSION),
-        'content_hash': metadata.get('content_hash', ''),
-        'chunk_index': int(metadata.get('chunk_index', 0)),
-    })
+# Documentless schema: the transcript text is NOT stored in Chroma, so the FTS
+# must be built from the in-memory source chunks. Resume is disabled for this
+# schema (guarded at startup), so `all_chunks` generated above is already the
+# complete, canonical set. Sort it for deterministic FTS ordering, then assert a
+# strict 1:1 correspondence with the vectors actually stored in Chroma so a
+# partial/failed embed can never ship a vector without its retrievable text.
 all_chunks.sort(key=lambda c: (c['source_file'], c['chunk_index'], c['id']))
 if effective_expected_chunks and len(all_chunks) != effective_expected_chunks:
     raise RuntimeError(
-        f"ChromaDB count {len(all_chunks)} != expected {effective_expected_chunks}"
+        f"chunk count {len(all_chunks)} != expected {effective_expected_chunks}"
     )
-print(f"  ✅ ChromaDB ready — {len(all_chunks)} chunks indexed")
+chroma_ids = set(collection.get(include=[]).get("ids") or [])
+source_ids = {c['id'] for c in all_chunks}
+if chroma_ids != source_ids:
+    only_chroma = len(chroma_ids - source_ids)
+    only_source = len(source_ids - chroma_ids)
+    raise RuntimeError(
+        "Vector/FTS id mismatch — refusing to ship a documentless vault where a "
+        f"vector has no retrievable text (chroma-only={only_chroma}, "
+        f"source-only={only_source}). Run a clean rebuild."
+    )
+print(f"  ✅ ChromaDB ready — {len(all_chunks)} chunks indexed (documentless)")
 print()
 
 # ── Step 4: Build FTS5 + Knowledge Graph ────────────────────────────────────

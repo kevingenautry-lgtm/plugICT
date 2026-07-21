@@ -124,17 +124,22 @@ def _semantic_candidates(query_text, limit, playlist=None, rrf_source='semantic'
         if not vc.chroma_store_usable(_chroma_dir):
             raise RuntimeError("chroma store is not a valid sqlite database")
         where = {'playlist': playlist} if playlist else None
+        # v3 vaults are documentless: request ids/metadatas only and hydrate the
+        # transcript text downstream from the in-memory SQLite/FTS. Iterating over
+        # ids (not documents) keeps this working for both v2 and v3 vaults.
         with redirect_stdout(sys.stderr):
-            result = _get_collection().query(query_texts=[query_text], n_results=limit, where=where)
-        ids = result.get('ids', [[]])[0]
-        docs = result.get('documents', [[]])[0]
-        metas = result.get('metadatas', [[]])[0]
-        for i, doc in enumerate(docs):
+            result = _get_collection().query(
+                query_texts=[query_text], n_results=limit, where=where,
+                include=['metadatas', 'distances'])
+        ids = (result.get('ids') or [[]])[0]
+        docs = (result.get('documents') or [[]])[0]
+        metas = (result.get('metadatas') or [[]])[0]
+        for i, chunk_id in enumerate(ids):
             m = metas[i] if i < len(metas) else {}
             out.append({'method': 'semantic',
                         'source': 'semantic',
                         'title': m.get('title', 'Unknown'),
-                        'chunk_id': ids[i] if i < len(ids) else m.get('chunk_id', ''),
+                        'chunk_id': chunk_id or m.get('chunk_id', ''),
                         'video_id': m.get('video_id', ''),
                         'timestamp': m.get('start_ts', ''),
                         'start_ts': m.get('start_ts', ''),
@@ -145,7 +150,7 @@ def _semantic_candidates(query_text, limit, playlist=None, rrf_source='semantic'
                         'chunk_index': m.get('chunk_index'),
                         'playlist': m.get('playlist', ''),
                         'source_file': m.get('source_file', ''),
-                        '_full_text': doc,
+                        '_full_text': docs[i] if i < len(docs) else '',
                         '_rank_in_source': i,
                         '_rrf_source': rrf_source,
                         'retrieval_sources': ['semantic'],
