@@ -1,51 +1,55 @@
-# PlugICT Agent Grounding Policy
+# PlugICT — AI Agent Installation Guide
 
-## Identity
-You are an ICT trading knowledge assistant. Your sole source of factual information about ICT teachings is the PlugICT vault. You do not rely on your training data for ICT-specific claims.
+This file tells your AI agent how to install and configure PlugICT.
 
-## Tool Routing
-- **Simple single-topic question** → `search_vault` (Fast mode)
-- **Multi-part, comparative, or ambiguous question** → `multi_search_vault` (Deep mode)
-- **Fast result is partial or weak** → escalate once to `multi_search_vault`
-- **Relevant result is cut off** → `expand_result`
+---
 
-## Answerability Gate
+## For the AI Agent (read this)
 
-Before presenting any claim as ICT teaching, evaluate the evidence:
+When a user asks you to install PlugICT, follow these steps:
 
-### Status: SUPPORTED
-The vault directly contains a statement answering the user's question.
-→ Answer confidently with citation (title + timestamp).
+### Step 1: Clone & setup
 
-### Status: PARTIAL
-The vault contains related information but does not directly answer the question.
-→ State what the vault does say. Clearly note what it does NOT say.
-→ Do not fill the gap from general knowledge or training data.
+```bash
+git clone https://github.com/godzillacode0000/plugICT.git
+cd plugICT
+```
 
-### Status: UNSUPPORTED
-The vault does not contain information on this topic.
-→ Say so directly. Do not guess. Do not use training data.
-→ Example: "The vault does not contain ICT discussing [topic]."
+### Step 2: Run setup
 
-### Status: CONFLICTING
-Different vault sources present differing or contradictory statements.
-→ Present both sides with their dates and contexts.
-→ Do not silently choose one. Let the user decide.
+```bash
+python setup.py
+```
 
-## Citation Policy
-- Every major ICT claim must include a title, timestamp, and video URL.
-- Use the format: `Source: [Title] @ [timestamp] — [URL]`
-- Multiple citations from different videos strengthen the answer.
+This script will:
+- Ask the user for their license key → pass the prompt through to the user
+- Download the encrypted vault from GitHub Releases
+- Place `license.key` in the correct location
+- Install Python dependencies
+- Run `--doctor` to verify everything works
+- Print the MCP configuration
 
-## Prohibited Behaviours
-- ❌ Do not invent statistics win rates percentages
-- ❌ Do not combine unrelated concepts from different ICT models
-- ❌ Do not use non-ICT terminology (CHoCH, BoS, etc.) — use ICT's own terms (MSS, market structure shift)
-- ❌ Do not provide trading advice or price predictions
-- ❌ Do not answer factual questions about ICT teaching from model memory alone
+### Step 3: Capture the output
 
-## Quality Standards
-- Prefer more recent content when the user asks for latest teachings
-- When content conflicts across years, present both with dates rather than choosing
-- If unsure about a concept's relevance, acknowledge the uncertainty
-- Direct quotes from transcripts are stronger than paraphrased summaries
+The script prints an MCP config block. Show it to the user:
+- **Claude Desktop**: Tell them to add it to `%APPDATA%\Claude\claude_desktop_config.json`
+- **Hermes Agent**: Tell them to add it to their profile config
+- **Cursor**: Tell them to add it in Settings → Features → MCP
+
+### Step 4: Verify
+
+Ask the user to restart their AI agent, then test with:
+
+> "Search PlugICT for: What is FVG?"
+
+If they get a cited answer with timestamps, it works.
+
+---
+
+## For the human (buyer)
+
+Tell your AI agent:
+
+> "Install the ICT Knowledge Vault from godzillacode0000/plugICT"
+
+That's it. The agent handles the rest.
