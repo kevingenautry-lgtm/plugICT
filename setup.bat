@@ -18,7 +18,7 @@ if errorlevel 1 (
 
 :: Run the installer
 echo Starting installer...
-python install.py
+python setup.py
 if errorlevel 1 (
     echo.
     echo Installation encountered an error. See messages above.

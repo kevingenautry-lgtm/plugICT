@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>PlugICT — Knowledge Graph Film Renderer</title>
+<style>
+  html,body{margin:0;padding:0;background:#000;}
+  canvas{display:block;}
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script>
+'use strict';
+/* ============================================================
+   PlugICT — "Living Knowledge Engine" brand film
+   Deterministic frame renderer: call captureFrame(i) for frame i.
+   1920x1080 @ 30 fps, 26.0 s (780 frames).
+   ============================================================ */
+
+const W = 1920, H = 1080, FPS = 30, DUR = 26.0;
+const FRAMES = Math.round(FPS * DUR);
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d', { alpha: false });
+
+/* ---------- timeline ---------- */
+const T_BUILD = 2.4;    // first node ignites
+const T_ALIVE = 12.5;   // full network alive
+const T_CONV  = 17.2;   // convergence begins
+const T_FLASH = 20.35;  // implosion flash
+const T_CARD  = 20.7;   // end card begins
+
+/* ---------- deterministic PRNG ---------- */
+function mulberry32(seed){
+  return function(){
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const rng = mulberry32(7);
+
+/* ---------- easing ---------- */
+const clamp = (v,a,b)=>Math.min(b,Math.max(a,v));
+const lerp  = (a,b,u)=>a+(b-a)*u;
+const smooth=(a,b,u)=>{u=clamp((u-a)/(b-a),0,1);return u*u*(3-2*u);};
+const easeOutCubic = u=>1-Math.pow(1-u,3);
+const easeInOutCubic = u=>u<0.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
+const easeInOutQuint = u=>u<0.5?16*u*u*u*u*u:1-Math.pow(-2*u+2,5)/2;
+
+/* ---------- palette ---------- */
+const PAL = {
+  cyan:     [ 34,211,238],
+  teal:     [ 45,212,191],
+  blue:     [ 59,130,246],
+  violet:   [167,139,250],
+  ice:      [103,232,249],
+  indigo:   [129,140,248],
+};
+const rgba = (c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+const mix3 = (a,b,u)=>[lerp(a[0],b[0],u),lerp(a[1],b[1],u),lerp(a[2],b[2],u)];
+
+/* ---------- concept nodes ---------- */
+/* order = ignition order (narrative build) */
+const CONCEPTS = [
+  ['FVG',                    [  40,-140, -80], 'cyan'  ],
+  ['IFVG',                   [ 150,-210, -10], 'cyan'  ],
+  ['Liquidity',              [ 430,  30, 120], 'teal'  ],
+  ['Displacement',           [-240,-130, -60], 'blue'  ],
+  ['Market Structure Shift', [-400, -10,  60], 'blue'  ],
+  ['Order Block',            [-460,-190, -40], 'blue'  ],
+  ['Breaker',                [-580, -40, 160], 'blue'  ],
+  ['Mitigation Block',       [-520,-280, 120], 'blue'  ],
+  ['Premium / Discount',     [ -60,  60, 300], 'violet'],
+  ['OTE',                    [  90,  -10, 380], 'violet'],
+  ['Judas Swing',            [ 480, 170, -40], 'teal'  ],
+  ['Kill Zone',              [ 180, 270,-170], 'ice'   ],
+  ['Silver Bullet',          [ 330, 340,-250], 'ice'   ],
+  ['Draw on Liquidity',      [ 600, -80, 220], 'teal'  ],
+  ['Rebalancing',            [ -60,-230,-140], 'cyan'  ],
+  ['Consequent Encroachment',[ 120,-100,-220], 'cyan'  ],
+  ['Accumulation',           [-260, 200,-280], 'indigo'],
+  ['Manipulation',           [-140, 260,-350], 'indigo'],
+  ['Distribution',           [ -20, 320,-280], 'indigo'],
+];
+
+const EDGES = [ /* [a, b, key] — key edges pulse visibly */
+  ['FVG','IFVG',1],
+  ['FVG','Displacement',1],
+  ['FVG','Rebalancing',0],
+  ['FVG','Consequent Encroachment',0],
+  ['IFVG','Consequent Encroachment',0],
+  ['Displacement','Market Structure Shift',1],
+  ['Market Structure Shift','Order Block',0],
+  ['Market Structure Shift','Breaker',0],
+  ['Order Block','Breaker',1],
+  ['Order Block','Mitigation Block',0],
+  ['Breaker','Mitigation Block',0],
+  ['Premium / Discount','OTE',1],
+  ['OTE','FVG',0],
+  ['Premium / Discount','Draw on Liquidity',0],
+  ['Liquidity','Draw on Liquidity',1],
+  ['Liquidity','Judas Swing',0],
+  ['Liquidity','Kill Zone',0],
+  ['Judas Swing','Manipulation',1],
+  ['Judas Swing','Kill Zone',0],
+  ['Kill Zone','Silver Bullet',1],
+  ['Silver Bullet','FVG',0],
+  ['Accumulation','Manipulation',1],
+  ['Manipulation','Distribution',1],
+  ['Distribution','Draw on Liquidity',0],
+];
+
+/* ---------- scene assembly ---------- */
+const nodes = [];        // labeled concepts
+const sats  = [];        // unlabeled satellite nodes
+const dust  = [];        // ambient particles
+const sparks= [];        // extra particles spawned for the wordmark morph
+let edges   = [];        // resolved edges
+let satEdges= [];        // satellite links
+let targets = [];        // wordmark sample points
+let pool    = [];        // full morph particle pool
+
+CONCEPTS.forEach((c,i)=>{
+  nodes.push({
+    name:c[0], base:c[1], col:PAL[c[2]],
+    tIgn: T_BUILD + i*0.515 + rng()*0.12,
+    ph: rng()*Math.PI*2,
+    r: 6.2 + rng()*1.6,
+  });
+});
+const byName = {}; nodes.forEach(n=>byName[n.name]=n);
+edges = EDGES.map(e=>({a:byName[e[0]], b:byName[e[1]], key:e[2],
+                       ph:rng(), cyc:2.4+rng()*1.2, prog:0}));
+
+/* satellites: minor unlabeled nodes clustered near concepts */
+for(let i=0;i<46;i++){
+  const host = nodes[Math.floor(rng()*nodes.length)];
+  const s = {
+    base:[ host.base[0]+(rng()*2-1)*185,
+           host.base[1]+(rng()*2-1)*165,
+           host.base[2]+(rng()*2-1)*185 ],
+    col: mix3(host.col, PAL.blue, rng()*0.5),
+    tIgn: 3.2 + rng()*9.0,
+    ph: rng()*Math.PI*2,
+    r: 2.1 + rng()*1.7,
+    host,
+  };
+  sats.push(s);
+  satEdges.push({a:s, b:host, ph:rng()});
+  if(rng()<0.35){
+    const other = nodes[Math.floor(rng()*nodes.length)];
+    if(other!==host) satEdges.push({a:s, b:other, ph:rng()});
+  }
+}
+
+/* ambient dust field */
+for(let i=0;i<380;i++){
+  const th = rng()*Math.PI*2, ph2 = Math.acos(rng()*2-1);
+  const rad = 260 + rng()*1050;
+  dust.push({
+    base:[ rad*Math.sin(ph2)*Math.cos(th),
+           rad*Math.cos(ph2)*0.72,
+           rad*Math.sin(ph2)*Math.sin(th) ],
+    vel:[ (rng()*2-1)*4.5, (rng()*2-1)*3.5, (rng()*2-1)*4.5 ],
+    col: mix3(PAL.cyan, PAL.blue, rng()),
+    ph: rng()*Math.PI*2,
+    a: 0.10 + rng()*0.22,
+    tIn: 0.35 + rng()*1.9,
+    r: 0.9 + rng()*1.3,
+  });
+}
+
+/* ---------- camera : catmull-rom orbit path ---------- */
+const CAM_KEYS = { /* t : [azimuth, elevation, radius] */
+  t:[0,     3,     7,    11,    14.5,  17.2,  20.7,  26],
+  az:[-0.25,-0.05, 0.45, 1.05,  1.50,  1.72,  1.82,  1.86],
+  el:[0.06,  0.02, 0.14,-0.04,  0.12,  0.05,  0.03,  0.03],
+  r:[2100,  1500,  950,  820,  1050,  1450,  1600,  1650],
+};
+function camChannel(ch, t){
+  const ts = CAM_KEYS.t, vs = CAM_KEYS[ch];
+  let i=0; while(i<ts.length-2 && t>ts[i+1]) i++;
+  const t1=ts[i], t2=ts[i+1], v1=vs[i], v2=vs[i+1];
+  const v0=i>0?vs[i-1]:v1, v3=i<ts.length-2?vs[i+2]:v2;
+  const u=clamp((t-t1)/(t2-t1),0,1);
+  return 0.5*((2*v1)+(-v0+v2)*u+(2*v0-5*v1+4*v2-v3)*u*u+(-v0+3*v1-3*v2+v3)*u*u*u);
+}
+const FOV = 950, NEAR = 60;
+let cam = null;
+function computeCamera(t){
+  const az=camChannel('az',t), el=camChannel('el',t), r=camChannel('r',t);
+  const tgt=[45*Math.sin(0.12*t), 30*Math.sin(0.09*t+1.3), 25*Math.sin(0.07*t)];
+  const pos=[ tgt[0]+r*Math.sin(az)*Math.cos(el),
+              tgt[1]+r*Math.sin(el),
+              tgt[2]-r*Math.cos(az)*Math.cos(el) ];
+  const f=norm3(sub3(tgt,pos));
+  const right=norm3(cross3(f,[0,1,0]));
+  const up=cross3(right,f);
+  cam = {pos, f, right, up, focus:r};
+}
+function sub3(a,b){return [a[0]-b[0],a[1]-b[1],a[2]-b[2]];}
+function cross3(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];}
+function norm3(a){const l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l,a[2]/l];}
+function project(p){
+  const d=sub3(p,cam.pos);
+  const x=d[0]*cam.right[0]+d[1]*cam.right[1]+d[2]*cam.right[2];
+  const y=d[0]*cam.up[0]   +d[1]*cam.up[1]   +d[2]*cam.up[2];
+  const z=d[0]*cam.f[0]    +d[1]*cam.f[1]    +d[2]*cam.f[2];
+  if(z<NEAR) return null;
+  return { x: W/2 + FOV*x/z, y: H/2 - FOV*y/z, z, s: FOV/z };
+}
+function dof(z){ return clamp(Math.abs(z-cam.focus)/680, 0, 1); }
+
+/* ---------- pre-rendered glow sprites ---------- */
+function makeSprite(col, coreW){
+  const s=document.createElement('canvas'); s.width=s.height=256;
+  const g=s.getContext('2d');
+  const gr=g.createRadialGradient(128,128,0,128,128,128);
+  gr.addColorStop(0.00,'rgba(255,255,255,'+coreW+')');
+  gr.addColorStop(0.06, rgba(col,0.85));
+  gr.addColorStop(0.22, rgba(col,0.28));
+  gr.addColorStop(0.55, rgba(col,0.07));
+  gr.addColorStop(1.00, rgba(col,0));
+  g.fillStyle=gr; g.fillRect(0,0,256,256);
+  return s;
+}
+const SPR = {};
+Object.keys(PAL).forEach(k=>SPR[k]=makeSprite(PAL[k],0.95));
+const sprFor = col=>{ /* nearest palette sprite */
+  let bk='cyan', bd=1e9;
+  for(const k of Object.keys(PAL)){
+    const c=PAL[k], d=(c[0]-col[0])**2+(c[1]-col[1])**2+(c[2]-col[2])**2;
+    if(d<bd){bd=d;bk=k;}
+  }
+  return SPR[bk];
+};
+function blit(spr,x,y,size,alpha){
+  if(alpha<=0.003||size<=0.5) return;
+  ctx.globalAlpha=clamp(alpha,0,1);
+  ctx.drawImage(spr,x-size/2,y-size/2,size,size);
+}
+
+/* ---------- noise (film grain) ---------- */
+const noiseCv=document.createElement('canvas'); noiseCv.width=noiseCv.height=512;
+{
+  const g=noiseCv.getContext('2d');
+  const id=g.createImageData(512,512);
+  const nr=mulberry32(99);
+  for(let i=0;i<id.data.length;i+=4){
+    const v=118+nr()*40|0;
+    id.data[i]=id.data[i+1]=id.data[i+2]=v; id.data[i+3]=255;
+  }
+  g.putImageData(id,0,0);
+}
+
+/* ---------- wordmark morph targets ---------- */
+const WM = { text:'PLUGICT', font:'600 178px "Space Grotesk"', ls:'16px',
+             x:W/2, y:505 };
+const TAG = { text:'“Search from ICT vault”', font:'300 34px "Inter"',
+              ls:'7px', x:W/2, y:640 };
+let wmGradStops = [PAL.ice, PAL.blue, PAL.violet];
+let wmLeft=0, wmRight=0;
+function buildTargets(){
+  const oc=document.createElement('canvas'); oc.width=W; oc.height=H;
+  const g=oc.getContext('2d');
+  g.fillStyle='#000'; g.fillRect(0,0,W,H);
+  g.fillStyle='#fff'; g.font=WM.font; g.letterSpacing=WM.ls;
+  g.textAlign='center'; g.textBaseline='middle';
+  g.fillText(WM.text, WM.x, WM.y);
+  const m=g.measureText(WM.text);
+  wmLeft = WM.x - m.width/2; wmRight = WM.x + m.width/2;
+  const id=g.getImageData(0,0,W,H).data;
+  const pts=[];
+  const jr=mulberry32(31);
+  for(let y=340;y<680;y+=5){
+    for(let x=500;x<1420;x+=5){
+      if(id[(y*W+x)*4]>120){
+        const u=clamp((x-wmLeft)/(wmRight-wmLeft),0,1);
+        const col = u<0.5 ? mix3(wmGradStops[0],wmGradStops[1],u*2)
+                          : mix3(wmGradStops[1],wmGradStops[2],(u-0.5)*2);
+        pts.push({x:x+(jr()*2-1)*1.4, y:y+(jr()*2-1)*1.4, col});
+      }
+    }
+  }
+  /* deterministic shuffle */
+  for(let i=pts.length-1;i>0;i--){
+    const j=Math.floor(jr()*(i+1)); const tmp=pts[i]; pts[i]=pts[j]; pts[j]=tmp;
+  }
+  targets=pts;
+}
+
+function buildPool(){
+  pool=[];
+  nodes.forEach(n=>pool.push({src:n, kind:'node'}));
+  sats.forEach(s=>pool.push({src:s, kind:'sat'}));
+  dust.forEach(d=>pool.push({src:d, kind:'dust'}));
+  const need = Math.max(0, targets.length - pool.length);
+  for(let i=0;i<need;i++){
+    const host = nodes[Math.floor(rng()*nodes.length)];
+    sparks.push({
+      base:[ host.base[0]+(rng()*2-1)*130,
+             host.base[1]+(rng()*2-1)*120,
+             host.base[2]+(rng()*2-1)*130 ],
+      col: mix3(host.col, PAL.ice, rng()*0.6),
+      ph: rng()*Math.PI*2,
+      r: 1.1+rng()*1.2,
+    });
+  }
+  sparks.forEach(s=>pool.push({src:s, kind:'spark'}));
+  pool.forEach((p,i)=>{
+    p.tgt = targets[i % targets.length];
+    p.stag = rng()*0.55;                 /* morph stagger */
+    p.swAmp = (rng()*2-1)*70;            /* swirl arc amplitude */
+    p.jph = rng()*Math.PI*2;
+  });
+}
+
+/* ---------- world-position helpers ---------- */
+function nodeWorld(n,t){
+  return [ n.base[0]+6*Math.sin(t*0.5+n.ph),
+           n.base[1]+6*Math.sin(t*0.43+n.ph*1.7),
+           n.base[2]+6*Math.sin(t*0.37+n.ph*2.3) ];
+}
+function dustWorld(d,t){
+  return [ d.base[0]+d.vel[0]*t+14*Math.sin(t*0.11+d.ph),
+           d.base[1]+d.vel[1]*t,
+           d.base[2]+d.vel[2]*t+14*Math.cos(t*0.13+d.ph) ];
+}
+function ignite(t,t0){
+  const u=t-t0;
+  if(u<0) return {b:0,flare:0,ring:-1};
+  const ramp=smooth(0,0.55,u);
+  const flare=u<1.2?Math.exp(-u*2.4):0;
+  return {b:ramp*(1+flare*0.9), flare, ring:u<0.9?u/0.9:-1};
+}
+
+/* ============================================================
+   FRAME RENDER
+   ============================================================ */
+function renderFrame(frame){
+  const t = frame / FPS;
+  computeCamera(t);
+
+  /* ----- phase envelopes ----- */
+  const nebEnv   = smooth(0.4,6,t) * (1 - 0.75*smooth(T_CARD,22.5,t));
+  const dustEnv  = smooth(0.3,2.4,t);
+  const convW    = smooth(T_CONV, T_CONV+0.1, t);       /* morph active */
+  const labelOut = 1 - smooth(T_CONV, T_CONV+0.9, t);
+  const edgeOut  = 1 - smooth(T_CONV+0.4, T_CONV+1.5, t);
+  const crisp    = smooth(20.9, 21.9, t);               /* wordmark text */
+  const tagA     = smooth(22.0, 23.2, t);
+  const partOut  = 1 - smooth(21.4, 22.9, t);           /* morph particles fade */
+
+  /* ----- background ----- */
+  ctx.globalCompositeOperation='source-over';
+  ctx.globalAlpha=1;
+  ctx.fillStyle='#02040a';
+  ctx.fillRect(0,0,W,H);
+
+  /* nebula haze */
+  if(nebEnv>0.01){
+    const blobs=[
+      [700+60*Math.sin(t*0.05),     380+40*Math.sin(t*0.041+2), 820, [10,24,54],  0.50],
+      [1260+70*Math.sin(t*0.043+1), 700+50*Math.sin(t*0.037),   900, [18,16,51],  0.38],
+      [520+50*Math.sin(t*0.047+4),  810+45*Math.sin(t*0.052+1), 700, [6,36,48],   0.30],
+    ];
+    for(const b of blobs){
+      const gr=ctx.createRadialGradient(b[0],b[1],0,b[0],b[1],b[2]);
+      gr.addColorStop(0,rgba(b[3],b[4]*nebEnv));
+      gr.addColorStop(1,rgba(b[3],0));
+      ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+    }
+  }
+
+  /* ambient center luminosity grows with the network */
+  const litFrac = smooth(T_BUILD, T_ALIVE, t) * edgeOut;
+  if(litFrac>0.01){
+    const gr=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,760);
+    gr.addColorStop(0,rgba(PAL.blue,0.10*litFrac));
+    gr.addColorStop(0.5,rgba(PAL.cyan,0.035*litFrac));
+    gr.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+  }
+
+  ctx.globalCompositeOperation='lighter';
+
+  /* ============ GRAPH PHASE (t < T_CONV: full graph render) ============ */
+  /* project labeled nodes (always needed for edges + morph anchors) */
+  const P={}; /* name -> projection info */
+  nodes.forEach(n=>{
+    const pr=project(nodeWorld(n,t));
+    const ig=ignite(t,n.tIgn);
+    P[n.name]={pr,ig,n};
+  });
+
+  if(convW<1){
+    /* ----- edges ----- */
+    for(const e of edges){
+      const A=P[e.a.name], B=P[e.b.name];
+      if(!A.pr||!B.pr) continue;
+      const igA=A.ig.b, igB=B.ig.b;
+      if(igA<=0.05) continue;
+      /* draw-in progress from a -> b once source ignited */
+      const prog = smooth(0, 0.85, t - Math.max(e.a.tIgn, e.b.tIgn) + 0.15);
+      if(prog<=0.01) continue;
+      const bx=lerp(A.pr.x,B.pr.x,prog), by=lerp(A.pr.y,B.pr.y,prog);
+      const blur=(dof(A.pr.z)+dof(B.pr.z))/2;
+      const aBase=(0.13+0.12*Math.min(igA,igB))*(1-0.5*blur)*edgeOut;
+      const grd=ctx.createLinearGradient(A.pr.x,A.pr.y,bx,by);
+      grd.addColorStop(0,rgba(e.a.col,aBase));
+      grd.addColorStop(1,rgba(e.b.col,aBase*prog));
+      ctx.strokeStyle=grd;
+      ctx.lineWidth=clamp(1.4*(A.pr.s+B.pr.s)/2*(e.key?1.25:1),0.35,2.4);
+      ctx.globalAlpha=1;
+      ctx.beginPath(); ctx.moveTo(A.pr.x,A.pr.y); ctx.lineTo(bx,by); ctx.stroke();
+
+      /* traveling pulse */
+      if(prog>0.98 && edgeOut>0.05){
+        const cyc=e.cyc, u0=((t/cyc)+e.ph)%1;
+        const uu=easeInOutCubic(u0);
+        const px=lerp(A.pr.x,B.pr.x,uu), py=lerp(A.pr.y,B.pr.y,uu);
+        const pz=lerp(A.pr.z,B.pr.z,uu);
+        const pa=(e.key?0.55:0.16)*(1-0.6*dof(pz))*edgeOut*smooth(0,0.35,t-Math.max(e.a.tIgn,e.b.tIgn)-1);
+        const col=mix3(e.a.col,e.b.col,uu);
+        blit(sprFor(col),px,py,(e.key?26:14)*lerp(A.pr.s,B.pr.s,uu)*3,pa);
+        /* endpoint bloom on arrival for key edges */
+        if(e.key){
+          const arr=Math.exp(-Math.pow((1-u0)*7,2));
+          if(arr>0.02) blit(sprFor(e.b.col),B.pr.x,B.pr.y,120*B.pr.s*3,0.35*arr*edgeOut);
+        }
+      }
+    }
+
+    /* satellite links */
+    for(const se of satEdges){
+      const sa=project(nodeWorld(se.a,t)), sb=P[se.b.name]?P[se.b.name].pr:project(nodeWorld(se.b,t));
+      if(!sa||!sb) continue;
+      const igA=ignite(t,se.a.tIgn).b, igB=P[se.b.name]?P[se.b.name].ig.b:1;
+      const a=0.09*Math.min(igA,igB)*(1-0.6*dof(sa.z))*edgeOut;
+      if(a<=0.004) continue;
+      ctx.strokeStyle=rgba(se.a.col,a);
+      ctx.lineWidth=clamp(0.8*sa.s,0.25,1.1);
+      ctx.beginPath(); ctx.moveTo(sa.x,sa.y); ctx.lineTo(sb.x,sb.y); ctx.stroke();
+    }
+  }
+
+  /* ============ node + particle rendering ============ */
+  const morphT = t - T_CONV;
+
+  function morphPos(p, liveX, liveY){
+    /* returns [x, y, q] — q = morph blend 0..1 */
+    if(convW<=0 || !p.tgt) return [liveX, liveY, 0];
+    const q = easeInOutQuint(clamp((morphT - 0.25 - p.stag)/2.4, 0, 1));
+    if(q<=0) return [liveX, liveY, 0];
+    let x=lerp(liveX,p.tgt.x,q), y=lerp(liveY,p.tgt.y,q);
+    /* perpendicular arc for organic flow */
+    const dx=p.tgt.x-liveX, dy=p.tgt.y-liveY, dl=Math.hypot(dx,dy)||1;
+    const arc=Math.sin(q*Math.PI)*p.swAmp;
+    x += -dy/dl*arc; y += dx/dl*arc;
+    /* settle jitter */
+    if(q>0.97){
+      x += 0.7*Math.sin(t*2.1+p.jph);
+      y += 0.7*Math.cos(t*1.7+p.jph*1.3);
+    }
+    return [x,y,q];
+  }
+
+  /* ----- dust ----- */
+  pool.forEach(p=>{
+    if(p.kind!=='dust') return;
+    const d=p.src;
+    const pr=project(dustWorld(d,t));
+    if(!pr) return;
+    const fadeIn=smooth(d.tIn, d.tIn+1.6, t);
+    const [x,y,q]=morphPos(p,pr.x,pr.y);
+    const col = q>0 ? mix3(d.col, p.tgt.col, q) : d.col;
+    const lift=1+0.8*Math.sin(q*Math.PI);   /* brighten while in flight */
+    const aa = lerp(d.a*fadeIn*dustEnv*(1-0.5*dof(pr.z)),
+                    0.55, q) * lift * (q>0?partOut:1);
+    const size = lerp(clamp(d.r*pr.s*7,2,10), 7, q) * (1+0.5*Math.sin(q*Math.PI));
+    blit(sprFor(col),x,y,size,aa);
+  });
+
+  /* ----- sparks (exist only for the morph) ----- */
+  pool.forEach(p=>{
+    if(p.kind!=='spark') return;
+    const pr=project(nodeWorld(p.src,t));
+    if(!pr) return;
+    const born=smooth(T_CONV, T_CONV+1.0, t);
+    if(born<=0) return;
+    const [x,y,q]=morphPos(p,pr.x,pr.y);
+    const col=q>0?mix3(p.src.col,p.tgt.col,q):p.src.col;
+    const lift=1+0.7*Math.sin(q*Math.PI);
+    blit(sprFor(col),x,y,lerp(5,8,q)*(1+0.4*Math.sin(q*Math.PI)),0.6*born*lift*partOut);
+  });
+
+  /* ----- satellites ----- */
+  pool.forEach(p=>{
+    if(p.kind!=='sat') return;
+    const s=p.src;
+    const pr=project(nodeWorld(s,t));
+    if(!pr) return;
+    const ig=ignite(t,s.tIgn);
+    if(ig.b<=0) return;
+    const [x,y,q]=morphPos(p,pr.x,pr.y);
+    const col=q>0?mix3(s.col,p.tgt.col,q):s.col;
+    const blur=dof(pr.z);
+    const size=lerp(clamp(s.r*pr.s*16*(1+1.2*blur),6,90),8,q);
+    const aa=lerp(0.34*ig.b*(1-0.55*blur),0.55,q)*(q>0?partOut:1);
+    blit(sprFor(col),x,y,size,aa);
+  });
+
+  /* ----- labeled concept nodes ----- */
+  pool.forEach(p=>{
+    if(p.kind!=='node') return;
+    const n=p.src;
+    const info=P[n.name];
+    if(!info.pr) return;
+    const {pr,ig}=info;
+    if(ig.b<=0) return;
+    const [x,y,q]=morphPos(p,pr.x,pr.y);
+    const col=q>0?mix3(n.col,p.tgt.col,q):n.col;
+    const blur=dof(pr.z);
+    const pulse=1+0.08*Math.sin(2*Math.PI*0.22*t+n.ph);
+    const shrink=lerp(1,0.16,q);
+    const halo=clamp(n.r*pr.s*22*(1+1.5*blur),24,240)*pulse*shrink;
+    const aa=(0.5*ig.b*(1-0.5*blur)*lerp(1,1.4,q))*(q>0?partOut:1);
+    blit(sprFor(col),x,y,halo,clamp(aa,0,0.85));
+    /* hot core */
+    blit(sprFor(col),x,y,halo*0.34,clamp(aa*1.5,0,1));
+    /* ignition flare: anamorphic streak + ring */
+    if(ig.flare>0.02 && q<=0){
+      ctx.save();
+      ctx.globalAlpha=clamp(0.4*ig.flare,0,1);
+      ctx.drawImage(sprFor(col), x-halo*1.9, y-halo*0.045, halo*3.8, halo*0.09);
+      ctx.restore();
+    }
+    if(ig.ring>=0 && q<=0){
+      const rr=easeOutCubic(ig.ring)*66*pr.s;
+      ctx.globalAlpha=(1-ig.ring)*0.30;
+      ctx.strokeStyle=rgba(col,1);
+      ctx.lineWidth=1.3;
+      ctx.beginPath(); ctx.arc(x,y,rr,0,Math.PI*2); ctx.stroke();
+    }
+  });
+
+  /* ----- labels (near-first, with collision avoidance) ----- */
+  if(labelOut>0.01){
+    ctx.globalCompositeOperation='source-over';
+    const placed=[];
+    const cand=nodes
+      .map(n=>({n, info:P[n.name]}))
+      .filter(c=>c.info.pr && c.info.ig.b>0.05)
+      .sort((a,b)=>a.info.pr.z-b.info.pr.z);
+    for(const c of cand){
+      const {pr,ig}=c.info, n=c.n;
+      const blur=dof(pr.z);
+      const lblA=smooth(0.35,1.0,t-n.tIgn)*(1-0.75*blur)*labelOut;
+      if(lblA<=0.02) continue;
+      const fs=clamp(16.5*pr.s,11.5,24);
+      ctx.font=`500 ${fs.toFixed(1)}px "Inter"`;
+      ctx.letterSpacing='1.5px';
+      ctx.textAlign='left'; ctx.textBaseline='middle';
+      const off=clamp(n.r*pr.s*2.6,9,20);
+      const tw=ctx.measureText(n.name).width;
+      const rect={x0:pr.x+off, y0:pr.y-2-fs*0.75, x1:pr.x+off+7+tw+6, y1:pr.y-2+fs*0.75};
+      let hit=false;
+      for(const r of placed){
+        if(rect.x0<r.x1 && rect.x1>r.x0 && rect.y0<r.y1 && rect.y1>r.y0){hit=true;break;}
+      }
+      if(hit) continue;   /* farther label yields to nearer one */
+      placed.push(rect);
+      /* soft dark backing for legibility */
+      ctx.shadowColor='rgba(0,8,20,0.95)'; ctx.shadowBlur=7;
+      ctx.fillStyle=`rgba(226,240,255,${(0.92*lblA).toFixed(3)})`;
+      ctx.fillText(n.name, pr.x+off+7, pr.y-2);
+      ctx.shadowBlur=0;
+      /* tick from node to label */
+      ctx.strokeStyle=rgba(n.col,0.4*lblA);
+      ctx.lineWidth=1;
+      ctx.beginPath();
+      ctx.moveTo(pr.x+off, pr.y-2); ctx.lineTo(pr.x+off+5, pr.y-2);
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation='lighter';
+  }
+
+  /* ----- implosion flash ----- */
+  const fl = Math.exp(-Math.pow((t-T_FLASH-0.12)*3.2,2));
+  if(fl>0.01 && t>T_CONV){
+    const gr=ctx.createRadialGradient(W/2,505,0,W/2,505,920);
+    gr.addColorStop(0,`rgba(210,240,255,${0.34*fl})`);
+    gr.addColorStop(0.25,rgba(PAL.ice,0.20*fl));
+    gr.addColorStop(0.6,rgba(PAL.blue,0.07*fl));
+    gr.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+    /* subtle chromatic doubles */
+    ctx.globalAlpha=0.5*fl;
+    blit(SPR.ice,   W/2-6,505,760,0.16*fl);
+    blit(SPR.violet,W/2+6,505,760,0.14*fl);
+  }
+
+  /* ============ END CARD ============ */
+  if(crisp>0.001){
+    ctx.globalCompositeOperation='source-over';
+    const settle=1+0.02*(1-easeOutCubic(crisp));
+    ctx.save();
+    ctx.translate(WM.x,WM.y); ctx.scale(settle,settle); ctx.translate(-WM.x,-WM.y);
+    ctx.font=WM.font; ctx.letterSpacing=WM.ls;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    const grd=ctx.createLinearGradient(wmLeft,0,wmRight,0);
+    grd.addColorStop(0,rgba(PAL.ice,1));
+    grd.addColorStop(0.5,rgba(PAL.blue,1));
+    grd.addColorStop(1,rgba(PAL.violet,1));
+    const breathe=0.22+0.06*Math.sin(t*1.1);
+    /* layered glow */
+    ctx.globalAlpha=crisp*breathe;
+    ctx.shadowColor=rgba(PAL.blue,0.9); ctx.shadowBlur=46;
+    ctx.fillStyle=grd; ctx.fillText(WM.text,WM.x,WM.y);
+    ctx.globalAlpha=crisp*0.5;
+    ctx.shadowColor=rgba(PAL.ice,0.8); ctx.shadowBlur=18;
+    ctx.fillText(WM.text,WM.x,WM.y);
+    ctx.globalAlpha=crisp;
+    ctx.shadowBlur=0;
+    ctx.fillText(WM.text,WM.x,WM.y);
+    ctx.restore();
+
+    /* divider line */
+    const dl=smooth(21.6,22.6,t);
+    if(dl>0.01){
+      const half=290*easeOutCubic(dl);
+      const lg=ctx.createLinearGradient(WM.x-half,0,WM.x+half,0);
+      lg.addColorStop(0,'rgba(120,160,220,0)');
+      lg.addColorStop(0.5,`rgba(150,200,255,${0.45*dl})`);
+      lg.addColorStop(1,'rgba(120,160,220,0)');
+      ctx.fillStyle=lg;
+      ctx.fillRect(WM.x-half,584,half*2,1);
+    }
+
+    /* tagline */
+    if(tagA>0.01){
+      ctx.font=TAG.font; ctx.letterSpacing=TAG.ls;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillStyle=`rgba(157,182,214,${(0.95*tagA).toFixed(3)})`;
+      ctx.fillText(TAG.text, TAG.x, TAG.y+8*(1-easeOutCubic(tagA)));
+    }
+    ctx.globalCompositeOperation='lighter';
+  }
+
+  /* ============ post: vignette + grain ============ */
+  ctx.globalCompositeOperation='source-over';
+  ctx.globalAlpha=1;
+  const vg=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,1180);
+  vg.addColorStop(0,'rgba(0,0,0,0)');
+  vg.addColorStop(0.55,'rgba(0,0,0,0)');
+  vg.addColorStop(1,'rgba(0,0,0,0.5)');
+  ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+
+  const nr=mulberry32(frame*7919+13);
+  const ox=Math.floor(nr()*512), oy=Math.floor(nr()*512);
+  ctx.globalCompositeOperation='soft-light';
+  ctx.globalAlpha=0.055;
+  for(let y=-oy;y<H;y+=512)
+    for(let x=-ox;x<W;x+=512)
+      ctx.drawImage(noiseCv,x,y);
+  ctx.globalCompositeOperation='source-over';
+  ctx.globalAlpha=1;
+
+  /* final fade to black */
+  const fade=smooth(25.2,25.9,t);
+  if(fade>0.001){
+    ctx.fillStyle=`rgba(0,0,0,${fade.toFixed(3)})`;
+    ctx.fillRect(0,0,W,H);
+  }
+}
+
+/* ---------- API for the capture harness ---------- */
+let inited=false;
+async function init(){
+  if(inited) return true;
+  await document.fonts.load('600 178px "Space Grotesk"');
+  await document.fonts.load('500 16px "Inter"');
+  await document.fonts.load('300 34px "Inter"');
+  buildTargets();
+  buildPool();
+  inited=true;
+  return {frames:FRAMES, targets:targets.length, pool:pool.length};
+}
+function captureFrame(i){
+  if(!inited) throw new Error('call init() first');
+  renderFrame(i);
+  return cv.toDataURL('image/png');
+}
+window.init=init; window.captureFrame=captureFrame; window.FRAMES=FRAMES;
+</script>
+</body>
+</html>

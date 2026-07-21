@@ -21,27 +21,33 @@ Getting started:
 
 1. Save license.key to your computer (keep it private — it's unique to you)
 
-2. Open a terminal and run:
+2. Easiest path — tell your AI agent:
+
+   "Install the ICT Knowledge Vault from godzillacode0000/plugICT"
+
+   The agent clones the repo, runs setup.py, and asks you for the
+   license key when prompted.
+
+   Or run it yourself in a terminal:
 
    git clone https://github.com/godzillacode0000/plugICT.git
    cd plugICT
-   python install.py --license /path/to/license.key
+   python setup.py
 
    The installer will:
-   - Download the encrypted vault
-   - Verify file integrity
+   - Download the latest encrypted vault from GitHub Releases
+   - Verify the download's SHA-256 automatically
    - Install dependencies
-   - Configure MCP for your AI agent
-   - Run a self-check
+   - Run a self-check (--doctor)
+   - Print the MCP config for your AI agent
 
 3. If you use Claude Desktop without an installer:
 
    a. Download the repo:  https://github.com/godzillacode0000/plugICT
-   b. Download the vault: https://github.com/godzillacode0000/plugICT/releases
-   c. Download the SHA256 checksum and verify integrity
-   d. Place license.key next to mcp_server.py
-   e. Add MCP config to Claude Desktop
-   f. Run: .venv\Scripts\python mcp_server.py --doctor
+   b. Run: python setup.py  (downloads + verifies the vault for you)
+   c. Place license.key next to mcp_server.py (setup.py does this)
+   d. Add the printed MCP config to Claude Desktop
+   e. Run: python mcp_server.py --doctor
 
 4. Once installed, start asking ICT questions through your AI agent.
 
@@ -77,7 +83,9 @@ Install PlugICT from https://github.com/godzillacode0000/plugICT
 My license file is located at:
 C:\Users\THEIRNAME\Downloads\license.key
 
-Install PlugICT, download the matching encrypted vault, verify its
-SHA-256, configure it as an MCP server, run the doctor check, and
-verify one live search. Do not print or expose the license contents.
+Clone the repo and run python setup.py — it downloads the latest
+encrypted vault, verifies its SHA-256, and prints the MCP config.
+Pass the license prompt through to me, configure the MCP server,
+run the doctor check, and verify one live search. Do not print or
+expose the license contents.
 ```

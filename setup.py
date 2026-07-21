@@ -9,8 +9,9 @@ import os, sys, json, subprocess, urllib.request, zipfile, shutil, hashlib
 from pathlib import Path
 
 REPO = "godzillacode0000/plugICT"
-RELEASE_TAG = "v3.4.0"
-VAULT_URL = f"https://github.com/{REPO}/releases/download/{RELEASE_TAG}/plugict.zip"
+ASSET_NAME = "plugict.zip"
+API_LATEST = f"https://api.github.com/repos/{REPO}/releases/latest"
+FALLBACK_URL = f"https://github.com/{REPO}/releases/latest/download/{ASSET_NAME}"
 REQUIRED_FILES = ["mcp_server.py", "vault_core.py", "ict-vault.kevin", "license.key"]
 HERE = Path(__file__).parent.resolve()
 
@@ -37,14 +38,63 @@ def install_deps():
     ])
     print("  Dependencies installed")
 
+def resolve_release():
+    """Ask the GitHub API for the latest release so the download URL and its
+    SHA-256 digest always track the newest vault — no hard-pinned tag."""
+    req = urllib.request.Request(API_LATEST, headers={
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "plugict-setup",
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            data = json.load(r)
+    except Exception as e:
+        print(f"  ⚠️ GitHub API unavailable ({e})")
+        print("     Falling back to the latest-release URL without checksum verification")
+        return {"tag": "latest", "url": FALLBACK_URL, "digest": None}
+
+    for asset in data.get("assets", []):
+        if asset.get("name") == ASSET_NAME:
+            digest = asset.get("digest") or ""
+            return {
+                "tag": data.get("tag_name", "latest"),
+                "url": asset.get("browser_download_url", FALLBACK_URL),
+                "digest": digest.split(":", 1)[1] if digest.startswith("sha256:") else None,
+            }
+
+    print(f"  ⚠️ {ASSET_NAME} not listed in the latest release — trying fallback URL")
+    return {"tag": data.get("tag_name", "latest"), "url": FALLBACK_URL, "digest": None}
+
+def file_sha256(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
 def download_vault():
     zip_path = HERE / "plugict_download.zip"
     if zip_path.exists():
         zip_path.unlink()
 
-    print(f"  Downloading vault ({VAULT_URL})...")
-    urllib.request.urlretrieve(VAULT_URL, zip_path)
+    rel = resolve_release()
+    print(f"  Downloading vault {rel['tag']} ({rel['url']})...")
+    urllib.request.urlretrieve(rel["url"], zip_path)
     print(f"  Downloaded: {zip_path.stat().st_size / 1024 / 1024:.0f} MB")
+
+    if rel["digest"]:
+        print("  Verifying SHA-256...")
+        actual = file_sha256(zip_path)
+        if actual != rel["digest"]:
+            zip_path.unlink()
+            print("  ❌ Checksum mismatch — the download is corrupt or was tampered with.")
+            print(f"     expected: {rel['digest']}")
+            print(f"     got:      {actual}")
+            print("     Re-run setup.py; if this persists, contact support.")
+            sys.exit(1)
+        print("  ✅ Checksum verified")
+    else:
+        print("  ⚠️ No checksum published for this asset — skipping verification")
 
     print("  Extracting...")
     with zipfile.ZipFile(zip_path, 'r') as z:
@@ -146,16 +196,28 @@ def main():
             return
 
     step("License key")
-    key = prompt("Enter your PlugICT license key (from purchase email)")
-    if not key:
-        print("  No key entered — exiting")
-        sys.exit(1)
+    key = None
+    if lic.exists():
+        reuse = prompt("Found existing license.key — reuse it? (Y/n)").lower()
+        if reuse in ("", "y", "yes"):
+            print("  Using existing license.key")
+        else:
+            key = prompt("Enter your PlugICT license key (from purchase email)")
+            if not key:
+                print("  No key entered — exiting")
+                sys.exit(1)
+    else:
+        key = prompt("Enter your PlugICT license key (from purchase email)")
+        if not key:
+            print("  No key entered — exiting")
+            sys.exit(1)
 
     step("Downloading vault")
     download_vault()
 
-    step("Writing license")
-    write_license(key)
+    if key:
+        step("Writing license")
+        write_license(key)
 
     step("Installing dependencies")
     install_deps()
