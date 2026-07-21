@@ -321,6 +321,13 @@ window.PLUGICT = {
     border:1px solid rgba(210,129,88,.42);
     box-shadow:inset 0 1px 0 rgba(249,250,251,.08), inset 0 0 0 1px rgba(156,163,175,.035), inset 0 -38px 70px rgba(0,0,0,.44), 0 18px 48px -34px rgba(34,197,94,.42);
     min-height:520px}
+  /* video variant of capability #4 — the rendered knowledge-graph film */
+  .cv-graph.cv-video{min-height:0; background:#04060a}
+  .cv-video .kg-video{display:block; width:100%; height:auto; aspect-ratio:16/9;
+    object-fit:cover; border-radius:inherit; background:#04060a}
+  .cv-video .kg-coords span:first-child{color:rgba(120,190,255,.5)}
+  .cv-video .kg-badge:before{border-color:rgba(120,190,255,.85); box-shadow:0 0 8px rgba(90,150,255,.55)}
+  .cv-video .kg-badge .live{color:rgba(150,205,255,.9)}
   .cv-graph .kg-surface{position:relative; width:100%; height:520px; isolation:isolate; overflow:hidden; border-radius:inherit}
   .kg-surface:before{content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
     background:
@@ -885,28 +892,14 @@ window.PLUGICT = {
       <div class="cap-row fadeup glow">
         <div class="cap-num">4.</div>
         <div class="cap-text"><h3>Concepts that connect.</h3><p>FVG, order blocks, liquidity — the vault links them together so your AI sees how they relate, not just isolated definitions.</p></div>
-        <div class="cap-visual cv-graph" id="kg-graph" data-kg>
-          <div class="kg-surface" role="group" aria-label="Interactive knowledge graph. Order Block is the central concept, connected to FVG and Liquidity.">
-            <div class="kg-grid" aria-hidden="true"></div>
-            <div class="kg-depth" aria-hidden="true"></div>
-            <div class="kg-radar" aria-hidden="true"></div>
-            <div class="kg-cross tl" aria-hidden="true"><i></i></div>
-            <div class="kg-cross tr" aria-hidden="true"><i></i></div>
-            <div class="kg-coords" aria-hidden="true"><span>ICT-04 · KNOWLEDGE GRAPH</span><span>0,0</span></div>
-            <div class="kg-badge">GRAPH · <span class="live">LIVE</span></div>
-            <svg class="kg-edges" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-              <path class="kg-route-glow" data-route-glow d="M0,0"/>
-              <g data-kg-edges></g>
-              <g data-kg-labels></g>
-              <circle class="kg-pulse" r="1.35" data-pulse cx="0" cy="0"></circle>
-            </svg>
-            <div class="kg-nodes" data-kg-nodes></div>
-            <div class="kg-caption" data-kg-caption aria-live="polite"></div>
-            <div class="kg-legend" aria-hidden="true">
-              <span><i></i>Active Path</span>
-              <span class="dash"><i></i>Related Concept</span>
-            </div>
-          </div>
+        <div class="cap-visual cv-graph cv-video">
+          <video class="kg-video" autoplay loop muted playsinline preload="metadata"
+                 poster="assets/video/knowledge-graph-poster.jpg"
+                 aria-label="PlugICT knowledge graph: ICT concepts such as FVG, Liquidity, Order Block and Displacement lighting up and connecting into a living network, then converging into the plug ICT wordmark.">
+            <source src="assets/video/plugict-knowledge-graph.mp4" type="video/mp4">
+          </video>
+          <div class="kg-coords" aria-hidden="true"><span>ICT-04 · KNOWLEDGE GRAPH</span><span>0,0</span></div>
+          <div class="kg-badge">GRAPH · <span class="live">LIVE</span></div>
         </div>
       </div>
 
