@@ -24,6 +24,6 @@ fi
 echo "Using Python: $($PYTHON --version)"
 echo ""
 
-$PYTHON install.py
+$PYTHON setup.py
 echo ""
 echo "Setup complete."

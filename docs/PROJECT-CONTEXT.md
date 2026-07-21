@@ -31,8 +31,9 @@ Code:  D:\plugict-repo\  (git repo working copy)
 | `scripts/build.py` | Encrypted vault builder (AES-256, streaming) |
 | `scripts/generate_key.py` | Per-buyer envelope-encrypted license generator |
 | `scripts/deliver.py` | Buyer package builder (verified snapshot, hash-gated) |
-| `install.py` | **Buyer-facing installer** — reads license, downloads vault, installs deps, configures MCP |
-| `release-manifest.json` | Maps vault SHA-256 hashes to GitHub Release download URLs |
+| `setup.py` | **Buyer-facing installer** — downloads latest vault from GitHub Releases (SHA-256 verified), writes license, installs deps, prints MCP config |
+| `install.py` | Deprecated shim — forwards `--license` to `setup.py` so old purchase emails keep working |
+| `release-manifest.json` | Frozen legacy file for pre-v3.3 `install.py` copies in the wild (they fetch it from `main` at runtime); not used by `setup.py` |
 | `requirements.txt` | Buyer dependencies: `cryptography~=42.0`, `chromadb~=0.5.0`, `sentence-transformers~=3.0`, `mcp~=1.2` |
 | `tests/` | 194 tests (pytest) |
 | `store/issue_license.py` | Seller-side license issuance per purchase (manual or batch) |
@@ -116,21 +117,19 @@ search_vault(query, top_k=15, kg=True, rerank=False)
 
 ```
 1. Save license.key from email
-2. Run: python install.py --license C:/Users/.../license.key
+2. Run: python setup.py  (inside a clone of the repo)
    OR paste to AI agent:
-     "Install PlugICT from https://github.com/godzillacode0000/plugICT
+     "Install the ICT Knowledge Vault from godzillacode0000/plugICT
       My license.key is at C:\Users\...\Downloads\license.key
       Do not expose the license contents."
+   (python install.py --license <path> still works — it forwards to setup.py)
 3. Installer automatically:
-   - Reads VAULT_HASH from license
-   - Fetches release-manifest.json from repo
-   - Downloads matching encrypted vault from GitHub Release
-   - Verifies SHA-256 against license hash
-   - Creates venv, pip installs requirements.txt
-   - Copies license.key into vault folder
-   - Detects AI agent (Codex, Claude Code, Cursor)
-   - Configures MCP
+   - Resolves the latest GitHub Release via the API
+   - Downloads plugict.zip and verifies its SHA-256 asset digest
+   - Writes license.key next to mcp_server.py
+   - Pip installs requirements.txt
    - Runs mcp_server.py --doctor
+   - Prints MCP config (Claude Desktop, Hermes, Cursor)
    - Done
 ```
 
@@ -148,7 +147,7 @@ Vault:   https://github.com/godzillacode0000/plugICT/releases/download/v3.2.0/ic
 - ❌ Never commit `.vault_key`, `.vault_sha256`, `store/issued/`, `store/issued_licenses.csv` 
 - ❌ Never put `.vault_key` in buyer ZIP or public host
 - ❌ Never auto-promote V3 to production without explicit approval
-- ❌ Do not paste the raw vault contents in context (use `install.py` as the approach)
+- ❌ Do not paste the raw vault contents in context (use `setup.py` as the approach)
 
 ---
 
