@@ -164,25 +164,53 @@ const byName = {}; nodes.forEach(n=>byName[n.name]=n);
 edges = EDGES.map(e=>({a:byName[e[0]], b:byName[e[1]], key:e[2],
                        ph:rng(), cyc:2.4+rng()*1.2, prog:0}));
 
-/* satellites: minor unlabeled nodes clustered near concepts */
+/* ---------- diamond (berlian) layout ----------
+   Reshape the concept nodes onto a 3D brilliant-cut gem so the whole graph
+   slowly forms a diamond as nodes ignite, then collapses into the wordmark.
+   Rings, in ignition order: girdle (widest) → culet (bottom point) → crown
+   → table (flat top). Facet edges trace the gem's silhouette. */
+const DIA = { cx: 30, cy: -30, cz: 0 };
+const RG=365, RC=288, RT=198;                 // girdle / crown / table radii
+const YG=70, YC=150, YT=214, YCU=-330;        // ring heights + culet depth
+const GN=12, CN=8, TN=6;
+function diaPt(r,y,ang){ return [DIA.cx+r*Math.cos(ang), DIA.cy+y, DIA.cz+r*Math.sin(ang)]; }
+const diaVerts=[], ring=[];
+for(let k=0;k<GN;k++){ diaVerts.push(diaPt(RG,YG, k/GN*2*Math.PI)); ring.push('g'); }
+diaVerts.push([DIA.cx, DIA.cy+YCU, DIA.cz]); ring.push('cu');
+for(let k=0;k<CN;k++){ diaVerts.push(diaPt(RC,YC, (k+0.5)/CN*2*Math.PI)); ring.push('c'); }
+for(let k=0;k<TN;k++){ diaVerts.push(diaPt(RT,YT, k/TN*2*Math.PI)); ring.push('t'); }
+nodes.forEach((n,i)=>{ if(diaVerts[i]){ n.base=diaVerts[i].slice(); n.ring=ring[i]; n.vi=i; } });
+
+/* structural facet wireframe (indices into nodes[]) */
+const GI=i=>i, CU=GN, CI=i=>GN+1+i, TI=i=>GN+1+CN+i;
+let facetEdges=[];
+const fe=(a,b,kind)=>facetEdges.push({a:nodes[a], b:nodes[b], kind, ph:rng()});
+for(let k=0;k<GN;k++) fe(GI(k), GI((k+1)%GN), 'girdle');   // widest outline
+for(let k=0;k<GN;k++) fe(GI(k), CU, 'pav');                // pavilion → culet point
+for(let k=0;k<TN;k++) fe(TI(k), TI((k+1)%TN), 'table');    // flat top outline
+for(let k=0;k<CN;k++){                                     // crown facets
+  const ang=(k+0.5)/CN;
+  fe(CI(k), GI(Math.round(ang*GN)%GN), 'crown');
+  fe(CI(k), TI(Math.round(ang*TN)%TN), 'crown');
+}
+
+/* satellites: sparkle riding the gem's facet edges */
 for(let i=0;i<46;i++){
-  const host = nodes[Math.floor(rng()*nodes.length)];
+  const f = facetEdges[Math.floor(rng()*facetEdges.length)];
+  const tt = 0.18 + rng()*0.64;
+  const host = tt<0.5 ? f.a : f.b;
   const s = {
-    base:[ host.base[0]+(rng()*2-1)*185,
-           host.base[1]+(rng()*2-1)*165,
-           host.base[2]+(rng()*2-1)*185 ],
-    col: mix3(host.col, PAL.blue, rng()*0.5),
-    tIgn: 3.2 + rng()*9.0,
+    base:[ lerp(f.a.base[0],f.b.base[0],tt)+(rng()*2-1)*22,
+           lerp(f.a.base[1],f.b.base[1],tt)+(rng()*2-1)*22,
+           lerp(f.a.base[2],f.b.base[2],tt)+(rng()*2-1)*22 ],
+    col: mix3(host.col, PAL.ice, rng()*0.5),
+    tIgn: 3.2 + rng()*8.4,
     ph: rng()*Math.PI*2,
-    r: 2.1 + rng()*1.7,
+    r: 1.9 + rng()*1.5,
     host,
   };
   sats.push(s);
   satEdges.push({a:s, b:host, ph:rng()});
-  if(rng()<0.35){
-    const other = nodes[Math.floor(rng()*nodes.length)];
-    if(other!==host) satEdges.push({a:s, b:other, ph:rng()});
-  }
 }
 
 /* ambient dust field */
@@ -203,11 +231,12 @@ for(let i=0;i<380;i++){
 }
 
 /* ---------- camera : catmull-rom orbit path ---------- */
-const CAM_KEYS = { /* t : [azimuth, elevation, radius] */
-  t:[0,     3,     7,    11,    14.5,  17.2,  20.7,  26],
-  az:[-0.25,-0.05, 0.45, 1.05,  1.50,  1.72,  1.82,  1.86],
-  el:[0.06,  0.02, 0.14,-0.04,  0.12,  0.05,  0.03,  0.03],
-  r:[2100,  1500,  950,  820,  1050,  1450,  1600,  1650],
+const CAM_KEYS = { /* t : [azimuth, elevation, radius] — settles to a side-on
+   pull-back so the diamond silhouette reads, with a gentle facet-catching turn */
+  t:[0,     3,     7,     11,    13.5,  16.0,  17.2,  20.7,  26],
+  az:[-0.30,-0.02, 0.42,  0.82,  1.02,  1.20,  1.34,  1.46,  1.50],
+  el:[0.10,  0.05, 0.14,  0.03,  0.006, 0.0,   0.012, 0.03,  0.03],
+  r:[2100,  1520,  1080,  980,   1300,  1540,  1560,  1600,  1650],
 };
 function camChannel(ch, t){
   const ts = CAM_KEYS.t, vs = CAM_KEYS[ch];
@@ -221,7 +250,8 @@ const FOV = 950, NEAR = 60;
 let cam = null;
 function computeCamera(t){
   const az=camChannel('az',t), el=camChannel('el',t), r=camChannel('r',t);
-  const tgt=[45*Math.sin(0.12*t), 30*Math.sin(0.09*t+1.3), 25*Math.sin(0.07*t)];
+  /* frame on the gem's centre (between table and culet) with a gentle drift */
+  const tgt=[30+26*Math.sin(0.12*t), -60+20*Math.sin(0.09*t+1.3), 20*Math.sin(0.07*t)];
   const pos=[ tgt[0]+r*Math.sin(az)*Math.cos(el),
               tgt[1]+r*Math.sin(el),
               tgt[2]-r*Math.cos(az)*Math.cos(el) ];
@@ -403,9 +433,9 @@ function buildPool(){
 
 /* ---------- world-position helpers ---------- */
 function nodeWorld(n,t){
-  return [ n.base[0]+6*Math.sin(t*0.5+n.ph),
-           n.base[1]+6*Math.sin(t*0.43+n.ph*1.7),
-           n.base[2]+6*Math.sin(t*0.37+n.ph*2.3) ];
+  return [ n.base[0]+2.6*Math.sin(t*0.5+n.ph),
+           n.base[1]+2.6*Math.sin(t*0.43+n.ph*1.7),
+           n.base[2]+2.6*Math.sin(t*0.37+n.ph*2.3) ];
 }
 function dustWorld(d,t){
   return [ d.base[0]+d.vel[0]*t+14*Math.sin(t*0.11+d.ph),
@@ -431,7 +461,9 @@ function renderFrame(frame){
   const nebEnv   = smooth(0.4,6,t) * (1 - 0.93*smooth(T_CARD,22.5,t));
   const dustEnv  = smooth(0.3,2.4,t);
   const convW    = smooth(T_CONV, T_CONV+0.1, t);       /* morph active */
-  const labelOut = 1 - smooth(T_CONV, T_CONV+0.9, t);
+  /* labels read during the build, then fade as the gem completes so the
+     final reveal is a clean glowing diamond before it collapses */
+  const labelOut = 1 - smooth(15.3, 16.5, t);
   const edgeOut  = 1 - smooth(T_CONV+0.4, T_CONV+1.5, t);
   const partOut  = 1 - smooth(21.4, 22.9, t);           /* morph particles fade */
 
@@ -478,6 +510,25 @@ function renderFrame(frame){
   });
 
   if(convW<1){
+    /* ----- diamond facet wireframe (structural gem silhouette) ----- */
+    for(const f of facetEdges){
+      const A=P[f.a.name], B=P[f.b.name];
+      if(!A.pr||!B.pr) continue;
+      const igA=A.ig.b, igB=B.ig.b;
+      const prog = smooth(0, 0.7, t - Math.max(f.a.tIgn, f.b.tIgn) + 0.1);
+      if(prog<=0.01) continue;
+      const bx=lerp(A.pr.x,B.pr.x,prog), by=lerp(A.pr.y,B.pr.y,prog);
+      const blur=(dof(A.pr.z)+dof(B.pr.z))/2;
+      const base = f.kind==='girdle'?0.17 : f.kind==='pav'?0.12 : 0.075;
+      const shimmer = 0.72 + 0.28*Math.sin(t*1.5 + f.ph*6.28);
+      const a = base*Math.min(igA,igB)*(1-0.55*blur)*edgeOut*shimmer;
+      if(a<=0.004) continue;
+      ctx.strokeStyle=rgba(PAL.ice, a);
+      ctx.lineWidth=clamp((f.kind==='girdle'?1.15:0.8)*(A.pr.s+B.pr.s)/2, 0.3, 1.7);
+      ctx.globalAlpha=1;
+      ctx.beginPath(); ctx.moveTo(A.pr.x,A.pr.y); ctx.lineTo(bx,by); ctx.stroke();
+    }
+
     /* ----- edges ----- */
     for(const e of edges){
       const A=P[e.a.name], B=P[e.b.name];
