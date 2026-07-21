@@ -147,7 +147,7 @@ their same `license.key`.
 1. Drop the new transcript `.md` files into your source library.
 2. Rebuild the search infra + vault (reprocesses everything, **reuses the key**):
    ```bash
-   python scripts/ict_ingest.py          # rebuilds FTS5 + Chroma + kg.db
+   python scripts/ict_ingest_v3.py       # rebuilds FTS5 + Chroma + kg.db
    python scripts/build.py               # reuses .vault_key -> old licenses stay valid
    python scripts/deliver.py --hosted    # -> delivery/plugict.zip
    ```
