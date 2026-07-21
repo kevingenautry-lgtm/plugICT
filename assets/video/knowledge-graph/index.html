@@ -57,6 +57,9 @@ const PAL = {
   violet:   [167,139,250],
   ice:      [103,232,249],
   indigo:   [129,140,248],
+  gold:     [255,191, 94],
+  amber:    [224,139, 45],
+  hot:      [255,233,184],
 };
 const rgba = (c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
 const mix3 = (a,b,u)=>[lerp(a[0],b[0],u),lerp(a[1],b[1],u),lerp(a[2],b[2],u)];
@@ -255,31 +258,64 @@ const noiseCv=document.createElement('canvas'); noiseCv.width=noiseCv.height=512
   g.putImageData(id,0,0);
 }
 
-/* ---------- wordmark morph targets ---------- */
-const WM = { text:'PLUGICT', font:'600 178px "Space Grotesk"', ls:'16px',
-             x:W/2, y:505 };
-const TAG = { text:'“Search from ICT vault”', font:'300 34px "Inter"',
-              ls:'7px', x:W/2, y:640 };
-let wmGradStops = [PAL.ice, PAL.blue, PAL.violet];
-let wmLeft=0, wmRight=0;
+/* ---------- golden "plug ICT" lockup + morph targets ---------- */
+const LOCKUP = {
+  plug:{ text:'plug', font:'italic 300 158px "Inter"',  ls:'3px'  },
+  ict: { text:'ICT',  font:'700 196px "Space Grotesk"', ls:'10px' },
+  gap: 26, cx: W/2, baseY: 552, tilt: 0,
+};
+const TAGLINE = { text:'Search the ICT vault', font:'300 30px "Inter"',
+                  track: 9, y: 672 };
+const SWEEP_T0 = 20.6, SWEEP_T1 = 21.9;   /* forge-reveal sweep window */
+let lockGeom = null;
+let sweepOn = false, sweepX = 0;
+
+function measureLockup(g){
+  g.font=LOCKUP.plug.font; g.letterSpacing=LOCKUP.plug.ls;
+  const wPlug=g.measureText(LOCKUP.plug.text).width;
+  g.font=LOCKUP.ict.font; g.letterSpacing=LOCKUP.ict.ls;
+  const wIct=g.measureText(LOCKUP.ict.text).width;
+  const total=wPlug+LOCKUP.gap+wIct;
+  lockGeom={ wPlug, wIct, total, x0:LOCKUP.cx-total/2,
+             top:LOCKUP.baseY-172, bottom:LOCKUP.baseY+26 };
+}
+function goldGrad(g){
+  const gr=g.createLinearGradient(0,lockGeom.top,0,lockGeom.bottom);
+  gr.addColorStop(0.00,'#fff3d6');
+  gr.addColorStop(0.28,'#ffd98a');
+  gr.addColorStop(0.58,'#ffb54a');
+  gr.addColorStop(0.86,'#d07d1d');
+  gr.addColorStop(1.00,'#a85a0e');
+  return gr;
+}
+function drawLockupText(g, fill){
+  g.save();
+  g.translate(LOCKUP.cx, LOCKUP.baseY-70);
+  g.rotate(LOCKUP.tilt);
+  g.translate(-LOCKUP.cx, -(LOCKUP.baseY-70));
+  g.textAlign='left'; g.textBaseline='alphabetic';
+  g.fillStyle=fill;
+  g.font=LOCKUP.plug.font; g.letterSpacing=LOCKUP.plug.ls;
+  g.fillText(LOCKUP.plug.text, lockGeom.x0, LOCKUP.baseY);
+  g.font=LOCKUP.ict.font; g.letterSpacing=LOCKUP.ict.ls;
+  g.fillText(LOCKUP.ict.text, lockGeom.x0+lockGeom.wPlug+LOCKUP.gap, LOCKUP.baseY);
+  g.restore();
+}
 function buildTargets(){
   const oc=document.createElement('canvas'); oc.width=W; oc.height=H;
   const g=oc.getContext('2d');
   g.fillStyle='#000'; g.fillRect(0,0,W,H);
-  g.fillStyle='#fff'; g.font=WM.font; g.letterSpacing=WM.ls;
-  g.textAlign='center'; g.textBaseline='middle';
-  g.fillText(WM.text, WM.x, WM.y);
-  const m=g.measureText(WM.text);
-  wmLeft = WM.x - m.width/2; wmRight = WM.x + m.width/2;
+  measureLockup(g);
+  drawLockupText(g,'#fff');
   const id=g.getImageData(0,0,W,H).data;
   const pts=[];
   const jr=mulberry32(31);
-  for(let y=340;y<680;y+=5){
-    for(let x=500;x<1420;x+=5){
+  const gTop=[255,243,214], gMid=[255,181,74], gBot=[168,90,14];
+  for(let y=320;y<720;y+=5){
+    for(let x=360;x<1580;x+=5){
       if(id[(y*W+x)*4]>120){
-        const u=clamp((x-wmLeft)/(wmRight-wmLeft),0,1);
-        const col = u<0.5 ? mix3(wmGradStops[0],wmGradStops[1],u*2)
-                          : mix3(wmGradStops[1],wmGradStops[2],(u-0.5)*2);
+        const v=clamp((y-lockGeom.top)/(lockGeom.bottom-lockGeom.top),0,1);
+        const col = v<0.5 ? mix3(gTop,gMid,v*2) : mix3(gMid,gBot,(v-0.5)*2);
         pts.push({x:x+(jr()*2-1)*1.4, y:y+(jr()*2-1)*1.4, col});
       }
     }
@@ -289,6 +325,27 @@ function buildTargets(){
     const j=Math.floor(jr()*(i+1)); const tmp=pts[i]; pts[i]=pts[j]; pts[j]=tmp;
   }
   targets=pts;
+}
+
+/* particles vanish just behind the reveal sweep */
+function sweepFadeFactor(tx){
+  if(!sweepOn) return 1;
+  return clamp((tx-(sweepX-90))/90,0,1);
+}
+
+/* rising golden embers on the end card */
+let embers=[];
+function buildEmbers(){
+  embers=[];
+  for(let i=0;i<70;i++){
+    embers.push({
+      x0:470+rng()*980, y0:600+rng()*180,
+      spd:13+rng()*22, amp:8+rng()*20,
+      born:20.8+rng()*2.2, ph:rng()*Math.PI*2,
+      r:3+rng()*4,
+      col:mix3(PAL.gold,PAL.amber,rng()),
+    });
+  }
 }
 
 function buildPool(){
@@ -344,13 +401,11 @@ function renderFrame(frame){
   computeCamera(t);
 
   /* ----- phase envelopes ----- */
-  const nebEnv   = smooth(0.4,6,t) * (1 - 0.75*smooth(T_CARD,22.5,t));
+  const nebEnv   = smooth(0.4,6,t) * (1 - 0.93*smooth(T_CARD,22.5,t));
   const dustEnv  = smooth(0.3,2.4,t);
   const convW    = smooth(T_CONV, T_CONV+0.1, t);       /* morph active */
   const labelOut = 1 - smooth(T_CONV, T_CONV+0.9, t);
   const edgeOut  = 1 - smooth(T_CONV+0.4, T_CONV+1.5, t);
-  const crisp    = smooth(20.9, 21.9, t);               /* wordmark text */
-  const tagA     = smooth(22.0, 23.2, t);
   const partOut  = 1 - smooth(21.4, 22.9, t);           /* morph particles fade */
 
   /* ----- background ----- */
@@ -449,6 +504,13 @@ function renderFrame(frame){
   /* ============ node + particle rendering ============ */
   const morphT = t - T_CONV;
 
+  /* forge-reveal sweep position (screen space, tracks the lockup) */
+  sweepOn = t>=SWEEP_T0;
+  if(sweepOn){
+    const su=easeInOutCubic(clamp((t-SWEEP_T0)/(SWEEP_T1-SWEEP_T0),0,1));
+    sweepX=(lockGeom.x0-140)+su*(lockGeom.total+320);
+  }
+
   function morphPos(p, liveX, liveY){
     /* returns [x, y, q] — q = morph blend 0..1 */
     if(convW<=0 || !p.tgt) return [liveX, liveY, 0];
@@ -478,7 +540,7 @@ function renderFrame(frame){
     const col = q>0 ? mix3(d.col, p.tgt.col, q) : d.col;
     const lift=1+0.8*Math.sin(q*Math.PI);   /* brighten while in flight */
     const aa = lerp(d.a*fadeIn*dustEnv*(1-0.5*dof(pr.z)),
-                    0.55, q) * lift * (q>0?partOut:1);
+                    0.55, q) * lift * (q>0?partOut*sweepFadeFactor(p.tgt.x):1);
     const size = lerp(clamp(d.r*pr.s*7,2,10), 7, q) * (1+0.5*Math.sin(q*Math.PI));
     blit(sprFor(col),x,y,size,aa);
   });
@@ -493,7 +555,8 @@ function renderFrame(frame){
     const [x,y,q]=morphPos(p,pr.x,pr.y);
     const col=q>0?mix3(p.src.col,p.tgt.col,q):p.src.col;
     const lift=1+0.7*Math.sin(q*Math.PI);
-    blit(sprFor(col),x,y,lerp(5,8,q)*(1+0.4*Math.sin(q*Math.PI)),0.6*born*lift*partOut);
+    blit(sprFor(col),x,y,lerp(5,8,q)*(1+0.4*Math.sin(q*Math.PI)),
+         0.6*born*lift*partOut*sweepFadeFactor(p.tgt.x));
   });
 
   /* ----- satellites ----- */
@@ -508,7 +571,8 @@ function renderFrame(frame){
     const col=q>0?mix3(s.col,p.tgt.col,q):s.col;
     const blur=dof(pr.z);
     const size=lerp(clamp(s.r*pr.s*16*(1+1.2*blur),6,90),8,q);
-    const aa=lerp(0.34*ig.b*(1-0.55*blur),0.55,q)*(q>0?partOut:1);
+    const aa=lerp(0.34*ig.b*(1-0.55*blur),0.55,q)
+             *(q>0?partOut*sweepFadeFactor(p.tgt.x):1);
     blit(sprFor(col),x,y,size,aa);
   });
 
@@ -526,7 +590,8 @@ function renderFrame(frame){
     const pulse=1+0.08*Math.sin(2*Math.PI*0.22*t+n.ph);
     const shrink=lerp(1,0.16,q);
     const halo=clamp(n.r*pr.s*22*(1+1.5*blur),24,240)*pulse*shrink;
-    const aa=(0.5*ig.b*(1-0.5*blur)*lerp(1,1.4,q))*(q>0?partOut:1);
+    const aa=(0.5*ig.b*(1-0.5*blur)*lerp(1,1.4,q))
+             *(q>0?partOut*sweepFadeFactor(p.tgt.x):1);
     blit(sprFor(col),x,y,halo,clamp(aa,0,0.85));
     /* hot core */
     blit(sprFor(col),x,y,halo*0.34,clamp(aa*1.5,0,1));
@@ -549,6 +614,7 @@ function renderFrame(frame){
   /* ----- labels (near-first, with collision avoidance) ----- */
   if(labelOut>0.01){
     ctx.globalCompositeOperation='source-over';
+    ctx.globalAlpha=1;   /* labels own their opacity; don't inherit node blit alpha */
     const placed=[];
     const cand=nodes
       .map(n=>({n, info:P[n.name]}))
@@ -557,11 +623,13 @@ function renderFrame(frame){
     for(const c of cand){
       const {pr,ig}=c.info, n=c.n;
       const blur=dof(pr.z);
-      const lblA=smooth(0.35,1.0,t-n.tIgn)*(1-0.75*blur)*labelOut;
+      /* text stays legible regardless of node focus-blur: high opacity floor,
+         only a slight depth dimming so it still reads as part of the 3D scene */
+      const lblA=smooth(0.35,1.0,t-n.tIgn)*(0.86+0.14*(1-blur))*labelOut;
       if(lblA<=0.02) continue;
-      const fs=clamp(16.5*pr.s,11.5,24);
-      ctx.font=`500 ${fs.toFixed(1)}px "Inter"`;
-      ctx.letterSpacing='1.5px';
+      const fs=clamp(17*pr.s,12.5,25);
+      ctx.font=`600 ${fs.toFixed(1)}px "Inter"`;
+      ctx.letterSpacing='1.3px';
       ctx.textAlign='left'; ctx.textBaseline='middle';
       const off=clamp(n.r*pr.s*2.6,9,20);
       const tw=ctx.measureText(n.name).width;
@@ -572,13 +640,25 @@ function renderFrame(frame){
       }
       if(hit) continue;   /* farther label yields to nearer one */
       placed.push(rect);
-      /* soft dark backing for legibility */
-      ctx.shadowColor='rgba(0,8,20,0.95)'; ctx.shadowBlur=7;
-      ctx.fillStyle=`rgba(226,240,255,${(0.92*lblA).toFixed(3)})`;
-      ctx.fillText(n.name, pr.x+off+7, pr.y-2);
-      ctx.shadowBlur=0;
+      const lx=pr.x+off+7, ly=pr.y-2;
+      /* bright white glyphs wrapped in a bold black outline for legibility */
+      const oA=Math.min(1,1.15*lblA);
+      ctx.save();
+      ctx.lineJoin='round'; ctx.miterLimit=2;
+      /* outer soft-black halo (drawn as a slightly wider, faint stroke) */
+      ctx.strokeStyle=`rgba(0,0,0,${(0.55*oA).toFixed(3)})`;
+      ctx.lineWidth=clamp(fs*0.34,4,7);
+      ctx.strokeText(n.name, lx, ly);
+      /* crisp black keyline */
+      ctx.strokeStyle=`rgba(0,0,0,${oA.toFixed(3)})`;
+      ctx.lineWidth=clamp(fs*0.20,3,4.4);
+      ctx.strokeText(n.name, lx, ly);
+      /* solid bright-white fill on top */
+      ctx.fillStyle=`rgba(255,255,255,${oA.toFixed(3)})`;
+      ctx.fillText(n.name, lx, ly);
+      ctx.restore();
       /* tick from node to label */
-      ctx.strokeStyle=rgba(n.col,0.4*lblA);
+      ctx.strokeStyle=rgba(n.col,0.45*lblA);
       ctx.lineWidth=1;
       ctx.beginPath();
       ctx.moveTo(pr.x+off, pr.y-2); ctx.lineTo(pr.x+off+5, pr.y-2);
@@ -591,62 +671,119 @@ function renderFrame(frame){
   const fl = Math.exp(-Math.pow((t-T_FLASH-0.12)*3.2,2));
   if(fl>0.01 && t>T_CONV){
     const gr=ctx.createRadialGradient(W/2,505,0,W/2,505,920);
-    gr.addColorStop(0,`rgba(210,240,255,${0.34*fl})`);
-    gr.addColorStop(0.25,rgba(PAL.ice,0.20*fl));
-    gr.addColorStop(0.6,rgba(PAL.blue,0.07*fl));
+    gr.addColorStop(0,`rgba(255,244,222,${0.36*fl})`);
+    gr.addColorStop(0.25,rgba(PAL.hot,0.22*fl));
+    gr.addColorStop(0.6,rgba(PAL.amber,0.08*fl));
     gr.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
-    /* subtle chromatic doubles */
+    /* subtle warm chromatic doubles */
     ctx.globalAlpha=0.5*fl;
-    blit(SPR.ice,   W/2-6,505,760,0.16*fl);
-    blit(SPR.violet,W/2+6,505,760,0.14*fl);
+    blit(SPR.hot,  W/2-6,505,760,0.16*fl);
+    blit(SPR.amber,W/2+6,505,760,0.14*fl);
   }
 
-  /* ============ END CARD ============ */
-  if(crisp>0.001){
+  /* ============ GOLDEN END CARD ============ */
+  const su = sweepOn ? clamp((t-SWEEP_T0)/(SWEEP_T1-SWEEP_T0),0,1) : 0;
+  if(sweepOn){
+    /* warm ambience behind the lockup */
     ctx.globalCompositeOperation='source-over';
-    const settle=1+0.02*(1-easeOutCubic(crisp));
+    const warm=smooth(SWEEP_T0,21.6,t);
+    const wg=ctx.createRadialGradient(W/2,500,0,W/2,500,640);
+    wg.addColorStop(0,`rgba(58,32,8,${(0.55*warm).toFixed(3)})`);
+    wg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=wg; ctx.fillRect(0,0,W,H);
+
+    /* anamorphic gold streak lying behind the mark */
+    ctx.globalCompositeOperation='lighter';
+    const breathe=0.22+0.05*Math.sin(t*1.3);
+    ctx.globalAlpha=breathe*warm;
+    ctx.drawImage(SPR.gold, W/2+130-780, LOCKUP.baseY-78-13, 1560, 26);
+
+    /* the solid mark, revealed left->right behind the sweeping flare */
     ctx.save();
-    ctx.translate(WM.x,WM.y); ctx.scale(settle,settle); ctx.translate(-WM.x,-WM.y);
-    ctx.font=WM.font; ctx.letterSpacing=WM.ls;
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    const grd=ctx.createLinearGradient(wmLeft,0,wmRight,0);
-    grd.addColorStop(0,rgba(PAL.ice,1));
-    grd.addColorStop(0.5,rgba(PAL.blue,1));
-    grd.addColorStop(1,rgba(PAL.violet,1));
-    const breathe=0.22+0.06*Math.sin(t*1.1);
-    /* layered glow */
-    ctx.globalAlpha=crisp*breathe;
-    ctx.shadowColor=rgba(PAL.blue,0.9); ctx.shadowBlur=46;
-    ctx.fillStyle=grd; ctx.fillText(WM.text,WM.x,WM.y);
-    ctx.globalAlpha=crisp*0.5;
-    ctx.shadowColor=rgba(PAL.ice,0.8); ctx.shadowBlur=18;
-    ctx.fillText(WM.text,WM.x,WM.y);
-    ctx.globalAlpha=crisp;
-    ctx.shadowBlur=0;
-    ctx.fillText(WM.text,WM.x,WM.y);
+    ctx.beginPath(); ctx.rect(0,0,sweepX,H); ctx.clip();
+    ctx.globalCompositeOperation='source-over';
+    const grd=goldGrad(ctx);
+    ctx.globalAlpha=0.30+0.06*Math.sin(t*1.1);
+    ctx.shadowColor='rgba(255,166,54,0.9)'; ctx.shadowBlur=46;
+    drawLockupText(ctx,grd);
+    ctx.globalAlpha=0.55;
+    ctx.shadowColor='rgba(255,214,140,0.8)'; ctx.shadowBlur=16;
+    drawLockupText(ctx,grd);
+    ctx.globalAlpha=1; ctx.shadowBlur=0;
+    drawLockupText(ctx,grd);
     ctx.restore();
 
-    /* divider line */
-    const dl=smooth(21.6,22.6,t);
-    if(dl>0.01){
-      const half=290*easeOutCubic(dl);
-      const lg=ctx.createLinearGradient(WM.x-half,0,WM.x+half,0);
-      lg.addColorStop(0,'rgba(120,160,220,0)');
-      lg.addColorStop(0.5,`rgba(150,200,255,${0.45*dl})`);
-      lg.addColorStop(1,'rgba(120,160,220,0)');
-      ctx.fillStyle=lg;
-      ctx.fillRect(WM.x-half,584,half*2,1);
+    /* the forge flare itself */
+    if(su>0 && su<1){
+      ctx.globalCompositeOperation='lighter';
+      const fy=LOCKUP.baseY-72+(sweepX-W/2)*Math.tan(LOCKUP.tilt);
+      blit(SPR.hot, sweepX, fy, 190, 0.75);
+      blit(SPR.gold, sweepX, fy, 420, 0.4);
+      ctx.globalAlpha=0.5;
+      ctx.drawImage(SPR.hot, sweepX-360, fy-7, 720, 14);
+      ctx.globalAlpha=0.55;
+      ctx.drawImage(SPR.hot, sweepX-5, fy-130, 10, 260);
     }
 
-    /* tagline */
-    if(tagA>0.01){
-      ctx.font=TAG.font; ctx.letterSpacing=TAG.ls;
-      ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillStyle=`rgba(157,182,214,${(0.95*tagA).toFixed(3)})`;
-      ctx.fillText(TAG.text, TAG.x, TAG.y+8*(1-easeOutCubic(tagA)));
+    /* divider drawn outward from a glint point */
+    const dg=smooth(21.5,22.4,t);
+    if(dg>0.01){
+      ctx.globalCompositeOperation='source-over';
+      const span=760, gx=W/2-0.16*span, dy=LOCKUP.baseY+56;
+      const halfL=0.42*span*easeOutCubic(dg), halfR=0.58*span*easeOutCubic(dg);
+      const lg=ctx.createLinearGradient(gx-halfL,0,gx+halfR,0);
+      lg.addColorStop(0,'rgba(200,120,30,0)');
+      lg.addColorStop(clamp(halfL/(halfL+halfR||1),0.05,0.95),
+                      `rgba(255,225,170,${(0.9*dg).toFixed(3)})`);
+      lg.addColorStop(1,'rgba(200,120,30,0)');
+      ctx.fillStyle=lg;
+      ctx.fillRect(gx-halfL,dy,halfL+halfR,1.5);
+      ctx.globalCompositeOperation='lighter';
+      const gp=0.6+0.4*Math.sin(t*2.2);
+      blit(SPR.hot,gx,dy+0.5,26+10*gp,0.85*dg);
+      ctx.globalAlpha=0.55*dg;
+      ctx.drawImage(SPR.hot,gx-70,dy-2.5,140,6);
     }
+
+    /* tagline: per-letter cascade — rise, sharpen from blur, track in */
+    if(t>22.0){
+      ctx.globalCompositeOperation='source-over';
+      ctx.font=TAGLINE.font; ctx.letterSpacing='0px';
+      ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+      const chars=[...TAGLINE.text];
+      const widths=chars.map(c=>ctx.measureText(c).width);
+      const total=widths.reduce((a,b)=>a+b,0)+TAGLINE.track*(chars.length-1);
+      let lx=W/2-total/2;
+      chars.forEach((c,i)=>{
+        const t0=22.1+i*0.045;
+        const a=smooth(t0,t0+0.55,t);
+        if(a>0.01 && c!==' '){
+          const spread=(i-(chars.length-1)/2)*7*(1-easeOutCubic(a));
+          const rise=12*(1-easeOutCubic(a));
+          ctx.filter=a<0.999?`blur(${(2.6*(1-a)).toFixed(2)}px)`:'none';
+          ctx.shadowColor='rgba(255,190,90,0.8)';
+          ctx.shadowBlur=10*Math.sin(Math.min(a,1)*Math.PI);
+          ctx.fillStyle=`rgba(236,183,102,${(0.95*a).toFixed(3)})`;
+          ctx.fillText(c,lx+spread,TAGLINE.y+rise);
+          ctx.filter='none'; ctx.shadowBlur=0;
+        }
+        lx+=widths[i]+TAGLINE.track;
+      });
+    }
+
+    /* rising golden embers */
     ctx.globalCompositeOperation='lighter';
+    for(const e of embers){
+      if(t<e.born) continue;
+      const age=t-e.born;
+      const ex=e.x0+e.amp*Math.sin(age*0.8+e.ph);
+      const ey=e.y0-e.spd*age;
+      if(ey<240) continue;
+      const ea=0.45*smooth(0,0.7,age)*(0.55+0.45*Math.sin(age*3+e.ph))
+               *(1-smooth(24.6,25.5,t));
+      blit(sprFor(e.col),ex,ey,e.r*2.2,ea);
+    }
   }
 
   /* ============ post: vignette + grain ============ */
@@ -680,11 +817,13 @@ function renderFrame(frame){
 let inited=false;
 async function init(){
   if(inited) return true;
-  await document.fonts.load('600 178px "Space Grotesk"');
+  await document.fonts.load('italic 300 158px "Inter"');
+  await document.fonts.load('700 196px "Space Grotesk"');
   await document.fonts.load('500 16px "Inter"');
-  await document.fonts.load('300 34px "Inter"');
+  await document.fonts.load('300 30px "Inter"');
   buildTargets();
   buildPool();
+  buildEmbers();
   inited=true;
   return {frames:FRAMES, targets:targets.length, pool:pool.length};
 }

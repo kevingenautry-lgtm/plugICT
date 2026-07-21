@@ -1,8 +1,8 @@
 # PlugICT — Knowledge Graph Brand Film
 
 A 26-second, 1080p30 cinematic animation that presents PlugICT's ICT concept
-vault as a glowing, living knowledge graph, ending on the PLUGICT wordmark and
-the "Search from ICT vault" tagline. Final output:
+vault as a glowing, living knowledge graph, ending on the golden *plug* **ICT**
+lockup and the "Search the ICT vault" tagline. Final output:
 `assets/video/plugict-knowledge-graph.mp4`.
 
 ## Narrative timeline
@@ -10,10 +10,10 @@ the "Search from ICT vault" tagline. Final output:
 | Time | Beat |
 |---|---|
 | 0.0 – 2.4 s | Darkness; ambient particles fade in over midnight-blue haze |
-| 2.4 – 12.5 s | Concept nodes ignite one by one (FVG → Distribution) and connect; labels fade in |
+| 2.4 – 12.5 s | Concept nodes ignite one by one (FVG → Distribution) and connect; bright-white, black-outlined labels fade in |
 | 12.5 – 17.2 s | Full network alive — pulses travel key relationships (Liquidity ↔ Draw on Liquidity, Accumulation → Manipulation → Distribution, Kill Zone ↔ Silver Bullet…) while the camera glides through |
-| 17.2 – 20.7 s | Every light in the scene streams into the center and condenses into the PLUGICT letterforms; sub-bass impact on the flash |
-| 20.7 – 26.0 s | End card: gradient wordmark, divider, “Search from ICT vault”, fade out |
+| 17.2 – 20.6 s | Every light in the scene streams inward, turning gold as it condenses into the *plug* **ICT** letterforms; warm flash + sub-bass impact |
+| 20.6 – 26.0 s | Forge reveal: a flare sweeps left→right transmuting the particle-word into the solid golden lockup; divider draws from a glint; "Search the ICT vault" cascades in letter by letter; embers rise; fade out |
 
 ## How it's made
 
