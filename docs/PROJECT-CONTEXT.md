@@ -7,7 +7,7 @@
 
 ## What is PlugICT?
 
-A sellable, encrypted, AI-searchable knowledge vault of **581 ICT (Inner Circle Trader) YouTube videos** — transcribed, chunked into 14,757 semantic chunks, indexed with FTS5 + ChromaDB + Knowledge Graph, and sold as a local MCP server product.
+A sellable, encrypted, AI-searchable knowledge vault of **775 ICT (Inner Circle Trader) YouTube videos** — transcribed, chunked into 21,985 semantic chunks, indexed with FTS5 + ChromaDB + Knowledge Graph, and sold as a local MCP server product.
 
 Buyers get an encrypted vault + a unique license key. Their AI agent (Claude Desktop, Claude Code, Cursor, Codex CLI, Hermes) queries the vault locally via MCP tools.
 
@@ -43,10 +43,10 @@ Code:  D:\plugict-repo\  (git repo working copy)
 
 | Metric | Value |
 |---|---|
-| Videos | 581 |
-| Chunks | 14,757 (FTS5 = ChromaDB parity) |
-| Vault size | 124,018,325 bytes |
-| Vault SHA-256 | `0db15c1421a2da35b34b5fb5a355ad21e9c038e0035256098951b2bf3b723236` |
+| Videos | 775 |
+| Chunks | 21,985 (FTS5 = ChromaDB parity) |
+| Vault size | 75,052,032 bytes |
+| Vault SHA-256 | `6b01fed6b4989532b5a6e5ca6899ea968ced5c933a7cc80dcddb768922ff2c91` |
 | Chunk schema | `chunk_id, chunk_index, title, video_id, playlist, start_ts, end_ts, start_seconds, end_seconds, source_file, content, entities, relations` |
 | Schema version | `3` |
 | KG entities | 29 |
@@ -54,7 +54,7 @@ Code:  D:\plugict-repo\  (git repo working copy)
 
 ---
 
-## Current retrieval flow (v3.2.0)
+## Current retrieval flow (v3.5.0)
 
 Every `search_ict()` call now runs **SQL-first** before falling back to hybrid:
 
@@ -137,8 +137,8 @@ search_vault(query, top_k=15, kg=True, rerank=False)
 
 ```
 Repo:    https://github.com/godzillacode0000/plugICT
-Release: https://github.com/godzillacode0000/plugICT/releases/tag/v3.2.0
-Vault:   https://github.com/godzillacode0000/plugICT/releases/download/v3.2.0/ict-vault.kevin
+Release: https://github.com/godzillacode0000/plugICT/releases/tag/v3.5.0
+Vault:   https://github.com/godzillacode0000/plugICT/releases/download/v3.5.0/plugict.zip
 ```
 
 ### What NOT to do
@@ -154,7 +154,7 @@ Vault:   https://github.com/godzillacode0000/plugICT/releases/download/v3.2.0/ic
 ## Production environment
 
 ```
-Vault file:          D:\PlugICT\ict-vault.kevin (124MB, V3, SHA-256: 0db15c...b723236)
+Vault file:          D:\PlugICT\ict-vault.kevin (72MB, V3, SHA-256: 6b01fed6...22ff2c91)
 License file:        D:\PlugICT\license.key (owner license)
 Vault key:           D:\PlugICT\.vault_key (32 bytes, secret — never commit/share)
 Vault SHA-256 file:  D:\PlugICT\.vault_sha256 (seller-side hash reference)
@@ -219,7 +219,7 @@ python tests/run_benchmark.py --vault-dir D:/PlugICT --queries tests/benchmark_q
 ```text
 Branch: main
 Last commit: 6fa2b58 — feat: add requirements.txt at repo root for installer
-Tags: v3.2.0 (current release), v1.0 (old release)
+Tags: v3.5.0 (current release), v3.2.0 / v1.0 (older releases)
 Commit history:
   main
   ├── 6fa2b58  requirements.txt at repo root
@@ -250,12 +250,12 @@ Commit history:
 
 | Change | What |
 |---|---|
-| V3 vault built & verified | 581 videos, 14,757 chunks, 124MB |
+| V3 vault built & verified | 775 videos, 21,985 chunks, 72MB |
 | V2 → V3 production | Copied V3 vault + updated `.vault_sha256` |
 | SQL-first retrieval | `search_sql_first()` as default, hybrid fallback |
 | `kg=True` on buyer path | Was `False` — enables entity expansion on fallback |
 | `MIN_RERANK_SCORE = 0.0` | Was `-10.0` — now filters noise |
-| GitHub Release v3.2.0 | Vault + SHA-256 + release-manifest.json |
+| GitHub Release v3.5.0 | Vault bundle (plugict.zip) |
 | install.py + setup scripts | Self-service buyer installer |
 | requirements.txt | At repo root for installer |
 | 194 tests passing | All green |

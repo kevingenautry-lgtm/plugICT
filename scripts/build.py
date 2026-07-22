@@ -125,7 +125,7 @@ if os.environ.get("ICT_DEMO") == "1":
     dst.execute("INSERT OR REPLACE INTO vault_metadata VALUES ('demo', '1')")
     dst.execute("INSERT OR REPLACE INTO vault_metadata VALUES ('demo_count', ?)", (str(len(transcripts)),))
     dst.execute("INSERT OR REPLACE INTO vault_metadata VALUES ('demo_total', ?)",
-                (os.environ.get("ICT_DEMO_TOTAL", "581"),))
+                (os.environ.get("ICT_DEMO_TOTAL", "775"),))
     dst.execute("INSERT OR REPLACE INTO vault_metadata VALUES ('demo_cta', ?)",
                 (os.environ.get("ICT_DEMO_CTA", "https://YOUR-SITE/#pricing"),))
     print(f"  DEMO BUILD — watermarked {len(transcripts)} videos")
