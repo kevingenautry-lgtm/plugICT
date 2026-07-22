@@ -10,7 +10,7 @@
 <meta name="description" content="775 ICT videos, searchable by your AI. Ask any concept, get the exact timestamp where ICT explained it. Runs locally, lifetime license, $18.99.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=PT+Serif:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -1424,17 +1424,18 @@ window.PLUGICT = {
     });
   })();
 
-  /* ── 4. hero stage parallax on scroll ── */
+  /* ── 4. hero parallax on scroll ── */
   (function(){
     if(REDUCED) return;
     const hero=document.querySelector('.hero'); if(!hero) return;
     const cv=document.getElementById('hero-canvas');
-    const stage=hero.querySelector('.hero-video');
+    const term=hero.querySelector('.terminal');
     let raf=0;
     function upd(){ raf=0; const y=scrollY;
       if(y>hero.offsetHeight+120) return;
       if(cv) cv.style.transform='translateY('+(y*0.18)+'px)';
-      if(stage && innerWidth>760) stage.style.transform='translateY('+(y*-0.045)+'px)';
+      if(term && innerWidth>1000) term.style.transform=
+        'perspective(1400px) rotateY(-7deg) rotateX(1.5deg) translateY('+(y*-0.05)+'px)';
     }
     addEventListener('scroll',()=>{ if(!raf) raf=requestAnimationFrame(upd); },{passive:true});
   })();
