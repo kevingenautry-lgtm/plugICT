@@ -641,7 +641,7 @@ def demo_info(db):
         return None
     return {
         'count': rows.get('demo_count', '?'),
-        'total': rows.get('demo_total', '581'),
+        'total': rows.get('demo_total', '775'),
         'cta': rows.get('demo_cta', 'https://YOUR-SITE/#pricing'),
     }
 

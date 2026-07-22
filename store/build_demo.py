@@ -7,7 +7,7 @@ the landing page.
 
 The demo reuses the REAL V3 pipeline (ict_ingest_v3.py -> build.py), so search,
 glossary, reranker and MCP behave exactly like the paid product — the only
-differences are the video count and the "DEMO — N/581" watermark stamped into
+differences are the video count and the "DEMO — N/775" watermark stamped into
 the vault itself.
 
 Usage (on the seller machine, where the full transcript library lives):
@@ -34,7 +34,7 @@ SCRIPTS = ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 from generate_key import generate_license  # noqa: E402
 
-FULL_TOTAL = "581"
+FULL_TOTAL = "775"
 
 # Regenerates the AI-agent config on the BUYER's machine (correct local paths),
 # so the demo never ships the seller's build path. Mirrors deliver.py.

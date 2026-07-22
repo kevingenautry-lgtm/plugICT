@@ -275,7 +275,7 @@ def _copy_docs(delivery_dir):
 
 
 _README_BODY = """
-Your AI agent, upgraded with 581 ICT videos. Ask it anything about ICT and it
+Your AI agent, upgraded with 775 ICT videos. Ask it anything about ICT and it
 answers with exact video sources and timestamps.
 
 ## 1. Set up (one time)
@@ -305,7 +305,7 @@ Full walkthrough: `docs/AI-AGENT-GUIDE.md`.
 
 > "How does ICT teach the Silver Bullet entry?"
 
-Your AI searches all 581 videos and answers with cited timestamps.
+Your AI searches all 775 videos and answers with cited timestamps.
 
 ## License
 
