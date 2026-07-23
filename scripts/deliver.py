@@ -18,6 +18,7 @@ Never upload a per-buyer folder publicly: it contains a real license.key.
 
 import hashlib
 import hmac
+import json
 import re
 import tempfile
 import sys, os, shutil
@@ -25,6 +26,7 @@ from pathlib import Path
 from datetime import datetime
 
 from artifact_paths import resolve_artifact_dir
+import vault_core as vc
 
 # Source transcripts/docs and built encrypted artifacts may live separately.
 SOURCE_DIR = Path(os.environ.get("ICT_SOURCE_DIR", r"C:\Users\kevin\Hermes ICT Selling Idea"))
@@ -128,6 +130,51 @@ def _copy_vault(delivery_dir, vault_file=None):
     shutil.copy2(vault_file, delivery_dir / "ict-vault.kevin")
     size = (delivery_dir / "ict-vault.kevin").stat().st_size / 1024 / 1024
     print(f"  OK ict-vault.kevin ({size:.0f} MB)")
+
+
+def _copy_release_manifest(delivery_dir, vault_file=None):
+    """Ship the signed release manifest beside the vault — mandatory.
+
+    Without release.sig.json next to ict-vault.kevin, a buyer client can never
+    authorize a future updated vault (issued licenses pin one exact hash), so a
+    hosted package missing it is broken by construction. Fails closed when the
+    manifest is absent or does not describe the exact vault being shipped; when
+    the buyer trust store is populated, the signature must also verify.
+    """
+    vault_file = Path(vault_file) if vault_file else ARTIFACT_DIR / "ict-vault.kevin"
+    manifest_src = vault_file.parent / vc.RELEASE_MANIFEST_NAME
+    if not manifest_src.is_file():
+        print(f"  ERROR: {vc.RELEASE_MANIFEST_NAME} not found beside {vault_file.name}.")
+        print("         Sign this release first:")
+        print("           python scripts/sign_release.py --tag vX.Y.Z")
+        sys.exit(1)
+
+    vault_hash = _file_sha256(vault_file)
+    try:
+        manifest = json.loads(manifest_src.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        print(f"  ERROR: {vc.RELEASE_MANIFEST_NAME} is unreadable: {e} — aborting.")
+        sys.exit(1)
+    claimed = str(manifest.get("vault_sha256", "")).strip().lower()
+    if manifest.get("product") != vc.RELEASE_PRODUCT or claimed != vault_hash:
+        print(f"  ERROR: {vc.RELEASE_MANIFEST_NAME} does not describe this exact vault")
+        print(f"         (product={manifest.get('product')!r}, manifest hash {claimed[:16]}…,")
+        print(f"          actual vault hash {vault_hash[:16]}…). Re-sign the release:")
+        print("           python scripts/sign_release.py --tag vX.Y.Z")
+        sys.exit(1)
+    if vc.RELEASE_TRUSTED_KEYS:
+        ok, reason = vc.verify_release_manifest(manifest_src, vault_hash)
+        if not ok:
+            print(f"  ERROR: release manifest fails buyer-side verification: {reason}")
+            print("         Buyers with the pinned trust store would reject this package.")
+            sys.exit(1)
+    else:
+        print("  WARNING: RELEASE_TRUSTED_KEYS is empty — buyers cannot verify this")
+        print("           manifest until the seller public key is pinned in vault_core.py")
+        print("           (run scripts/sign_release.py --init and commit the snippet).")
+
+    shutil.copy2(manifest_src, delivery_dir / vc.RELEASE_MANIFEST_NAME)
+    print(f"  OK {vc.RELEASE_MANIFEST_NAME} (tag {manifest.get('tag', '?')})")
 
 
 def _copy_code(delivery_dir):
@@ -346,8 +393,9 @@ def deliver_hosted():
 
     delivery_dir = _fresh_dir("plugict")
 
-    print("[1/5] Copying encrypted vault...")
+    print("[1/5] Copying encrypted vault + signed release manifest...")
     _copy_vault(delivery_dir)
+    _copy_release_manifest(delivery_dir)
 
     print("[2/5] Copying application code...")
     _copy_code(delivery_dir)
