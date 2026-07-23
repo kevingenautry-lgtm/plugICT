@@ -18,6 +18,7 @@ import os
 import re
 import sys
 import glob
+import json
 import signal
 import struct
 import shutil
@@ -880,6 +881,109 @@ def _unwrap_vault_key(info):
         )
 
 
+# ── Signed release manifest ──────────────────────────────────────────────────
+# A buyer license pins the exact VAULT_HASH it was issued against. To let issued
+# licenses keep working across vault updates, a release may ship a manifest
+# (release.sig.json next to ict-vault.kevin) whose vault hash is Ed25519-signed
+# by the seller. open_vault() accepts a vault when its hash matches the license
+# pin (legacy path) OR a valid seller-signed manifest. Everything else fails
+# closed: unknown key, wrong product, tampered manifest, tampered vault,
+# malformed file — all rejected.
+RELEASE_PRODUCT = "plugict-vault"
+RELEASE_MANIFEST_NAME = "release.sig.json"
+RELEASE_SIG_DOMAIN = "plugict-release-v1"
+# Trusted seller release-signing keys: {key_id: ed25519 public key hex}.
+# key_id = first 16 hex chars of sha256(raw 32-byte public key). Populate from
+# `python scripts/sign_release.py --init` output (run on the seller machine —
+# the private key is never committed or bundled). This public key is safe to
+# ship: it lets buyers verify only releases signed by the seller's private key.
+RELEASE_TRUSTED_KEYS = {
+    "65ac3c1386ace1be": "166d536066210cc7038e9550976205d2df6068fe282406f8817aacdb908d6e27",
+}
+
+_RELEASE_REQUIRED_FIELDS = ("product", "tag", "vault_sha256", "key_id", "algo", "sig")
+
+
+def release_key_id(public_key_bytes):
+    """key_id for a raw 32-byte Ed25519 public key: first 16 hex of its sha256."""
+    return hashlib.sha256(public_key_bytes).hexdigest()[:16]
+
+
+def release_manifest_payload(manifest):
+    """Canonical signed payload. Any field change breaks the signature."""
+    return (
+        f"{RELEASE_SIG_DOMAIN}\n"
+        f"product={manifest['product']}\n"
+        f"tag={manifest['tag']}\n"
+        f"vault_sha256={manifest['vault_sha256']}\n"
+        f"key_id={manifest['key_id']}\n"
+    ).encode("utf-8")
+
+
+def verify_release_manifest(manifest_path, computed_vault_hash, trusted_keys=None):
+    """Return (ok, reason). ok=True only when the manifest at manifest_path is a
+    well-formed, seller-signed authorization of exactly computed_vault_hash.
+    Every failure mode returns (False, reason) — never raises."""
+    trusted = RELEASE_TRUSTED_KEYS if trusted_keys is None else trusted_keys
+    try:
+        manifest_path = Path(manifest_path)
+        if not manifest_path.is_file():
+            return False, "no release manifest"
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as e:
+            return False, f"unreadable release manifest: {e}"
+        if not isinstance(manifest, dict):
+            return False, "release manifest is not an object"
+        for field in _RELEASE_REQUIRED_FIELDS:
+            if not isinstance(manifest.get(field), str) or not manifest[field]:
+                return False, f"release manifest missing field: {field}"
+        if manifest["product"] != RELEASE_PRODUCT:
+            return False, f"release manifest is for a different product: {manifest['product']!r}"
+        if manifest["algo"] != "ed25519":
+            return False, f"unsupported signature algorithm: {manifest['algo']!r}"
+        claimed = manifest["vault_sha256"].strip().lower()
+        if len(claimed) != 64 or any(c not in "0123456789abcdef" for c in claimed):
+            return False, "release manifest vault_sha256 is malformed"
+        if not secrets.compare_digest(claimed, computed_vault_hash):
+            return False, "vault hash does not match the signed release manifest"
+        pub_hex = trusted.get(manifest["key_id"])
+        if not pub_hex:
+            return False, f"release manifest signed by unknown key: {manifest['key_id']!r}"
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+        from cryptography.exceptions import InvalidSignature
+        try:
+            pub_bytes = bytes.fromhex(pub_hex)
+            public_key = Ed25519PublicKey.from_public_bytes(pub_bytes)
+        except (ValueError, TypeError) as e:
+            return False, f"trusted public key is malformed: {e}"
+        if release_key_id(pub_bytes) != manifest["key_id"]:
+            return False, "trusted key entry does not match its key_id"
+        try:
+            signature = bytes.fromhex(manifest["sig"])
+        except ValueError:
+            return False, "release manifest signature is not valid hex"
+        try:
+            public_key.verify(signature, release_manifest_payload(manifest))
+        except InvalidSignature:
+            return False, "release manifest signature verification failed"
+        return True, f"signed release {manifest['tag']}"
+    except Exception as e:  # absolute fail-closed backstop
+        return False, f"release manifest verification error: {e}"
+
+
+def _vault_hash_authorized(computed_hash, license_hash, vault_file):
+    """How this vault hash is authorized: 'license' (exact pin), 'release'
+    (valid signed manifest next to the vault), or None (reject)."""
+    if secrets.compare_digest(computed_hash, license_hash):
+        return "license"
+    manifest_path = Path(vault_file).parent / RELEASE_MANIFEST_NAME
+    ok, _reason = verify_release_manifest(manifest_path, computed_hash)
+    if ok:
+        return "release"
+    return None
+
+
 # ── Streaming decrypt router ─────────────────────────────────────────────────
 class _SplitSink:
     """Routes a decompressed byte stream into master.db then chroma.tar by size."""
@@ -997,10 +1101,19 @@ def open_vault(vault_file=VAULT_FILE, license_file=LICENSE_FILE, on_progress=Non
     _temp_dirs.append(tmpdir)
     authenticated_vault = os.path.join(tmpdir, 'vault.authenticated')
     computed_before_decrypt = _copy_and_hash_encrypted(vault_file, authenticated_vault)
-    if not secrets.compare_digest(computed_before_decrypt, expected_hash):
+    # Accept the exact hash this license was issued against, or a newer vault
+    # whose hash carries a valid seller-signed release manifest. Anything else
+    # fails closed.
+    if not _vault_hash_authorized(computed_before_decrypt, expected_hash, vault_file):
         shutil.rmtree(tmpdir, ignore_errors=True)
         _temp_dirs.remove(tmpdir)
-        raise VaultError("Vault file failed its integrity check (corrupted download). Please re-download ict-vault.kevin.")
+        raise VaultError(
+            "Vault file failed its integrity check.\n"
+            "  It matches neither this license's pinned hash nor a valid signed\n"
+            "  release manifest. Re-download ict-vault.kevin (and release.sig.json\n"
+            "  if you updated the vault)."
+        )
+    authorized_hash = computed_before_decrypt
     db_fd, db_path = tempfile.mkstemp(prefix='sqlite_', suffix='.db', dir=tmpdir)
     os.close(db_fd)
     chroma_dir = os.path.join(tmpdir, 'chroma')
@@ -1043,9 +1156,10 @@ def open_vault(vault_file=VAULT_FILE, license_file=LICENSE_FILE, on_progress=Non
     finally:
         sink.close()
 
-    # 3) Defend against any authenticated-copy corruption during decryption.
+    # 3) Defend against any authenticated-copy corruption during decryption:
+    #    the streamed bytes must hash to exactly the value authorized above.
     computed = getattr(_decrypt_stream, "last_hash", "")
-    if not computed or not secrets.compare_digest(computed, expected_hash):
+    if not computed or not secrets.compare_digest(computed, authorized_hash):
         raise VaultError("Vault file failed its integrity check (corrupted download). Please re-download ict-vault.kevin.")
     try:
         os.remove(authenticated_vault)
