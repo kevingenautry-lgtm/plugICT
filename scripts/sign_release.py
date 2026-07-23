@@ -28,15 +28,19 @@ must never appear in the repo, the buyer ZIP, or any release asset.
 from __future__ import annotations
 
 import argparse
+import getpass
 import hashlib
 import json
 import os
 import stat
+import subprocess
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import vault_core as vc  # noqa: E402
+
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import (  # noqa: E402
     Ed25519PrivateKey,
@@ -57,6 +61,27 @@ def _sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _secure_windows_private_key_acl(path: Path, *, runner=subprocess.run,
+                                    username: str | None = None) -> None:
+    """Restrict a newly-created private key to its owner, SYSTEM and admins.
+
+    POSIX mode bits are not an ACL boundary on NTFS; without this, a new key can
+    inherit broad access from its parent folder.
+    """
+    user = username or os.environ.get("USERNAME") or getpass.getuser()
+    result = runner(
+        ["icacls", str(path), "/inheritance:r", "/grant:r",
+         f"{user}:(F)", "BUILTIN\\Administrators:(F)", "NT AUTHORITY\\SYSTEM:(F)"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            "could not restrict Windows ACL on release signing key: "
+            f"{getattr(result, 'stderr', '').strip()}"
+        )
+
+
 def _write_private_key(path: Path, key: Ed25519PrivateKey) -> None:
     data = key.private_bytes_raw().hex() + "\n"
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
@@ -64,6 +89,12 @@ def _write_private_key(path: Path, key: Ed25519PrivateKey) -> None:
         os.write(fd, data.encode("ascii"))
     finally:
         os.close(fd)
+    if os.name == "nt":
+        try:
+            _secure_windows_private_key_acl(path)
+        except Exception:
+            path.unlink(missing_ok=True)
+            raise
 
 
 def _load_private_key(path: Path) -> Ed25519PrivateKey:
@@ -73,7 +104,7 @@ def _load_private_key(path: Path) -> Ed25519PrivateKey:
             "  Run `python scripts/sign_release.py --init` once on this machine first."
         )
     mode = stat.S_IMODE(path.stat().st_mode)
-    if mode & 0o077:
+    if os.name != "nt" and mode & 0o077:
         print(f"  WARNING: {path} is group/world readable (mode {oct(mode)}); "
               "consider chmod 600.", file=sys.stderr)
     raw = bytes.fromhex(path.read_text(encoding="ascii").strip())

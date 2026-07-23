@@ -303,3 +303,28 @@ def test_sign_release_init_refuses_overwrite(tmp_path, monkeypatch):
                                       "--build-dir", str(build)])
     with pytest.raises(SystemExit, match="Refusing to overwrite"):
         sign_release.main()
+
+
+def test_windows_private_key_acl_is_restrictive(tmp_path):
+    """Windows must not inherit broad ACLs when it creates a signing key."""
+    import sign_release
+
+    calls = []
+
+    class Result:
+        returncode = 0
+        stderr = ""
+
+    def fake_run(command, **kwargs):
+        calls.append((command, kwargs))
+        return Result()
+
+    key_path = tmp_path / sign_release.KEY_FILE_NAME
+    sign_release._secure_windows_private_key_acl(
+        key_path, runner=fake_run, username="kevin")
+
+    assert calls == [(
+        ["icacls", str(key_path), "/inheritance:r", "/grant:r",
+         "kevin:(F)", "BUILTIN\\Administrators:(F)", "NT AUTHORITY\\SYSTEM:(F)"],
+        {"capture_output": True, "text": True},
+    )]
