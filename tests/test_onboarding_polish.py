@@ -49,7 +49,7 @@ def test_setup_installs_dependencies_into_its_isolated_environment(tmp_path, mon
     setup.install_deps()
 
     expected_python = str(tmp_path / ".venv" / "Scripts" / "python.exe")
-    assert calls == [[expected_python, "-E", "-m", "pip", "install", "-q", "-r", str(tmp_path / "requirements.txt")]]
+    assert calls == [[expected_python, "-E", "-X", "utf8", "-m", "pip", "install", "-q", "-r", str(tmp_path / "requirements.txt")]]
 
 
 def test_setup_prints_mcp_config_with_its_isolated_python(tmp_path, monkeypatch, capsys):
@@ -64,8 +64,8 @@ def test_setup_prints_mcp_config_with_its_isolated_python(tmp_path, monkeypatch,
     assert expected_python in out
     assert '"command": "python"' not in out
     assert "command: python" not in out
-    assert '"args": ["-E", "' in out
-    assert 'args: ["-E", "' in out
+    assert '"args": ["-E", "-X", "utf8", "' in out
+    assert 'args: ["-E", "-X", "utf8", "' in out
 
 
 def test_setup_doctor_ignores_inherited_pythonpath(tmp_path, monkeypatch):
@@ -87,7 +87,7 @@ def test_setup_doctor_ignores_inherited_pythonpath(tmp_path, monkeypatch):
     setup.verify()
 
     expected_python = str(tmp_path / ".venv" / "Scripts" / "python.exe")
-    assert calls[0][0] == [expected_python, "-E", str(tmp_path / "mcp_server.py"), "--doctor"]
+    assert calls[0][0] == [expected_python, "-E", "-X", "utf8", str(tmp_path / "mcp_server.py"), "--doctor"]
 
 
 def test_hosted_package_uses_setup_py_as_the_single_installer(tmp_path):
@@ -101,7 +101,7 @@ def test_hosted_package_uses_setup_py_as_the_single_installer(tmp_path):
     setup_bat = (tmp_path / "setup.bat").read_text(encoding="utf-8")
     assert "python setup.py" in setup_bat
     assert "py -m venv" not in setup_bat
-    assert '"args": ["-E", str(SERVER)]' in deliver._MAKE_CONFIGS
+    assert '"args": ["-E", "-X", "utf8", str(SERVER)]' in deliver._MAKE_CONFIGS
 
 
 def test_mcp_server_reports_current_public_release_version():

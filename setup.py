@@ -54,7 +54,7 @@ def install_deps():
         print("  No requirements.txt — skipping")
         return
     subprocess.check_call([
-        str(runtime_python()), "-E", "-m", "pip", "install", "-q", "-r", str(req)
+        str(runtime_python()), "-E", "-X", "utf8", "-m", "pip", "install", "-q", "-r", str(req)
     ])
     print("  Dependencies installed")
 
@@ -146,7 +146,7 @@ def verify():
 
     try:
         result = subprocess.run(
-            [str(runtime_python()), "-E", str(doctor), "--doctor"],
+            [str(runtime_python()), "-E", "-X", "utf8", str(doctor), "--doctor"],
             capture_output=True, text=True, timeout=30
         )
         if result.returncode == 0:
@@ -173,7 +173,7 @@ For Claude Desktop:
     "mcpServers": {
       "plugict": {
         "command": "%s",
-        "args": ["-E", "%s"]
+        "args": ["-E", "-X", "utf8", "%s"]
       }
     }
   }
@@ -184,13 +184,13 @@ For Hermes Agent:
   mcp_servers:
     plugict:
       command: "%s"
-      args: ["-E", "%s"]
+      args: ["-E", "-X", "utf8", "%s"]
 
 For Cursor:
   Settings → Features → MCP → Add:
   Name: plugict
   Type: command
-  Command: "%s" "-E" "%s"
+  Command: "%s" "-E" "-X" "utf8" "%s"
 
 Then restart your AI agent and ask:
   "What is FVG in ICT?"

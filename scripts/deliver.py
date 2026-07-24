@@ -258,7 +258,7 @@ SERVER = ROOT / 'mcp_server.py'
 EXAMPLES = Path(__file__).resolve().parent
 
 cfg = {"mcpServers": {"ict-knowledge-vault": {
-    "command": str(VENV_PY), "args": ["-E", str(SERVER)]}}}
+    "command": str(VENV_PY), "args": ["-E", "-X", "utf8", str(SERVER)]}}}
 
 (EXAMPLES / 'claude_desktop_config.json').write_text(json.dumps(cfg, indent=2) + "\\n")
 (EXAMPLES / 'cursor_mcp.json').write_text(json.dumps(cfg, indent=2) + "\\n")
@@ -267,7 +267,7 @@ cfg = {"mcpServers": {"ict-knowledge-vault": {
     "mcp_servers:\\n"
     "  ict-knowledge-vault:\\n"
     f'    command: "{VENV_PY.as_posix()}"\\n'
-    f'    args: ["-E", "{SERVER.as_posix()}"]\\n')
+    f'    args: ["-E", "-X", "utf8", "{SERVER.as_posix()}"]\\n')
 
 print(f"AI-agent configs written for: {ROOT}")
 '''
