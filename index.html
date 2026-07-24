@@ -143,7 +143,10 @@ window.PLUGICT = {
   .hero::before{content:""; position:absolute; top:-30%; right:-15%; width:70%; height:130%; pointer-events:none; z-index:1;
     background:radial-gradient(50% 50% at 60% 40%, rgba(34,197,94,.12), transparent 70%)}
   /* particles stay subtle above earth */
-  #hero-canvas{position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:1; opacity:.18}
+  #hero-canvas{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 30%;
+    pointer-events:none; z-index:1; opacity:1; filter:brightness(1.15) contrast(1.05) saturate(1.1);
+    -webkit-mask-image:radial-gradient(140% 118% at 50% 36%, #000 40%, transparent 86%);
+    mask-image:radial-gradient(140% 118% at 50% 36%, #000 40%, transparent 86%)}
   /* faint engineering grid */
   .hero::after{content:""; position:absolute; inset:0; pointer-events:none; z-index:1; opacity:.35;
     background:
@@ -713,7 +716,7 @@ window.PLUGICT = {
 
 <!-- ═══ HERO ═══ -->
 <header class="hero">
-  <canvas id="hero-canvas" aria-hidden="true"></canvas>
+  <img id="hero-canvas" src="assets/img/plugict-hero.gif" alt="" aria-hidden="true">
   <div class="wrap hero-stack">
     <div class="hero-copy">
       <div class="eyebrow fadeup">775 ICT videos. Searchable by your AI.</div>
@@ -1333,70 +1336,8 @@ window.PLUGICT = {
      All gated on prefers-reduced-motion and pointer capability.
      ══════════════════════════════════════════════════════════════ */
 
-  /* ── 1. hero ripple field (pointer-reactive terracotta dot grid) ── */
-  (function(){
-    const cv=document.getElementById('hero-canvas'); if(!cv||REDUCED) return;
-    const x=cv.getContext('2d'); const hero=cv.parentElement;
-    const ACC=[34,197,94];                 // PlugICT green
-    const dpr=Math.min(2,devicePixelRatio||1), MAXR=6;
-    let W=0,H=0,gap=0,R=2,cols=0,rows=0,ox=0,oy=0,dots=[],ripples=[];
-    let running=true,raf=0,last=0,onscreen=true;
-    let vx=0,vy=0,px=0,py=0,real=false,lastMove=-1e9,lastFire=0,vt=0;
-    function resize(){
-      W=hero.clientWidth; H=hero.clientHeight;
-      cv.width=W*dpr; cv.height=H*dpr; cv.style.width=W+'px'; cv.style.height=H+'px';
-      x.setTransform(dpr,0,0,dpr,0,0);
-      gap=Math.max(20,Math.min(W,H)/14); R=Math.max(1.5,gap*0.14);
-      cols=Math.max(3,Math.floor(W/gap)-1); rows=Math.max(3,Math.floor(H/gap)-1);
-      ox=(W-(cols-1)*gap)/2; oy=(H-(rows-1)*gap)/2;
-      dots.length=0;
-      for(let j=0;j<rows;j++)for(let i=0;i<cols;i++)dots.push({hx:ox+i*gap,hy:oy+j*gap,x:0,y:0,s:1,o:0});
-    }
-    function fire(a,b){ if(ripples.length>=MAXR)ripples.shift(); ripples.push({x:a,y:b,t:0,life:1.5}); }
-    function lissa(t){ return [W*0.5+Math.sin(t*0.62)*W*0.32, H*0.5+Math.sin(t*0.41+0.9)*H*0.28]; }
-    function step(dt){
-      const now=performance.now(); if(real&&now-lastMove>2600)real=false; vt+=dt;
-      let tx,ty; if(real){tx=px;ty=py;} else {const p=lissa(vt);tx=p[0];ty=p[1];}
-      vx+=(tx-vx)*Math.min(1,dt*(real?14:5)); vy+=(ty-vy)*Math.min(1,dt*(real?14:5));
-      lastFire+=dt; if(lastFire>=(real?0.34:0.7)){lastFire=0; fire(vx,vy);}
-      for(let k=ripples.length-1;k>=0;k--){ripples[k].t+=dt; if(ripples[k].t>=ripples[k].life)ripples.splice(k,1);}
-      const rs=Math.max(W,H)*0.62;
-      for(let n=0;n<dots.length;n++){
-        const d=dots[n]; let dx=0,dy=0,sc=1,glow=0;
-        for(let k=0;k<ripples.length;k++){
-          const rp=ripples[k], e=rp.t/rp.life, rad=rp.t*rs;
-          const ddx=d.hx-rp.x, ddy=d.hy-rp.y, dist=Math.sqrt(ddx*ddx+ddy*ddy)||1;
-          const band=dist-rad, w=Math.exp(-(band*band)/(gap*gap*2.4)), amp=(1-e)*w;
-          if(amp>0.002){ const push=amp*gap*0.55/dist; dx+=ddx*push; dy+=ddy*push; sc+=amp*1.4; glow+=amp; }
-        }
-        d.x+=(dx-d.x)*Math.min(1,dt*16); d.y+=(dy-d.y)*Math.min(1,dt*16);
-        d.s+=(sc-d.s)*Math.min(1,dt*16); d.o+=(Math.min(1,glow)-d.o)*Math.min(1,dt*14);
-      }
-    }
-    function draw(){
-      x.clearRect(0,0,W,H); const a=ACC;
-      for(let n=0;n<dots.length;n++){
-        const d=dots[n], r=R*d.s, base=(0.14+d.o*0.7).toFixed(3);
-        x.beginPath(); x.arc(d.hx+d.x,d.hy+d.y,r,0,6.2832);
-        x.fillStyle = d.o>0.04 ? 'rgba('+a[0]+','+a[1]+','+a[2]+','+base+')' : 'rgba(107,114,128,'+base+')';
-        x.fill();
-      }
-      const rs=Math.max(W,H)*0.62;
-      for(let k=0;k<ripples.length;k++){ const rp=ripples[k], e=rp.t/rp.life;
-        x.beginPath(); x.arc(rp.x,rp.y,rp.t*rs,0,6.2832);
-        x.strokeStyle='rgba('+a[0]+','+a[1]+','+a[2]+','+((1-e)*0.18).toFixed(3)+')'; x.lineWidth=1.1; x.stroke(); }
-    }
-    function loop(now){ if(!running)return; const dt=Math.min(0.05,(now-last)/1000); last=now; step(dt); draw(); raf=requestAnimationFrame(loop); }
-    function play(){ if(!running&&onscreen){running=true; last=performance.now(); raf=requestAnimationFrame(loop);} }
-    function pause(){ running=false; if(raf)cancelAnimationFrame(raf); raf=0; }
-    window.addEventListener('resize',resize,{passive:true});
-    window.addEventListener('pointermove',e=>{ const r=cv.getBoundingClientRect();
-      const lx=e.clientX-r.left, ly=e.clientY-r.top;
-      if(lx>=0&&ly>=0&&lx<=r.width&&ly<=r.height){ px=lx; py=ly; real=true; lastMove=performance.now(); } },{passive:true});
-    document.addEventListener('visibilitychange',()=>{ document.hidden?pause():play(); });
-    if('IntersectionObserver' in window){ new IntersectionObserver(es=>{ onscreen=es[0].isIntersecting; onscreen?play():pause(); },{threshold:0}).observe(hero); }
-    resize(); last=performance.now(); raf=requestAnimationFrame(loop);
-  })();
+  /* ── 1. hero background is now a static GIF (assets/img/plugict-hero.gif);
+        the old pointer-reactive dot-field canvas was removed. ── */
 
   /* ── 2. cursor spotlight (fine-pointer only) ── */
   (function(){
