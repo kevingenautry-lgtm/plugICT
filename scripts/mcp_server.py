@@ -1,5 +1,5 @@
 """
-ICT Knowledge Vault — MCP Server v3.0
+PlugICT — MCP Server v3.6.1
 =====================================
 Exposes the vault as tools for any MCP-compatible AI agent
 (Claude Desktop, Cursor, Hermes, ...).
@@ -524,7 +524,7 @@ from mcp.server.models import InitializationOptions
 from mcp.types import Tool, TextContent
 
 SERVER_NAME = "ict-knowledge-vault"
-SERVER_VERSION = "3.1.0"
+SERVER_VERSION = "3.6.1"
 server = Server(SERVER_NAME)
 
 

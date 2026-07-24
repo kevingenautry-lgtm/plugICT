@@ -35,7 +35,7 @@ ARTIFACT_DIR = resolve_artifact_dir(SOURCE_DIR)
 SCRIPT_DIR = Path(__file__).parent.resolve()
 # Buyers get the AI-agent (MCP) product only — no CLI search tool.
 CODE_FILES = ["mcp_server.py", "vault_core.py", "metadata_enricher.py"]
-ROOT_ASSET_FILES = ["VAULT.md"]
+ROOT_ASSET_FILES = ["VAULT.md", "setup.py"]
 DELIVERY_ROOT = Path(os.environ.get("ICT_DELIVERY_DIR", ARTIFACT_DIR / "delivery"))
 
 
@@ -209,50 +209,34 @@ def _write_requirements(delivery_dir):
 
 
 def _write_installers(delivery_dir):
-    # setup regenerates the example configs ON THE BUYER'S MACHINE via
-    # examples/make_configs.py, so the paths inside them are always correct
-    # no matter where the buyer extracted the folder.
+    # setup.bat/setup.sh are only OS wrappers. setup.py is the single canonical
+    # installer for both repository clones and downloaded buyer packages.
     setup_bat = delivery_dir / "setup.bat"
-    setup_bat.write_text(
-        "@echo off\r\n"
-        "echo ========================================\r\n"
-        "echo ICT Knowledge Vault - Setup\r\n"
-        "echo ========================================\r\n"
-        "echo.\r\n"
-        "echo Creating isolated environment (.venv)...\r\n"
-        "py -m venv .venv || python -m venv .venv\r\n"
-        "echo Installing dependencies (first run downloads ~1 min)...\r\n"
-        ".venv\\Scripts\\python -m pip install --upgrade pip\r\n"
-        ".venv\\Scripts\\pip install -r requirements.txt\r\n"
-        "echo.\r\n"
-        "echo Writing AI-agent configs for this folder...\r\n"
-        ".venv\\Scripts\\python examples\\make_configs.py\r\n"
-        "echo.\r\n"
-        "echo Verifying your vault...\r\n"
-        ".venv\\Scripts\\python mcp_server.py --doctor\r\n"
-        "echo.\r\n"
-        "echo ========================================\r\n"
-        "echo Setup complete!\r\n"
-        "echo Now connect your AI agent:\r\n"
-        "echo   add examples\\claude_desktop_config.json to Claude Desktop\r\n"
-        "echo   (see docs\\AI-AGENT-GUIDE.md)\r\n"
-        "echo Then just ask your AI about any ICT concept.\r\n"
-        "echo ========================================\r\n"
-        "pause\r\n"
-    )
+    crlf = chr(13) + chr(10)
+    setup_bat.write_text(crlf.join([
+        "@echo off",
+        "title PlugICT Installer",
+        "echo Starting PlugICT installer...",
+        "python --version >nul 2>&1",
+        "if errorlevel 1 (",
+        "  echo Python 3.10+ is required: https://www.python.org/downloads/",
+        "  pause",
+        "  exit /b 1",
+        ")",
+        "python setup.py",
+        "if errorlevel 1 (",
+        "  echo Installation encountered an error. See messages above.",
+        "  pause",
+        "  exit /b 1",
+        ")",
+        "echo Setup complete. You can close this window.",
+        "pause",
+    ]) + crlf, encoding="utf-8")
     (delivery_dir / "setup.sh").write_text(
         "#!/usr/bin/env bash\n"
         "set -e\n"
         "cd \"$(dirname \"$0\")\"\n"
-        "echo 'Creating isolated environment (.venv)...'\n"
-        "python3 -m venv .venv\n"
-        ".venv/bin/pip install --upgrade pip\n"
-        ".venv/bin/pip install -r requirements.txt\n"
-        "echo 'Writing AI-agent configs for this folder...'\n"
-        ".venv/bin/python examples/make_configs.py\n"
-        "echo 'Verifying your vault...'\n"
-        ".venv/bin/python mcp_server.py --doctor\n"
-        "echo 'Setup complete. Connect your AI agent — see docs/AI-AGENT-GUIDE.md'\n")
+        "python3 setup.py\n")
     try:
         os.chmod(delivery_dir / "setup.sh", 0o755)
     except OSError:

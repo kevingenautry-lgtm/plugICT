@@ -15,6 +15,26 @@ FALLBACK_URL = f"https://github.com/{REPO}/releases/latest/download/{ASSET_NAME}
 REQUIRED_FILES = ["mcp_server.py", "vault_core.py", "ict-vault.kevin", "license.key"]
 HERE = Path(__file__).parent.resolve()
 
+
+def runtime_python():
+    """Return the interpreter dedicated to this buyer installation."""
+    if sys.platform == "win32":
+        return HERE / ".venv" / "Scripts" / "python.exe"
+    return HERE / ".venv" / "bin" / "python"
+
+
+def create_runtime_environment():
+    """Create the buyer-local virtual environment once, never use global pip."""
+    python = runtime_python()
+    if python.exists():
+        print("  Isolated environment already present")
+        return
+    subprocess.check_call([sys.executable, "-m", "venv", str(HERE / ".venv")])
+    if not python.exists():
+        print("ERROR: Could not create the isolated Python environment.")
+        sys.exit(1)
+    print("  Isolated environment created")
+
 def step(msg):
     print(f"\n=== {msg} ===")
 
@@ -34,7 +54,7 @@ def install_deps():
         print("  No requirements.txt — skipping")
         return
     subprocess.check_call([
-        sys.executable, "-m", "pip", "install", "-q", "-r", str(req)
+        str(runtime_python()), "-m", "pip", "install", "-q", "-r", str(req)
     ])
     print("  Dependencies installed")
 
@@ -126,7 +146,7 @@ def verify():
 
     try:
         result = subprocess.run(
-            [sys.executable, str(doctor), "--doctor"],
+            [str(runtime_python()), str(doctor), "--doctor"],
             capture_output=True, text=True, timeout=30
         )
         if result.returncode == 0:
@@ -138,6 +158,7 @@ def verify():
 
 def print_mcp_config():
     abs_path = HERE / "mcp_server.py"
+    abs_python = runtime_python()
 
     print("""
 === MCP Configuration ===
@@ -151,7 +172,7 @@ For Claude Desktop:
   {
     "mcpServers": {
       "plugict": {
-        "command": "python",
+        "command": "%s",
         "args": ["%s"]
       }
     }
@@ -162,18 +183,18 @@ For Hermes Agent:
 
   mcp_servers:
     plugict:
-      command: python
+      command: "%s"
       args: ["%s"]
 
 For Cursor:
   Settings → Features → MCP → Add:
   Name: plugict
   Type: command
-  Command: python "%s"
+  Command: "%s" "%s"
 
 Then restart your AI agent and ask:
   "What is FVG in ICT?"
-""" % (abs_path, abs_path, abs_path))
+""" % (abs_python, abs_path, abs_python, abs_path, abs_python, abs_path))
 
 def main():
     print("=" * 50)
@@ -191,6 +212,12 @@ def main():
         print("  Vault + license already present")
         reinstall = prompt("Reinstall? (y/N)").lower()
         if reinstall != 'y':
+            step("Creating isolated environment")
+            create_runtime_environment()
+            step("Installing dependencies")
+            install_deps()
+            step("Verifying installation")
+            verify()
             print_mcp_config()
             print("\n✅ Already set up. Just paste the MCP config above into your AI agent.")
             return
@@ -218,6 +245,9 @@ def main():
     if key:
         step("Writing license")
         write_license(key)
+
+    step("Creating isolated environment")
+    create_runtime_environment()
 
     step("Installing dependencies")
     install_deps()
