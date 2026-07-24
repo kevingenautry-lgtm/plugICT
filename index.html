@@ -716,7 +716,11 @@ window.PLUGICT = {
 
 <!-- ═══ HERO ═══ -->
 <header class="hero">
-  <img id="hero-canvas" src="assets/img/plugict-hero.gif" alt="" aria-hidden="true">
+  <video id="hero-canvas" autoplay loop muted playsinline preload="metadata"
+         poster="assets/img/plugict-hero-poster.jpg" aria-hidden="true">
+    <source src="assets/img/plugict-hero.webm" type="video/webm">
+    <source src="assets/img/plugict-hero.mp4" type="video/mp4">
+  </video>
   <div class="wrap hero-stack">
     <div class="hero-copy">
       <div class="eyebrow fadeup">775 ICT videos. Searchable by your AI.</div>
@@ -1336,8 +1340,14 @@ window.PLUGICT = {
      All gated on prefers-reduced-motion and pointer capability.
      ══════════════════════════════════════════════════════════════ */
 
-  /* ── 1. hero background is now a static GIF (assets/img/plugict-hero.gif);
-        the old pointer-reactive dot-field canvas was removed. ── */
+  /* ── 1. hero background is a looping <video> (assets/img/plugict-hero.*);
+        the old pointer-reactive dot-field canvas was removed. Respect
+        reduced-motion by pausing to the poster frame. ── */
+  (function(){
+    if(!REDUCED) return;
+    const v=document.getElementById('hero-canvas');
+    if(v&&v.tagName==='VIDEO'){ v.removeAttribute('autoplay'); v.pause(); }
+  })();
 
   /* ── 2. cursor spotlight (fine-pointer only) ── */
   (function(){
