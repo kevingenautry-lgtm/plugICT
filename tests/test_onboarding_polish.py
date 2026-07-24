@@ -109,6 +109,26 @@ def test_setup_generates_buyer_local_config_files(tmp_path, monkeypatch):
     assert calls == [[expected_python, "-E", "-X", "utf8", str(generator)]]
 
 
+def test_zip_buyer_key_does_not_redownload_the_bundled_vault(tmp_path, monkeypatch):
+    setup = _load_setup_module()
+    (tmp_path / "ict-vault.kevin").write_bytes(b"bundled encrypted vault")
+    monkeypatch.setattr(setup, "HERE", tmp_path)
+    monkeypatch.setattr(setup, "check_python", lambda: None)
+    monkeypatch.setattr(setup, "prompt", lambda _label: "buyer-license-key")
+    monkeypatch.setattr(setup, "create_runtime_environment", lambda: None)
+    monkeypatch.setattr(setup, "install_deps", lambda: None)
+    monkeypatch.setattr(setup, "verify", lambda: None)
+    monkeypatch.setattr(setup, "write_mcp_configs", lambda: None)
+    monkeypatch.setattr(setup, "print_mcp_config", lambda: None)
+    downloads = []
+    monkeypatch.setattr(setup, "download_vault", lambda: downloads.append(True))
+
+    setup.main()
+
+    assert downloads == []
+    assert (tmp_path / "license.key").read_text(encoding="utf-8") == "buyer-license-key"
+
+
 def test_hosted_package_uses_setup_py_as_the_single_installer(tmp_path):
     import sys
 
@@ -127,4 +147,4 @@ def test_hosted_package_uses_setup_py_as_the_single_installer(tmp_path):
 def test_mcp_server_reports_current_public_release_version():
     source = (ROOT / "scripts" / "mcp_server.py").read_text(encoding="utf-8")
 
-    assert 'SERVER_VERSION = "3.6.1"' in source
+    assert 'PlugICT — MCP Server v3.6.2' in source

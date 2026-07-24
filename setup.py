@@ -253,8 +253,11 @@ def main():
             print("  No key entered — exiting")
             sys.exit(1)
 
-    step("Downloading vault")
-    download_vault()
+    if vault.exists():
+        print("  Using encrypted vault included with this package")
+    else:
+        step("Downloading vault")
+        download_vault()
 
     if key:
         step("Writing license")

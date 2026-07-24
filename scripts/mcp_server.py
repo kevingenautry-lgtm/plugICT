@@ -1,5 +1,5 @@
 """
-PlugICT — MCP Server v3.6.1
+PlugICT — MCP Server v3.6.2
 =====================================
 Exposes the vault as tools for any MCP-compatible AI agent
 (Claude Desktop, Cursor, Hermes, ...).
